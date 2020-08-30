@@ -1,0 +1,31 @@
+{
+	"folders": [
+		{
+			"path": "Cliente"
+		},
+		{
+			"path": "Comanda"
+		},
+		{
+			"path": "Sindicato"
+		},
+		{
+			"path": "App"
+		},
+		{
+			"path": "Restaurante"
+		},
+		{
+			"path": "shared"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"cliente.h": "c",
+			"comanda.h": "c",
+			"sindicato.h": "c",
+			"app.h": "c",
+			"restaurante.h": "c"
+		}
+	}
+}

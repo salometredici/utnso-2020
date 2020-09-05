@@ -12,9 +12,9 @@ make all
 sudo make install
 cd $CWD
 echo -e "\n\nBuilding projects...\n\n"
-make -C ./Cliente
-make -C ./App
-make -C ./Restaurante
-make -C ./Sindicato
-make -C ./Comanda
+make -C ./sliente
+make -C ./app
+make -C ./restaurante
+make -C ./sindicato
+make -C ./comanda
 echo -e "\n\nDeploy done!\n\n"

@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "comanda.h": "c"
+	"app.h": "c",
+	"cliente.h": "c",
+    "comanda.h": "c",
+	"restaurante.h": "c",
+	"sindicato.h": "c",
+    "shared_utils.h": "c"
     }
 }

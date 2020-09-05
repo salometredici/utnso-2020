@@ -1,19 +1,19 @@
 {
 	"folders": [
 		{
-			"path": "Cliente"
+			"path": "cliente"
 		},
 		{
-			"path": "Comanda"
+			"path": "comanda"
 		},
 		{
-			"path": "Sindicato"
+			"path": "sindicato"
 		},
 		{
-			"path": "App"
+			"path": "app"
 		},
 		{
-			"path": "Restaurante"
+			"path": "restaurante"
 		},
 		{
 			"path": "shared"

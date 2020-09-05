@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "sindicato Normal",
+            "type": "shell",
+            "command": "./exec",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "sindicato Valgrind",
+            "type": "shell",
+            "command": "./vexec",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}

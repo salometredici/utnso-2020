@@ -1,6 +1,6 @@
 #include "../include/cliente.h"
 
-int main(void)
+int main(int argc, char* argv[])
 {
 	inicializarProceso(CLIENTE);
     //conexionApp = conectarseA(APP);
@@ -18,7 +18,9 @@ int main(void)
 
 	// paquete(conexion);
 
-	//terminar_programa(CON, logger, config);
+	liberarConexion(conexionRestaurante);
+    finalizarProceso();
+    return EXIT_SUCCESS;
 }
 
 void leer_consola(t_log* logger)
@@ -50,11 +52,4 @@ void paquete(int conexion)
 	leer_consola_y((void*) agregar);
 	enviar_paquete(paquete, conexion);
 	eliminar_paquete(paquete);
-}
-
-void terminar_programa(int conexion, t_log* logger, t_config* config)
-{
-    log_destroy(logger);
-	config_destroy(config);
-	liberar_conexion(conexion);
 }

@@ -17,7 +17,8 @@ int main(int argc, char* argv[])
 			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
 		}
 	}
-    finalizarProceso(socketServidor);
+	liberarConexion(socketServidor);
+    finalizarProceso();
     return EXIT_SUCCESS;
 }
 

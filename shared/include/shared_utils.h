@@ -36,7 +36,7 @@ t_log *logger;
 t_config *config;
 
 void inicializarProceso(p_code proceso);
-void finalizarProceso(int socket);
+void finalizarProceso();
 
 // Config methods
 

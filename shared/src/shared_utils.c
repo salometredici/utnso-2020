@@ -1,6 +1,7 @@
 #include "../include/shared_utils.h"
+#include <errno.h>
 
-char* mi_funcion_compartida(){
+char* mi_funcion_compartida() {
     return "Hice uso de la shared!";
 }
 
@@ -39,71 +40,75 @@ void inicializarProceso(p_code proceso) {
 	}
 	logger = log_create(log_path, program, 1, LOG_LEVEL_INFO);
 	config = config_create(config_path);
-}
-
-// Conexiones
-
-int conectarseA(p_code proceso)
-{
-	char *ip;
-	char *puerto;
-	switch(proceso) {
-		case APP:
-			ip = config_get_string_value(config, "IP_APP");
-			puerto = config_get_string_value(config, "PUERTO_APP");
-		case CLIENTE:
-			ip = config_get_string_value(config, "IP_CLIENTE");
-			puerto = config_get_string_value(config, "PUERTO_CLIENTE");
-		case COMANDA:
-			ip = config_get_string_value(config, "IP_COMANDA");
-			puerto = config_get_string_value(config, "PUERTO_COMANDA");
-		case RESTAURANTE:
-			ip = config_get_string_value(config, "IP_RESTAURANTE");
-			puerto = config_get_string_value(config, "PUERTO_RESTAURANTE");
-		case SINDICATO:
-			ip = config_get_string_value(config, "IP_SINDICATO");
-			puerto = config_get_string_value(config, "PUERTO_SINDICATO");
-	}
-	return crearConexion(ip, puerto);
-}
-
-int crearConexion(char *ip, char *puerto)
-{
-	int socketCliente;
-	struct addrinfo hints;
-	struct addrinfo *server_info;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(ip, puerto, &hints, &server_info);
-
-	if ((socketCliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol)) == -1) {
-		log_error(logger, "No se pudo crear el socket. IP: %s, PUERTO: %s", ip, puerto);
-		exit(EXIT_FAILURE);
-	}
-
-	if (connect(socketCliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
-		log_error(logger, "No se pudo realizar la conexión. IP: %s, PUERTO: %s", ip, puerto);
-		close(socketCliente);
-		exit(EXIT_FAILURE);
-	}
-
-	freeaddrinfo(server_info);
-
-	return socketCliente;
+	log_info(logger, "Proceso iniciado ..."); // Info
 }
 
 // Config
 
-char* obtenerPuertoEscucha() {
-	return config_get_string_value(config, "PUERTO_ESCUCHA");
+int obtenerPuertoEscucha() {
+	return config_get_int_value(config, "PUERTO_ESCUCHA");
 }
 
-int obtenerMaxClientes() {
-	return config_get_int_value(config, "MAX_CLIENTES");
+// Conexiones
+
+int crearSocket(int puerto) {
+	int fd;
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+		log_error(logger, "Fallo al crear el socket servidor en el puerto %d", puerto);
+		exit(EXIT_FAILURE);
+	}
+	return fd;
+}
+
+int conectarseA(p_code proceso) {
+	char *ip;
+	int puerto;
+	switch(proceso) {
+		case APP:
+			ip = config_get_string_value(config, "IP_APP");
+			puerto = config_get_int_value(config, "PUERTO_APP");
+			break;
+		case CLIENTE:
+			ip = config_get_string_value(config, "IP_CLIENTE");
+			puerto = config_get_int_value(config, "PUERTO_CLIENTE");
+			break;
+		case COMANDA:
+			ip = config_get_string_value(config, "IP_COMANDA");
+			puerto = config_get_int_value(config, "PUERTO_COMANDA");
+			break;
+		case RESTAURANTE:
+			ip = config_get_string_value(config, "IP_RESTAURANTE");
+			puerto = config_get_int_value(config, "PUERTO_RESTAURANTE");
+			break;
+		case SINDICATO:
+			ip = config_get_string_value(config, "IP_SINDICATO");
+			puerto = config_get_int_value(config, "PUERTO_SINDICATO");
+			break;
+	}
+	log_info(logger, "Intentando conectarse a IP: %s, PUERTO: %d", ip, puerto);
+	return crearConexion(ip, puerto);
+}
+
+int crearConexion(char *ip, int puerto) {
+	int socketCliente;
+	struct sockaddr_in dir;
+
+	socketCliente = crearSocket(puerto);
+
+	dir.sin_family = AF_INET;
+	dir.sin_port = htons(puerto);
+	dir.sin_addr.s_addr = inet_addr(ip);
+	memset(&(dir.sin_zero), '\0', 8);
+	
+	if (connect(socketCliente, (struct sockaddr*)&dir, sizeof(struct sockaddr)) == -1) {
+		log_error(logger, "Fallo al realizar la conexión con IP: %s, PUERTO: %d", ip, puerto);
+		close(socketCliente);
+		exit(EXIT_FAILURE);
+	}
+
+	log_info(logger, "Conexión creada con el puerto %d", puerto);
+
+	return socketCliente;
 }
 
 // Servidor
@@ -112,29 +117,25 @@ int iniciarServidor() {
 	return abrirSocketEscucha(obtenerPuertoEscucha());
 }
 
-int abrirSocketEscucha(char *puerto)
+int abrirSocketEscucha(int puerto)
 {
-	log_debug(logger, "Iniciando servidor...");
+	log_info(logger, "Iniciando servidor...");
 	int option = 1;
 	int socketEscucha;
 	struct sockaddr_in dirServidor;
 
-	if ((socketEscucha = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		log_error(logger, "Fallo al crear el socket servidor en el puerto %s", puerto);
-		exit(EXIT_FAILURE);
-	}
+	socketEscucha = crearSocket(puerto);
 
-	if (setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
-	{
+	if (setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
 		log_error(logger, "Fallo en setsockopt");
 		close(socketEscucha);
 		exit(EXIT_FAILURE);
 	}
 
-	memset(&dirServidor, 0, sizeof(struct sockaddr_in));
 	dirServidor.sin_family = AF_INET;
-	dirServidor.sin_addr.s_addr = INADDR_ANY;
 	dirServidor.sin_port = htons(puerto);
+	dirServidor.sin_addr.s_addr = INADDR_ANY;
+	memset(&(dirServidor.sin_zero), '\0', 8);
 
 	if (bind(socketEscucha, (struct sockaddr*)&dirServidor, sizeof(struct sockaddr_in)) == -1) {
 		log_error(logger, "Fallo al asignar el puerto al socket servidor");
@@ -142,20 +143,28 @@ int abrirSocketEscucha(char *puerto)
 		exit(EXIT_FAILURE);
 	}
 
-	listen(socketEscucha, obtenerMaxClientes());
-	log_debug(logger, "Escuchando conexiones en %s ...", puerto);
+	if (listen(socketEscucha, 5) == -1) {
+		log_error(logger, "Fallo en listen");
+		exit(EXIT_FAILURE);
+	}
+	log_info(logger, "Escuchando conexiones en %d ...", puerto);
     return socketEscucha;
 }
 
 int aceptarCliente(int socketServidor) {
+	int socketConexion;
 	struct sockaddr_in dirCliente;
-	return accept(socketServidor, (void*)&dirCliente, sizeof(struct sockaddr_in));
+	socklen_t dirSize = sizeof(struct sockaddr_in);
+	if ((socketConexion = accept(socketServidor, (struct sockaddr*)&dirCliente, &dirSize)) == -1) {
+		log_error(logger, "Fallo en la conexión del socket %d", socketServidor);
+		log_error(logger, "Valor de errno: %d", errno);
+	}
+	return socketConexion;
 }
 
 // Finalizar proceso
 
-void finalizarProceso(int conexion) {
-	liberarConexion(conexion);
+void finalizarProceso() {
 	config_destroy(config);
 	log_destroy(logger);
 }

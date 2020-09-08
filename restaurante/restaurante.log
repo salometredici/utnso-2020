@@ -1,1 +1,2 @@
-[
+[ERROR] 14:48:10:130 restaurante/(11660:11660): Fallo en la conexión del socket 4
+[ERROR] 14:48:10:132 restaurante/(11660:11660): Valor de errno: 4

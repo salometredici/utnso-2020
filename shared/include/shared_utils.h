@@ -21,8 +21,7 @@ typedef struct {
 	int socketThread;
 } pthread_data;
 
-typedef enum
-{
+typedef enum {
 	APP,
 	CLIENTE,
 	COMANDA,
@@ -40,8 +39,7 @@ void finalizarProceso();
 
 // Config methods
 
-char* obtenerPuertoEscucha();
-int obtenerMaxClientes();
+int obtenerPuertoEscucha();
 
 // Conexiones
 

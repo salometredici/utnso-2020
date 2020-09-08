@@ -1,5 +1,25 @@
 #include "../include/restaurante.h"
 
+void *atenderConexiones(void *conexionNueva)
+{
+    pthread_data *t_data = (pthread_data*) conexionNueva;
+    int info = t_data->socketThread;
+    free(t_data);
+
+	// Por ahora hasta que le agreguemos su propia lógica
+	char* leido = readline(">");
+	while(strncmp(leido, "", 1) != 0) {
+		log_info(logger, "Recibí un mensaje del socket %d: %s", info, leido);
+		free(leido);
+		leido = readline(">");
+	}
+	free(leido);
+
+	// Esto sí tiene que estar para finalizar el hilo por ahora cuando le llegue la cadena vacía
+    pthread_exit(EXIT_SUCCESS);
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
 	inicializarProceso(RESTAURANTE);
@@ -20,24 +40,4 @@ int main(int argc, char* argv[])
 	liberarConexion(socketServidor);
     finalizarProceso();
     return EXIT_SUCCESS;
-}
-
-void *atenderConexiones(void *conexionNueva)
-{
-    pthread_data *t_data = (pthread_data*) conexionNueva;
-    int info = t_data->socketThread;
-    free(t_data);
-
-	// Por ahora hasta que le agreguemos su propia lógica
-	char* leido = readline(">");
-	while(strncmp(leido, "", 1) != 0) {
-		log_info(logger, "Recibí un mensaje del socket %d: %s", info, leido);
-		free(leido);
-		leido = readline(">");
-	}
-	free(leido);
-
-	// Esto sí tiene que estar para finalizar el hilo por ahora cuando le llegue la cadena vacía
-    pthread_exit(EXIT_SUCCESS);
-    return 0;
 }

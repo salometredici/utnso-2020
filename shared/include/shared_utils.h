@@ -30,6 +30,27 @@ typedef enum
 	SINDICATO
 } p_code;
 
+// Commons
+
+t_log *logger;
+t_config *config;
+
+void inicializarProceso(p_code proceso);
+void finalizarProceso(int socket);
+
+// Config methods
+
+char* obtenerPuertoEscucha();
+int obtenerMaxClientes();
+
+// Conexiones
+
+int conectarseA(p_code proceso);
+int iniciarServidor();
+int aceptarCliente(int socketServidor);
+void liberarConexion(int conexion);
+
+//TODO
 
 typedef enum
 {
@@ -49,32 +70,15 @@ typedef struct
 	t_buffer* buffer;
 } t_paquete;
 
-// Commons
-t_log *logger;
-t_config *config;
-
-void inicializarProceso(p_code proceso);
-
-// Conexiones
-
-int conectarseA(p_code proceso);
-
-
 void* recibir_buffer(int*, int);
-
-int iniciar_servidor(void);
-int esperar_cliente(int);
 t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
-
-int crear_conexion(char* ip, char* puerto); //Ya no va a estar más porque vamos usar conectarseA(proceso)
 void enviar_mensaje(char* mensaje, int socket_cliente);
 t_paquete* crear_paquete(void);
 t_paquete* crear_super_paquete(void);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
-void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 

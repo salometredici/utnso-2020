@@ -147,8 +147,7 @@ int abrirSocketEscucha(char *puerto)
     return socketEscucha;
 }
 
-int aceptarCliente(int socketServidor)
-{
+int aceptarCliente(int socketServidor) {
 	struct sockaddr_in dirCliente;
 	return accept(socketServidor, (void*)&dirCliente, sizeof(struct sockaddr_in));
 }
@@ -166,7 +165,7 @@ void liberarConexion(int socket)
 	close(socket);
 }
 
-//
+//TODO
 
 void enviarMensaje(char* mensaje, int socket_cliente)
 {

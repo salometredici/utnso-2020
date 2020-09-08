@@ -1,8 +1,6 @@
 #include "../include/cliente.h"
 
-//void* threadLecturaConsola(void * args)
-void threadLecturaConsola()
-{
+void* threadLecturaConsola(void * args) {
     printf("Iniciando la consola ...\n");
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
 
@@ -119,12 +117,12 @@ int main(int argc, char* argv[]) {
 	conexionRestaurante = conectarseA(RESTAURANTE);
 	//conexionSindicato = conectarseA(SINDICATO);
 
-	// Inicio del hilo de la consola y su lectura - Por ahora comentado hasta que veamos cómo hacer para que funcione este thread
-	//pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
-    //pthread_detach(threadConsola);
+	// Inicio del hilo de la consola y su lectura
+	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
+    pthread_detach(threadConsola);
 
 	while (1) {
-		threadLecturaConsola();
+		//TODO: Lógica del Cliente
 	}
 
 	liberarConexion(conexionRestaurante);

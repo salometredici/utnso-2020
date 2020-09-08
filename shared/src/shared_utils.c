@@ -69,6 +69,7 @@ int conectarseA(p_code proceso)
 
 int crearConexion(char *ip, char *puerto)
 {
+	int socketCliente;
 	struct addrinfo hints;
 	struct addrinfo *server_info;
 
@@ -79,19 +80,20 @@ int crearConexion(char *ip, char *puerto)
 
 	getaddrinfo(ip, puerto, &hints, &server_info);
 
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
-
-	if (socket_cliente == -1) {
+	if ((socketCliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol)) == -1) {
 		log_error(logger, "No se pudo crear el socket. IP: %s, PUERTO: %s", ip, puerto);
+		exit(EXIT_FAILURE);
 	}
 
-	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
+	if (connect(socketCliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
 		log_error(logger, "No se pudo realizar la conexión. IP: %s, PUERTO: %s", ip, puerto);
+		close(socketCliente);
+		exit(EXIT_FAILURE);
 	}
 
 	freeaddrinfo(server_info);
 
-	return socket_cliente;
+	return socketCliente;
 }
 
 // Config
@@ -100,56 +102,68 @@ char* obtenerPuertoEscucha() {
 	return config_get_string_value(config, "PUERTO_ESCUCHA");
 }
 
+int obtenerMaxClientes() {
+	return config_get_int_value(config, "MAX_CLIENTES");
+}
+
 // Servidor
 
-int iniciarServidor(p_code proceso) {
-	log_debug(logger, "Iniciando servidor...");
-	char *puerto = obtenerPuertoEscucha();
-	int socketServidor = abrirSocketEscucha(puerto);
-
+int iniciarServidor() {
+	return abrirSocketEscucha(obtenerPuertoEscucha());
 }
 
 int abrirSocketEscucha(char *puerto)
 {
-	int socketServidor;
-	struct sockaddr_in servidor;
+	log_debug(logger, "Iniciando servidor...");
+	int option = 1;
+	int socketEscucha;
+	struct sockaddr_in dirServidor;
 
-	if ((socketServidor = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+	if ((socketEscucha = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+		log_error(logger, "Fallo al crear el socket servidor en el puerto %s", puerto);
+		exit(EXIT_FAILURE);
+	}
 
+	if (setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1)
+	{
+		log_error(logger, "Fallo en setsockopt");
+		close(socketEscucha);
+		exit(EXIT_FAILURE);
+	}
 
+	memset(&dirServidor, 0, sizeof(struct sockaddr_in));
+	dirServidor.sin_family = AF_INET;
+	dirServidor.sin_addr.s_addr = INADDR_ANY;
+	dirServidor.sin_port = htons(puerto);
 
+	if (bind(socketEscucha, (struct sockaddr*)&dirServidor, sizeof(struct sockaddr_in)) == -1) {
+		log_error(logger, "Fallo al asignar el puerto al socket servidor");
+		close(socketEscucha);
+		exit(EXIT_FAILURE);
+	}
 
+	listen(socketEscucha, obtenerMaxClientes());
+	log_debug(logger, "Escuchando conexiones en %s ...", puerto);
+    return socketEscucha;
+}
 
+int aceptarCliente(int socketServidor)
+{
+	struct sockaddr_in dirCliente;
+	return accept(socketServidor, (void*)&dirCliente, sizeof(struct sockaddr_in));
+}
 
+// Finalizar proceso
 
-    struct addrinfo hints, *servinfo, *p;
+void finalizarProceso(int conexion) {
+	liberarConexion(conexion);
+	config_destroy(config);
+	log_destroy(logger);
+}
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    getaddrinfo(IP, PUERTO, &hints, &servinfo);
-
-    for (p=servinfo; p != NULL; p = p->ai_next)
-    {
-        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-            continue;
-
-        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-            close(socket_servidor);
-            continue;
-        }
-        break;
-    }
-
-	listen(socket_servidor, SOMAXCONN);
-
-    freeaddrinfo(servinfo);
-
-    log_trace(logger, "Listo para escuchar a mi cliente");
-
-    return socket_servidor;
+void liberarConexion(int socket)
+{
+	close(socket);
 }
 
 //
@@ -240,23 +254,6 @@ void eliminar_paquete(t_paquete* paquete)
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
-}
-
-void liberar_conexion(int socket_cliente)
-{
-	close(socket_cliente);
-}
-
-int esperar_cliente(int socket_servidor)
-{
-	struct sockaddr_in dir_cliente;
-	int tam_direccion = sizeof(struct sockaddr_in);
-
-	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
-
-	log_info(logger, "Se conecto un cliente!");
-
-	return socket_cliente;
 }
 
 int recibir_operacion(int socket_cliente)

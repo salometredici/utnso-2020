@@ -13,12 +13,13 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 
-#define IP "127.0.0.1"
-#define PUERTO "4444"
-
 #define BASE_PATH "/utnso/tp-2020-2c-death-code/"
 
 char* mi_funcion_compartida();
+
+typedef struct {
+	int socketThread;
+} pthread_data;
 
 typedef enum
 {

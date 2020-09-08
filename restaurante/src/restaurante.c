@@ -1,39 +1,42 @@
 #include "../include/restaurante.h"
 
-int main(void)
+int main(int argc, char* argv[])
 {
-	void iterator(char* value)
-	{
-		printf("%s\n", value);
-	}
-
 	inicializarProceso(RESTAURANTE);
-
-	int server_fd = iniciar_servidor();
-	log_info(logger, "Servidor listo para recibir al cliente");
-	int cliente_fd = esperar_cliente(server_fd);
-
-	t_list* lista;
-	while(1)
-	{
-		int cod_op = recibir_operacion(cliente_fd);
-		switch(cod_op)
-		{
-		case MENSAJE:
-			recibir_mensaje(cliente_fd);
-			break;
-		case PAQUETE:
-			lista = recibir_paquete(cliente_fd);
-			printf("Me llegaron los siguientes valores:\n");
-			list_iterate(lista, (void*) iterator);
-			break;
-		case -1:
-			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			return EXIT_FAILURE;
-		default:
-			log_warning(logger, "Operacion desconocida. No quieras meter la pata");
-			break;
+	socketServidor = iniciarServidor();
+	// Inicio del bucle que va a generar los diferentes hilos de conexión
+	int fd;
+	while (1) {
+		fd = aceptarCliente(socketServidor);
+		if (fd != -1) {
+			// Creo un nuevo hilo para la conexión aceptada
+			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
+			t_data->socketThread = fd;
+			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
+			pthread_detach(threadConexiones);
+			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
 		}
 	}
-	return EXIT_SUCCESS;
+    finalizarProceso(socketServidor);
+    return EXIT_SUCCESS;
+}
+
+void *atenderConexiones(void *conexionNueva)
+{
+    pthread_data *t_data = (pthread_data*) conexionNueva;
+    int info = t_data->socketThread;
+    free(t_data);
+
+	// Por ahora hasta que le agreguemos su propia lógica
+	char* leido = readline(">");
+	while(strncmp(leido, "", 1) != 0) {
+		log_info(logger, "Recibí un mensaje del socket %d: %s", info, leido);
+		free(leido);
+		leido = readline(">");
+	}
+	free(leido);
+
+	// Esto sí tiene que estar para finalizar el hilo por ahora cuando le llegue la cadena vacía
+    pthread_exit(EXIT_SUCCESS);
+    return 0;
 }

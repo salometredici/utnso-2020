@@ -4,8 +4,16 @@
 #include <stdlib.h>
 #include <commons/string.h>
 #include <readline/readline.h>
+#include <pthread.h>
 #include "../../shared/include/shared_utils.h"
 #include "tests.h"
+
+int conexionApp;
+int conexionComanda;
+int conexionRestaurante;
+int conexionSindicato;
+
+pthread_t threadConsola;
 
 t_log* iniciar_logger(void);
 t_config* leer_config(void);

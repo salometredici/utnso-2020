@@ -2,26 +2,23 @@
 
 int main(void)
 {
-	int conexion;
-	char* ip;
-	char* puerto;
-
 	inicializarProceso(CLIENTE);
+    //conexionApp = conectarseA(APP);
+	//conexionComanda = conectarseA(COMANDA);
+	conexionRestaurante = conectarseA(RESTAURANTE);
+	//conexionSindicato = conectarseA(SINDICATO);
+
+	// Inicio del hilo de la consola y su lectura
+	pthread_create(&threadConsola, NULL, (void *)threadLecturaConsola, NULL);
+    pthread_detach(threadConsola);
 
 	leer_consola(logger);
-
-    conexion = conectarseA(RESTAURANTE);
-
-	if (conexion == -1) {
-		log_error(logger, "Fallo en la conexion");
-		exit(EXIT_FAILURE);
-	}
 
 	// enviar_mensaje(valor, conexion);
 
 	// paquete(conexion);
 
-	terminar_programa(conexion, logger, config);
+	//terminar_programa(CON, logger, config);
 }
 
 void leer_consola(t_log* logger)

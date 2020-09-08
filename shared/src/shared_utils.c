@@ -1,5 +1,4 @@
 #include "../include/shared_utils.h"
-#include <errno.h>
 
 char* mi_funcion_compartida() {
     return "Hice uso de la shared!";
@@ -60,6 +59,12 @@ int crearSocket(int puerto) {
 	return fd;
 }
 
+void liberarConexion(int socket) {
+	close(socket);
+}
+
+// Cliente
+
 int conectarseA(p_code proceso) {
 	char *ip;
 	int puerto;
@@ -117,8 +122,7 @@ int iniciarServidor() {
 	return abrirSocketEscucha(obtenerPuertoEscucha());
 }
 
-int abrirSocketEscucha(int puerto)
-{
+int abrirSocketEscucha(int puerto) {
 	log_info(logger, "Iniciando servidor...");
 	int option = 1;
 	int socketEscucha;
@@ -167,11 +171,6 @@ int aceptarCliente(int socketServidor) {
 void finalizarProceso() {
 	config_destroy(config);
 	log_destroy(logger);
-}
-
-void liberarConexion(int socket)
-{
-	close(socket);
 }
 
 //TODO

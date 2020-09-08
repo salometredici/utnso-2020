@@ -14,7 +14,6 @@ void *atenderConexiones(void *conexionNueva)
 		leido = readline(">");
 	}
 	free(leido);
-
 	// Esto sí tiene que estar para finalizar el hilo por ahora cuando le llegue la cadena vacía
     pthread_exit(EXIT_SUCCESS);
     return 0;

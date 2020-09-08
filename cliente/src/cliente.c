@@ -1,8 +1,9 @@
 #include "../include/cliente.h"
 
-void *threadLecturaConsola(void *args)
+//void* threadLecturaConsola(void * args)
+void threadLecturaConsola()
 {
-    printf("Iniciando la consola ...");
+    printf("Iniciando la consola ...\n");
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
 
 	char *comandoOriginal;
@@ -21,7 +22,7 @@ void *threadLecturaConsola(void *args)
             string_to_upper(comandoLeido);
             string_trim(&comandoLeido);
 
-			log_info(logger, "Comando ingresado: %s" ,comandoLeido); // Por ahora, para ver lo que toma
+			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
 			// Obtenemos el comando ingresado
             parametros = string_split(comandoLeido, " ");
@@ -36,7 +37,7 @@ void *threadLecturaConsola(void *args)
 
 			// APP
 			else if (string_starts_with(modulo, "APP")) {
-				printf("Se ha seleccionado el módulo APP");
+				printf("Se ha seleccionado el módulo APP\n");
 				if (string_starts_with(mensaje, "CONSULTAR_RESTAURANTES")) {
 					consultarRestaurantesAApp(); //TODO: Implementación
 				}
@@ -49,7 +50,7 @@ void *threadLecturaConsola(void *args)
 
 			// COMANDA
 			else if (string_starts_with(modulo, "COMANDA")) {
-				printf("Se ha seleccionado el módulo COMANDA");
+				printf("Se ha seleccionado el módulo COMANDA\n");
 				if (string_starts_with(mensaje, "")) {
 					//TODO
 				}
@@ -57,7 +58,7 @@ void *threadLecturaConsola(void *args)
 
 			// RESTAURANTE
 			else if (string_starts_with(modulo, "RESTAURANTE")) {
-				printf("Se ha seleccionado el módulo RESTAURANTE");
+				printf("Se ha seleccionado el módulo RESTAURANTE\n");
 				if (string_starts_with(mensaje, "")) {
 					//TODO
 				}
@@ -65,7 +66,7 @@ void *threadLecturaConsola(void *args)
 
 			// SINDICATO
 			else if (string_starts_with(modulo, "SINDICATO")) {
-				printf("Se ha seleccionado el módulo SINDICATO");
+				printf("Se ha seleccionado el módulo SINDICATO\n");
 				if (string_starts_with(mensaje, "")) {
 					//TODO
 				}
@@ -95,33 +96,36 @@ void consultarRestaurantesAApp() {
     // ACA VA LOGICA DEL ENVIO DEL MENSAJE POR SOCKET AL MODULO APP Y ESTA SE ENCARGARA DE IMPLEMENTARLA  
 }
 
-void consultarPlatosARestaurante(){
+void consultarPlatosARestaurante() {
     printf("Buscando Platos ...(°-°)!!! \n");
     printf("ups... disculpe... aún estamos en fase de implementación ...\n");
     // ACA VA LOGICA DEL ENVIO DEL MENSAJE POR SOCKET AL MODULO RESTAURANTE Y ESTA SE ENCARGARA DE IMPLEMENTARLA 
 }
 
-void mostrarComandosValidos(){
+void mostrarComandosValidos() {
     printf("-------------------Comandos Válidos-------------------\n");
     printf("Formato: [MODULO] [MENSAJE] [PARAMETROS]\n");
 	printf("Ejemplo: APP CONSULTAR_RESTAURANTES\n");
 	printf("Ejemplo: APP SELECCIONAR_RESTAURANTE [NOMBRE_CLIENTE] [NOMBRE_RESTAURANTE]\n");
 	printf("Ejemplo: SINDICATO OBTENER_RESTAURANTE [NOMBRE_RESTAURANTE]\n");
 	printf("Ejemplo: RESTAURANTE CONSULTAR_PLATOS [NOMBRE_RESTAURANTE]\n");
-    printf("-----------------------------------------------------\n");
+    printf("------------------------------------------------------\n");
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
     //conexionApp = conectarseA(APP);
 	//conexionComanda = conectarseA(COMANDA);
 	conexionRestaurante = conectarseA(RESTAURANTE);
 	//conexionSindicato = conectarseA(SINDICATO);
 
-	// Inicio del hilo de la consola y su lectura
-	pthread_create(&threadConsola, NULL, (void *)threadLecturaConsola, NULL);
-    pthread_detach(threadConsola);
+	// Inicio del hilo de la consola y su lectura - Por ahora comentado hasta que veamos cómo hacer para que funcione este thread
+	//pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
+    //pthread_detach(threadConsola);
+
+	while (1) {
+		threadLecturaConsola();
+	}
 
 	liberarConexion(conexionRestaurante);
     finalizarProceso();

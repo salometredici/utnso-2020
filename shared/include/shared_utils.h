@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <netdb.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -37,7 +38,7 @@ t_config *config;
 void inicializarProceso(p_code proceso);
 void finalizarProceso();
 
-// Config methods
+// Config
 
 int obtenerPuertoEscucha();
 

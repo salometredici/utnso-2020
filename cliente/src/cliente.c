@@ -6,9 +6,10 @@ void* threadLecturaConsola(void * args) {
 
 	char *comandoOriginal;
 	char **parametros;
-	char *modulo;
-	char *mensaje;
+	char *modulo = "";
+	char *mensaje = "";
 	int opcion;
+	int comando;
     char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
@@ -29,36 +30,54 @@ void* threadLecturaConsola(void * args) {
             free(comandoOriginal);
 			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
-			opcion = stringAProceso(modulo); 
+			// Setear módulo/opción y de haberlo, el mensaje
+			opcion = stringAKey(modulo, CONSOLENKEYS);
+			if (mensaje) {
+				comando = stringAKey(mensaje, COMMANDNKEYS);
+			}
+
 			switch (opcion) {
 				case APP:
 					printf("Se ha seleccionado el módulo APP\n");
-					if (string_starts_with(mensaje, "CONSULTAR_RESTAURANTES")) {
-						consultarRestaurantesAApp(); //TODO: Implementación
+					switch (comando) {
+						case CONSULTAR_RESTAURANTES:
+							consultarRestaurantesAApp(); //TODO: Implementación
+							break;
+						case SELECCIONAR_RESTAURANTE:
+							//TODO
+							break;
+						case CONSULTAR_PLATOS:
+							//TODO
+							break;
+						case CREAR_PEDIDO:
+							//TODO
+							break;
+						case ANIADIR_PLATO:
+							//TODO
+							break;
+						case CONFIRMAR_PEDIDO:
+							//TODO
+							break;
+						case PLATO_LISTO:
+							//TODO
+							break;
+						case CONSULTAR_PEDIDO:
+							//TODO
+							break;
+						case ERROR:
+						default:
+							printf("El mensaje ingresado no es válido para el módulo APP (・ε・`*)...!\n");
+							break;
 					}
-					/*
-					if (otroMensaje...) {
-						...
-					}
-					*/
 					break;
 				case COMANDA:
-					printf("Se ha seleccionado el módulo COMANDA\n");
-					if (string_starts_with(mensaje, "")) {
-						//TODO
-					}
+					//TODO: Switch con las opciones válidas para COMANDA
 					break;
 				case RESTAURANTE:
-					printf("Se ha seleccionado el módulo RESTAURANTE\n");
-					if (string_starts_with(mensaje, "")) {
-						//TODO
-					}
+					//TODO: Switch con las opciones válidas para RESTAURANTE
 					break;
 				case SINDICATO:
-					printf("Se ha seleccionado el módulo SINDICATO\n");
-					if (string_starts_with(mensaje, "")) {
-						//TODO
-					}
+					//TODO: Switch con las opciones válidas para SINDICATO
 					break;
 				case AIUDA:
 					mostrarComandosValidos();
@@ -69,7 +88,8 @@ void* threadLecturaConsola(void * args) {
 				case CLEAR:
 					limpiarPantalla();
 				case ERROR:
-					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
+				default:
+					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado つ´Д`)つ\n");
 					break;
 			}
 		}

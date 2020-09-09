@@ -4,6 +4,12 @@ char* mi_funcion_compartida() {
     return "Hice uso de la shared!";
 }
 
+// Utils
+
+void limpiarPantalla() {
+	system("clear");
+}
+
 // Commons
 
 void inicializarProceso(p_code proceso) {

@@ -8,81 +8,80 @@ void* threadLecturaConsola(void * args) {
 	char **parametros;
 	char *modulo;
 	char *mensaje;
+	int opcion;
     char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
-        if (!comandoLeido || string_equals_ignore_case(comandoLeido, "")) {
+
+		if (!comandoLeido || string_equals_ignore_case(comandoLeido, "")) {
             continue;
-        } else {
-            //add_history(comandoLeido);
+		} else {
             comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
             strcpy(comandoOriginal, comandoLeido);
             string_to_upper(comandoLeido);
             string_trim(&comandoLeido);
-
-			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
 			// Obtenemos el comando ingresado
             parametros = string_split(comandoLeido, " ");
 			modulo = parametros[0];
 			mensaje = parametros[1];
             free(comandoOriginal);
+			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
-			// AIUDA
-            if (string_starts_with(modulo, "AIUDA")) {
-				mostrarComandosValidos();
+			opcion = stringAProceso(modulo); 
+			switch (opcion) {
+				case APP:
+					printf("Se ha seleccionado el módulo APP\n");
+					if (string_starts_with(mensaje, "CONSULTAR_RESTAURANTES")) {
+						consultarRestaurantesAApp(); //TODO: Implementación
+					}
+					/*
+					if (otroMensaje...) {
+						...
+					}
+					*/
+					break;
+				case COMANDA:
+					printf("Se ha seleccionado el módulo COMANDA\n");
+					if (string_starts_with(mensaje, "")) {
+						//TODO
+					}
+					break;
+				case RESTAURANTE:
+					printf("Se ha seleccionado el módulo RESTAURANTE\n");
+					if (string_starts_with(mensaje, "")) {
+						//TODO
+					}
+					break;
+				case SINDICATO:
+					printf("Se ha seleccionado el módulo SINDICATO\n");
+					if (string_starts_with(mensaje, "")) {
+						//TODO
+					}
+					break;
+				case AIUDA:
+					mostrarComandosValidos();
+					break;
+				case BAI:
+					printf("adiosss (๑♡3♡๑)!\n");
+					break;
+				case CLEAR:
+					limpiarPantalla();
+				case ERROR:
+					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
+					break;
 			}
+		}
 
-			// APP
-			else if (string_starts_with(modulo, "APP")) {
-				printf("Se ha seleccionado el módulo APP\n");
-				if (string_starts_with(mensaje, "CONSULTAR_RESTAURANTES")) {
-					consultarRestaurantesAApp(); //TODO: Implementación
-				}
-				/*
-				if (otroMensaje...) {
-					...
-				}
-				*/
-            }
+		free(modulo);
+		free(mensaje);
+        free(parametros);
+		if (opcion == BAI) { break; }
 
-			// COMANDA
-			else if (string_starts_with(modulo, "COMANDA")) {
-				printf("Se ha seleccionado el módulo COMANDA\n");
-				if (string_starts_with(mensaje, "")) {
-					//TODO
-				}
-            }
-
-			// RESTAURANTE
-			else if (string_starts_with(modulo, "RESTAURANTE")) {
-				printf("Se ha seleccionado el módulo RESTAURANTE\n");
-				if (string_starts_with(mensaje, "")) {
-					//TODO
-				}
-            }
-
-			// SINDICATO
-			else if (string_starts_with(modulo, "SINDICATO")) {
-				printf("Se ha seleccionado el módulo SINDICATO\n");
-				if (string_starts_with(mensaje, "")) {
-					//TODO
-				}
-            }
-
-			// Cualquier otra cosa
-			else {
-                printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
-            }
-
-			free(modulo);
-			free(mensaje);
-            free(parametros);
-            free(comandoLeido);
-
-			comandoLeido = readline("(=^.^=)~>");
-        }
+    	free(comandoLeido);
+		comandoLeido = readline("(=^.^=)~>");
 	}
+
 	free(comandoLeido);
     pthread_exit(EXIT_SUCCESS);
     return 0;
@@ -102,6 +101,9 @@ void consultarPlatosARestaurante() {
 
 void mostrarComandosValidos() {
     printf("-------------------Comandos Válidos-------------------\n");
+	printf("Ejemplo: AIUDA\n");
+	printf("Ejemplo: CLEAR\n");
+	printf("Ejemplo: BAI\n");
     printf("Formato: [MODULO] [MENSAJE] [PARAMETROS]\n");
 	printf("Ejemplo: APP CONSULTAR_RESTAURANTES\n");
 	printf("Ejemplo: APP SELECCIONAR_RESTAURANTE [NOMBRE_CLIENTE] [NOMBRE_RESTAURANTE]\n");

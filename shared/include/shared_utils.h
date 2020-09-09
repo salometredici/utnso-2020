@@ -35,6 +35,7 @@ typedef enum {
 t_log *logger;
 t_config *config;
 
+void limpiarPantalla();
 void inicializarProceso(p_code proceso);
 void finalizarProceso();
 

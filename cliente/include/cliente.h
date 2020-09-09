@@ -22,7 +22,7 @@ void enviarConsultarRestaurantesAApp();
 void enviarConsultarPlatosARestaurante();
 void mostrarComandosValidos();
 
-// Opciones consola
+// Opciones - consola
 
 #define ERROR -1
 #define APP 1
@@ -33,12 +33,30 @@ void mostrarComandosValidos();
 #define BAI 6
 #define CLEAR 7
 
+// Opciones - comandos
+
+#define CONSULTAR_RESTAURANTES 11
+#define SELECCIONAR_RESTAURANTE 12
+#define OBTENER_RESTAURANTE 13
+#define CONSULTAR_PLATOS 14
+#define CREAR_PEDIDO 15
+#define GUARDAR_PEDIDO 16
+#define ANIADIR_PLATO 17
+#define GUARDAR_PLATO 18
+#define CONFIRMAR_PEDIDO 19
+#define PLATO_LISTO 20
+#define CONSULTAR_PEDIDO 21
+#define OBTENER_PEDIDO 22
+#define FINALIZAR_PEDIDO 23
+#define TERMINAR_PEDIDO 24
+#define OBTENER_RECETA 25
+
 typedef struct {
     char *key;
     int valor;
-} p_keys;
+} t_keys;
 
-static p_keys diccionarioProcesos[] = {
+static t_keys diccionarioProcesos[] = {
     { "APP", APP },
     { "COMANDA", COMANDA },
     { "RESTAURANTE", RESTAURANTE },
@@ -48,15 +66,37 @@ static p_keys diccionarioProcesos[] = {
     { "CLEAR", CLEAR }
 };
 
-#define NKEYS (sizeof(diccionarioProcesos)/sizeof(p_keys))
+#define CONSOLENKEYS (sizeof(diccionarioProcesos)/sizeof(t_keys))
 
-int stringAProceso(char *key)
-{
-    int i;
-    for (i=0; i < NKEYS; i++) {
-        p_keys sym = diccionarioProcesos[i];
-        if (strcmp(sym.key, key) == 0)
+static t_keys diccionarioComandos[] = {
+    { "CONSULTAR_RESTAURANTES", CONSULTAR_RESTAURANTES },
+    { "SELECCIONAR_RESTAURANTE", SELECCIONAR_RESTAURANTE },
+    { "OBTENER_RESTAURANTE", OBTENER_RESTAURANTE },
+    { "CONSULTAR_PLATOS", CONSULTAR_PLATOS },
+    { "CREAR_PEDIDO", CREAR_PEDIDO },
+    { "GUARDAR_PEDIDO", GUARDAR_PEDIDO },
+    { "ANIADIR_PLATO", ANIADIR_PLATO },
+    { "GUARDAR_PLATO", GUARDAR_PLATO },
+    { "CONFIRMAR_PEDIDO", CONFIRMAR_PEDIDO },
+    { "PLATO_LISTO", PLATO_LISTO },
+    { "CONSULTAR_PEDIDO", CONSULTAR_PEDIDO },
+    { "OBTENER_PEDIDO", OBTENER_PEDIDO },
+    { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
+    { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
+    { "OBTENER_RECETA", OBTENER_RECETA }
+};
+
+#define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
+
+int stringAKey(char *key, int size) {
+    t_keys *diccionario;
+    if (size == CONSOLENKEYS) { diccionario = diccionarioProcesos; }
+    else { diccionario = diccionarioComandos; }
+    for (int i = 0; i < size; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
             return sym.valor;
+        }
     }
     return ERROR;
 }

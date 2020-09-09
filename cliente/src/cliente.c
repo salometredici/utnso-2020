@@ -16,6 +16,7 @@ void* threadLecturaConsola(void * args) {
 		if (!comandoLeido || string_equals_ignore_case(comandoLeido, "")) {
             continue;
 		} else {
+            add_history(comandoLeido);
             comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
             strcpy(comandoOriginal, comandoLeido);
             string_to_upper(comandoLeido);

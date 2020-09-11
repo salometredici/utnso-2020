@@ -360,7 +360,7 @@ void* serializar_paquete_v2(t_paquete_v2* paquete, int bytes)
 }
 void enviar_paquete_v2(t_paquete_v2* paquete, int socket_cliente)
 {
-	int bytes = paquete->buffer->size + 2*sizeof(int) + 3;
+	int bytes = paquete->buffer->size + 3*sizeof(int);
 	void* a_enviar = serializar_paquete_v2(paquete, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
@@ -381,7 +381,7 @@ t_paquete_v2* recibir_header_paquete(int socket){
 	header->buffer->size = 0;
 	header->buffer->stream = NULL;
 
-	void* buffer = malloc(sizeof(int)*2+1);
+	void* buffer = malloc(sizeof(int)*2);
 
 	if(recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
 		memcpy(&proceso,buffer,sizeof(int));
@@ -399,38 +399,15 @@ t_paquete_v2* recibir_header_paquete(int socket){
 }
 
 t_paquete_v2* recibir_payload_paquete(t_paquete_v2* header, int socket){
-	// int tamaño;
-	// // stream;
-	// ;
-	// int size;
-	// void* buffer;
-	// recv(socket, size, sizeof(int)*2, MSG_WAITALL);
-	// buffer = malloc(size);
-	// recv(socket, buffer, size, MSG_WAITALL);
 	int size;
-	int desplazamiento = 0;
-	void * buffer;
-	int tamanio;
+	void* buffer;
 
-	recv(socket, size, sizeof(int)*2, MSG_WAITALL);
-	buffer = malloc(size);
-	recv(socket, buffer, size, MSG_WAITALL);
-	memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-	desplazamiento+=sizeof(int);
-	void* valor = malloc(tamanio);
-	memcpy(valor, buffer+desplazamiento, tamanio);
-
-	header->buffer->size = tamanio;
+	buffer = recibir_buffer(&size, socket);
+	char* valor = malloc(size);
+	memcpy(valor, buffer, size);
+	header->buffer->size = size;
 	header->buffer->stream = valor;
 
-	// if(recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
-	
-	// } else {
-	// 	close(socket);
-	// 	header.proceso_origen = -1;
-	// }
-
 	free(buffer);
-
 	return header;
 }

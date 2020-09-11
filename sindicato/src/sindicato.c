@@ -84,19 +84,14 @@ void *atenderConexiones(void *conexionNueva)
 
 		switch(data->codigo_operacion) {
 			case OBTENER_RESTAURANTE:
-				printf("Me llego: %s\n", data->buffer->stream);
+				data = recibir_payload_paquete(data, info);
+				printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
 				//mandarle a resto sus cosas 
 				//verificar q exista
 				//obtener datos del archivo info.AFIP
-				void * mock[5];
-				mock[0] = "lista de cocineros"; 
-				mock[1] = "posx";
-				mock[2] = "posy";
-				mock[3] = "recetas";
-				mock[4] = "5"; //cant hornos
-				int size = sizeof(char*)*5;
-				t_paquete_v2* pedido = crear_paquete_v2(SINDICATO,RTA_OBTENER_RESTAURANTE,size, *mock);
-				enviar_paquete_v2(pedido,info);
+				
+				// t_paquete_v2* pedido = crear_paquete_v2(SINDICATO,RTA_OBTENER_RESTAURANTE);
+				// enviar_paquete_v2(pedido,info);
 				break;
 			case MENSAJE:
 				recibir_mensaje(info);

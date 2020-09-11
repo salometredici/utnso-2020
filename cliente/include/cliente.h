@@ -15,12 +15,46 @@ int conexionSindicato;
 
 pthread_t threadConsola;
 
-// Interfaz Cliente
+/////////////// INTERFAZ DE CLIENTE ///////////////////
+///// General ////
 void inicializarConsola();
 void finalizarConsola();
-void enviarConsultarRestaurantesAApp();
-void enviarConsultarPlatosARestaurante();
 void mostrarComandosValidos();
+
+// Mensajes de Ciente al modulo APP (1)
+void consultarRestaurantesAapp();
+void seleccionarRestauranteAapp();
+void consultarPlatosAapp();
+void crearPedidoAapp();
+void aniadirPlatoAapp();
+void confirmarPedidoAapp();
+void platoListoAapp();
+void consultarPedidoAapp();
+
+// Mensajes de Ciente al modulo COMANDA(2)
+void guardarPedidoAComanda();
+void guardarPlatoAComanda();
+void confirmarPedidoAComanda();
+void platoListoAComanda();
+void obtenerPedidoAComanda();
+
+// Mensajes de Ciente al modulo RESTAURANTE (3)
+void consultarPlatosARestaurante();
+void crearPedidoARestaurante();
+void aniadirPlatoARestaurante();
+void confirmarPedidoARestaurante();
+void consultarPedidoARestaurante();
+
+// Mensajes de Ciente al modulo SINDICATO (4)
+void obtenerRestauranteASindicato();
+void consultarPlatosASindicato();
+void guardarPedidoASindicato();
+void guardarPlatoASindicato();
+void confirmarPedidoASindicato();
+void platoListoASindicato();
+void obtenerPedidoASindicato();
+
+
 
 // Opciones - consola
 

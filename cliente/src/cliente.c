@@ -41,28 +41,28 @@ void* threadLecturaConsola(void * args) {
 					printf("Se ha seleccionado el módulo APP\n");
 					switch (comando) {
 						case CONSULTAR_RESTAURANTES:
-							consultarRestaurantesAApp(); //TODO: Implementación
+							consultarRestaurantesAapp(); //TODO: Implementación
 							break;
 						case SELECCIONAR_RESTAURANTE:
-							//TODO
+							seleccionarRestauranteAapp();
 							break;
 						case CONSULTAR_PLATOS:
-							//TODO
+							consultarPlatosAapp();
 							break;
 						case CREAR_PEDIDO:
-							//TODO
+							crearPedidoAapp();
 							break;
 						case ANIADIR_PLATO:
-							//TODO
+							aniadirPlatoAapp();
 							break;
 						case CONFIRMAR_PEDIDO:
-							//TODO
+							confirmarPedidoAapp();
 							break;
 						case PLATO_LISTO:
-							//TODO
+							platoListoAapp();
 							break;
 						case CONSULTAR_PEDIDO:
-							//TODO
+							consultarPedidoAapp();
 							break;
 						case ERROR:
 						default:
@@ -71,13 +71,75 @@ void* threadLecturaConsola(void * args) {
 					}
 					break;
 				case COMANDA:
-					//TODO: Switch con las opciones válidas para COMANDA
+					printf("Se ha seleccionado el módulo COMANDA\n");
+					switch(comando) {
+						case GUARDAR_PEDIDO:
+							guardarPedidoAComanda();
+							break;
+						case GUARDAR_PLATO:
+							guardarPlatoAComanda();
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoAComanda();
+							break;
+						case PLATO_LISTO:
+							platoListoAComanda();
+							break;
+						case OBTENER_PEDIDO:
+							obtenerPedidoAComanda();
+							break;
+						case ERROR:
+							printf("El mensaje ingresado no es válido para el módulo COMANDA (・ε・`*)...!\n");
+							break;
+					}
 					break;
 				case RESTAURANTE:
-					//TODO: Switch con las opciones válidas para RESTAURANTE
+					printf("Se ha seleccionado el módulo RESTAURANTE\n");
+					switch(comando) {
+						case CONSULTAR_PLATOS:
+							consultarPlatosARestaurante();
+							break;
+						case CREAR_PEDIDO:
+							crearPedidoARestaurante();
+							break;
+						case ANIADIR_PLATO:
+							aniadirPlatoARestaurante();
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoAComanda();
+							break;
+						
+						case CONSULTAR_PEDIDO:
+							consultarPedidoARestaurante();
+							break;
+						case ERROR:
+							printf("El mensaje ingresado no es válido para el módulo RESTAURANTE (・ε・`*)...!\n");
+							break;
+					}
 					break;
 				case SINDICATO:
-					//TODO: Switch con las opciones válidas para SINDICATO
+				printf("Se ha seleccionado el módulo SINDICATO\n");
+					switch(comando) {
+						case CONSULTAR_PLATOS:
+							consultarPlatosASindicato();
+							break;
+						case OBTENER_RESTAURANTE:
+							obtenerRestauranteASindicato();
+							break;
+						case ANIADIR_PLATO:
+							aniadirPlatoARestaurante();
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoAComanda();
+							break;
+						
+						case CONSULTAR_PEDIDO:
+							consultarPedidoARestaurante();
+							break;
+						case ERROR:
+							printf("El mensaje ingresado no es válido para el módulo RESTAURANTE (・ε・`*)...!\n");
+							break;
+					}
 					break;
 				case AIUDA:
 					mostrarComandosValidos();
@@ -107,18 +169,94 @@ void* threadLecturaConsola(void * args) {
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
+///// IMPLEMENTACION ENVIO MENSAJES A APP //////////
 
-void consultarRestaurantesAApp() { 
+void consultarRestaurantesAapp() { 
     printf("Buscando Restaurantes ...!!! \n");
     printf("ups... aún estamos trabajando! ~(T-T)~\n");
     // ACA VA LOGICA DEL ENVIO DEL MENSAJE POR SOCKET AL MODULO APP Y ESTA SE ENCARGARA DE IMPLEMENTARLA  
 }
+void seleccionarRestauranteAapp() {
+	printf("\n Usted selecciono SELECCIONAR RESTAURANTE");
+}
+void consultarPlatosAapp() {
+	printf("\n Usted selecciono CONSULTAR PLATOS");
+}
+void crearPedidoAapp() {
+	printf("\n Usted selecciono CREAR PEDIDO");
+}
+void aniadirPlatoAapp() { 
+	printf("\n Usted selecciono: ANIADIR PLATO");
+}
+void confirmarPedidoAapp() {
+	printf("\n Usted selecciono: CONFIRMAR PEDIDO");
+}
+void platoListoAapp() {
+	printf("\n Usted selecciono:PLATO LISTO");
+}
+void consultarPedidoAapp() {
+	printf("\n Usted selecciono: CONSULTAR PEDIDO");
+}
+///// IMPLEMENTACION ENVIO MENSAJES A COMANDA //////////
+void guardarPedidoAComanda() {
 
+}
+void guardarPlatoAComanda() {
+
+}
+void confirmarPedidoAComanda() {
+
+}
+void platoListoAComanda() {
+
+}
+void obtenerPedidoAComanda() {
+
+}
+
+///// IMPLEMENTACION ENVIO MENSAJES A RESTAURANTE //////////
 void consultarPlatosARestaurante() {
     printf("Buscando Platos ...(°-°)!!! \n");
     printf("ups... disculpe... aún estamos en fase de implementación ...\n");
     // ACA VA LOGICA DEL ENVIO DEL MENSAJE POR SOCKET AL MODULO RESTAURANTE Y ESTA SE ENCARGARA DE IMPLEMENTARLA 
 }
+void crearPedidoARestaurante() {
+
+}
+void aniadirPlatoARestaurante() {
+
+}
+void confirmarPedidoARestaurante() {
+
+}
+void consultarPedidoARestaurante() {
+
+}
+
+
+///// IMPLEMENTACION ENVIO MENSAJES A SINDICATO //////////
+void obtenerRestauranteASindicato() {
+
+}
+void consultarPlatosASindicato() {
+
+}
+void guardarPedidoASindicato() {
+
+}
+void guardarPlatoASindicato() {
+
+}
+void confirmarPedidoASindicato() {
+
+}
+void platoListoASindicato() { 
+
+}
+void obtenerPedidoASindicato() {
+
+}
+
 
 void mostrarComandosValidos() {
     printf("-------------------Comandos Válidos-------------------\n");
@@ -133,6 +271,7 @@ void mostrarComandosValidos() {
     printf("------------------------------------------------------\n");
 }
 
+/////////////////////////////// FUNCION PRINCIPAL //////////////////////
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
     //conexionApp = conectarseA(APP);

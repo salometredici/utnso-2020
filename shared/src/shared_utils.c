@@ -164,8 +164,9 @@ int abrirSocketEscucha(int puerto) {
 int aceptarCliente(int socketServidor) {
 	int socketConexion;
 	struct sockaddr_in dirCliente;
-	socklen_t dirSize = sizeof(struct sockaddr_in);
-	if ((socketConexion = accept(socketServidor, (struct sockaddr*)&dirCliente, &dirSize)) == -1) {
+	int dirSize = sizeof(struct sockaddr_in);
+	socketConexion = accept(socketServidor, (struct sockaddr*)&dirCliente, &dirSize);
+	if (socketConexion == -1) {
 		log_error(logger, "Fallo en la conexión del socket %d", socketServidor);
 		log_error(logger, "Valor de errno: %d", errno);
 	}
@@ -241,6 +242,8 @@ t_paquete* crear_paquete(void)
 	crear_buffer(paquete);
 	return paquete;
 }
+
+
 
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
 {
@@ -322,4 +325,112 @@ t_list* recibir_paquete(int socket_cliente)
 	free(buffer);
 	return valores;
 	return NULL;
+}
+
+
+//jej
+t_paquete_v2* crear_paquete_v2(p_code proc_org, m_code cod_op, int size, void* stream)
+{
+	t_paquete_v2* paquete = malloc(sizeof(t_paquete_v2));
+	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->buffer->size = size;
+	paquete->buffer->stream = stream;
+
+	paquete->proceso_origen = proc_org;
+	paquete->codigo_operacion = cod_op;
+	// paquete->buffer = malloc(sizeof(t_buffer))
+
+	return paquete;
+}
+void* serializar_paquete_v2(t_paquete_v2* paquete, int bytes)
+{
+	void * magic = malloc(bytes);
+	int desplazamiento = 0;
+
+	memcpy(magic + desplazamiento, &(paquete->proceso_origen), sizeof(int));
+	desplazamiento+= sizeof(int);
+	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
+	desplazamiento+= sizeof(int);
+	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
+	desplazamiento+= sizeof(int);
+	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
+	desplazamiento+= paquete->buffer->size;
+
+	return magic;
+}
+void enviar_paquete_v2(t_paquete_v2* paquete, int socket_cliente)
+{
+	int bytes = paquete->buffer->size + 2*sizeof(int) + 3;
+	void* a_enviar = serializar_paquete_v2(paquete, bytes);
+
+	send(socket_cliente, a_enviar, bytes, 0);
+
+	free(a_enviar);
+}
+void eliminar_paquete_v2(t_paquete_v2* paquete)
+{
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+}
+
+t_paquete_v2* recibir_header_paquete(int socket){
+	int proceso, mensaje;
+	t_paquete_v2* header = malloc(sizeof(t_paquete_v2));
+	header->buffer = malloc(sizeof(t_buffer));
+	header->buffer->size = 0;
+	header->buffer->stream = NULL;
+
+	void* buffer = malloc(sizeof(int)*2+1);
+
+	if(recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
+		memcpy(&proceso,buffer,sizeof(int));
+		memcpy(&mensaje,buffer+sizeof(int),sizeof(int));
+		header->proceso_origen = proceso;
+		header->codigo_operacion = mensaje;
+	} else {
+		close(socket);
+		header->proceso_origen = -1;
+	}
+
+	free(buffer);
+
+	return header;
+}
+
+t_paquete_v2* recibir_payload_paquete(t_paquete_v2* header, int socket){
+	// int tamaño;
+	// // stream;
+	// ;
+	// int size;
+	// void* buffer;
+	// recv(socket, size, sizeof(int)*2, MSG_WAITALL);
+	// buffer = malloc(size);
+	// recv(socket, buffer, size, MSG_WAITALL);
+	int size;
+	int desplazamiento = 0;
+	void * buffer;
+	int tamanio;
+
+	recv(socket, size, sizeof(int)*2, MSG_WAITALL);
+	buffer = malloc(size);
+	recv(socket, buffer, size, MSG_WAITALL);
+	memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+	desplazamiento+=sizeof(int);
+	void* valor = malloc(tamanio);
+	memcpy(valor, buffer+desplazamiento, tamanio);
+
+	header->buffer->size = tamanio;
+	header->buffer->stream = valor;
+
+	// if(recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
+	
+	// } else {
+	// 	close(socket);
+	// 	header.proceso_origen = -1;
+	// }
+
+	free(buffer);
+
+	return header;
 }

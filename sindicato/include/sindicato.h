@@ -9,7 +9,6 @@
 #include <commons/string.h>
 #include <readline/readline.h>
 
-
 void inicializarConsola();
 void finalizarConsola();
 void enviarConsultarRestaurantesAApp();
@@ -17,6 +16,8 @@ void enviarConsultarPlatosARestaurante();
 void mostrarComandosValidos();
 
 pthread_t threadConsola;
+pthread_t threadConexiones;
+int socketServidor;
 
 //consola
 #define ERROR -1

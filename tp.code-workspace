@@ -25,7 +25,9 @@
 			"comanda.h": "c",
 			"sindicato.h": "c",
 			"app.h": "c",
-			"restaurante.h": "c"
+			"restaurante.h": "c",
+			"shared_utils.h": "c",
+			"string.h": "c"
 		}
 	}
 }

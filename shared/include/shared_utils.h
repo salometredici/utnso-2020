@@ -30,6 +30,26 @@ typedef enum {
 	SINDICATO
 } p_code;
 
+typedef enum{
+    CONSULTAR_RESTAURANTES,
+	SELECCIONAR_RESTAURANTE,
+	OBTENER_RESTAURANTE,
+	CONSULTAR_PLATOS,
+	CREAR_PEDIDO,
+	GUARDAR_PEDIDO,
+	ANIADIR_PLATO,
+	GUARDAR_PLATO,
+	CONFIRMAR_PEDIDO,
+	PLATO_LISTO,
+	CONSULTAR_PEDIDO,
+	OBTENER_PEDIDO,
+	FINALIZAR_PEDIDO,
+	TERMINAR_PEDIDO,
+	OBTENER_RECETA,
+
+	RTA_OBTENER_RESTAURANTE
+} m_code;
+
 // Commons
 
 t_log *logger;
@@ -70,6 +90,13 @@ typedef struct
 	t_buffer* buffer;
 } t_paquete;
 
+typedef struct
+{
+	p_code proceso_origen;
+	m_code codigo_operacion;
+	t_buffer* buffer;
+} t_paquete_v2;
+
 void* recibir_buffer(int*, int);
 t_list* recibir_paquete(int);
 void recibir_mensaje(int);
@@ -82,4 +109,10 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 
+t_paquete_v2* crear_paquete_v2(p_code proc_org, m_code cod_op, int size, void* stream);
+void* serializar_paquete_v2(t_paquete_v2* paquete, int bytes);
+void enviar_paquete_v2(t_paquete_v2* paquete, int socket_cliente);
+void eliminar_paquete_v2(t_paquete_v2* paquete);
+t_paquete_v2* recibir_header_paquete(int socket);
+t_paquete_v2* recibir_payload_paquete(t_paquete_v2* header, int socket);
 #endif

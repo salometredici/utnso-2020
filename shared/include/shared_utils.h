@@ -32,29 +32,10 @@ typedef enum {
 	SINDICATO = 4
 } p_code;
 
-// Commons
-
-t_log *logger;
-t_config *config;
-
-typedef struct {
-    char *key;
-    int valor;
-} t_keys;
-
-void limpiarPantalla();
-void inicializarProceso(p_code proceso);
-void finalizarProceso();
-
-// Config
-
-int obtenerPuertoEscucha();
-char* obtenerNombreRestaurante();
-
 // API Global
 
-typedef enum {
-  CONSULTAR_RESTAURANTES = 100,
+typedef enum{
+    CONSULTAR_RESTAURANTES = 100,
 	SELECCIONAR_RESTAURANTE = 101,
 	OBTENER_RESTAURANTE = 102,
 	CONSULTAR_PLATOS = 103,
@@ -104,8 +85,7 @@ static t_keys diccionarioComandos[] = {
     { "OBTENER_PEDIDO", OBTENER_PEDIDO },
     { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
-    { "OBTENER_RECETA", OBTENER_RECETA },
-    { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE }
+    { "OBTENER_RECETA", OBTENER_RECETA }
 };
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))

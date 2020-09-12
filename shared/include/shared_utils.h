@@ -68,6 +68,39 @@ void limpiarPantalla();
 void inicializarProceso(p_code proceso);
 void finalizarProceso();
 
+// Diccionario de todos los comandos definidos para la API Global, utiliza los valores de m_code de las shared_utils
+
+static t_keys diccionarioComandos[] = {
+    { "CONSULTAR_RESTAURANTES", CONSULTAR_RESTAURANTES },
+    { "SELECCIONAR_RESTAURANTE", SELECCIONAR_RESTAURANTE },
+    { "OBTENER_RESTAURANTE", OBTENER_RESTAURANTE },
+    { "CONSULTAR_PLATOS", CONSULTAR_PLATOS },
+    { "CREAR_PEDIDO", CREAR_PEDIDO },
+    { "GUARDAR_PEDIDO", GUARDAR_PEDIDO },
+    { "ANIADIR_PLATO", ANIADIR_PLATO },
+    { "GUARDAR_PLATO", GUARDAR_PLATO },
+    { "CONFIRMAR_PEDIDO", CONFIRMAR_PEDIDO },
+    { "PLATO_LISTO", PLATO_LISTO },
+    { "CONSULTAR_PEDIDO", CONSULTAR_PEDIDO },
+    { "OBTENER_PEDIDO", OBTENER_PEDIDO },
+    { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
+    { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
+    { "OBTENER_RECETA", OBTENER_RECETA }
+};
+
+#define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
+
+int stringAKey(char *key, int size) {
+    t_keys *diccionario = diccionarioComandos;
+    for (int i = 0; i < COMMANDNKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
+    }
+    return ERROR;
+}
+
 // Config
 
 int obtenerPuertoEscucha();

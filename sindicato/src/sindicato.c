@@ -60,7 +60,55 @@ void* threadLecturaConsola(void * args) {
 			comandoLeido = readline("(=^.^=)~>");
         }
 	}
+
 	free(comandoLeido);
+    pthread_exit(EXIT_SUCCESS);
+    return 0;
+}
+
+void iterator(char* value)	{
+		printf("%s\n", value);
+	}
+void *atenderConexiones(void *conexionNueva)
+{
+    pthread_data *t_data = (pthread_data*) conexionNueva;
+    int info = t_data->socketThread;
+    free(t_data);
+	
+	// 
+	t_list* lista;
+	while(1) {
+		//int cod_op = recibir_operacion(info);
+		t_paquete_v2* data = recibir_header_paquete(info);
+		printf("Me llegaron los siguientes valores: %d %d\n", data->proceso_origen,data->codigo_operacion);
+
+		switch(data->codigo_operacion) {
+			case OBTENER_RESTAURANTE:
+				data = recibir_payload_paquete(data, info);
+				printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
+
+				char* mock = "RESPUESTA_NOMBRE_RESTAURANTE";
+				t_paquete_v2* pedido = crear_paquete_v2(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
+				enviar_paquete_v2(pedido, info);
+				break;
+			case MENSAJE:
+				recibir_mensaje(info);
+				break;
+			case PAQUETE:
+				lista = recibir_paquete(info);
+				printf("Me llegaron los siguientes valores:\n");
+				list_iterate(lista, (void*) iterator);
+				break;
+			case -1:
+				log_error(logger, "el cliente se desconecto. Terminando servidor");
+				return EXIT_FAILURE;
+			default:
+				log_warning(logger, "Operacion desconocida. No quieras meter la pata");
+				break;
+		}
+	}
+
+	// finalizar el hilo
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
@@ -72,8 +120,20 @@ int main(int argc, char ** argv){
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
     pthread_detach(threadConsola);
 
+	socketServidor = iniciarServidor();
+	int fd;
 	while (1) {
 		//TODO: Lógica del Cliente
+		fd = aceptarCliente(socketServidor);
+		if (fd != -1) {
+			// Creo un nuevo hilo para la conexión aceptada
+			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
+			t_data->socketThread = fd;
+			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
+			pthread_detach(threadConexiones);
+
+			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
+		}
 	}
 
     finalizarProceso();

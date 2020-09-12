@@ -54,7 +54,7 @@ char* obtenerNombreRestaurante();
 // API Global
 
 typedef enum {
-    CONSULTAR_RESTAURANTES = 100,
+  CONSULTAR_RESTAURANTES = 100,
 	SELECCIONAR_RESTAURANTE = 101,
 	OBTENER_RESTAURANTE = 102,
 	CONSULTAR_PLATOS = 103,
@@ -73,6 +73,22 @@ typedef enum {
 	RTA_OBTENER_RESTAURANTE = 115
 } m_code;
 
+// Commons
+
+t_log *logger;
+t_config *config;
+
+typedef struct {
+    char *key;
+    int valor;
+} t_keys;
+
+void limpiarPantalla();
+void inicializarProceso(p_code proceso);
+void finalizarProceso();
+
+// Diccionario de todos los comandos definidos para la API Global, utiliza los valores de m_code de las shared_utils
+
 static t_keys diccionarioComandos[] = {
     { "CONSULTAR_RESTAURANTES", CONSULTAR_RESTAURANTES },
     { "SELECCIONAR_RESTAURANTE", SELECCIONAR_RESTAURANTE },
@@ -89,13 +105,12 @@ static t_keys diccionarioComandos[] = {
     { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
     { "OBTENER_RECETA", OBTENER_RECETA },
-
-	{ "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE }
+    { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE }
 };
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
 
-int commandToString(char *key) {
+int stringAKey(char *key, int size) {
     t_keys *diccionario = diccionarioComandos;
     for (int i = 0; i < COMMANDNKEYS; i++) {
         t_keys sym = diccionario[i];
@@ -105,6 +120,11 @@ int commandToString(char *key) {
     }
     return ERROR;
 }
+
+// Config
+
+int obtenerPuertoEscucha();
+char* obtenerNombreRestaurante();
 
 // Conexiones
 

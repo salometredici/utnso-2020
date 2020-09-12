@@ -48,8 +48,8 @@ int main(int argc, char* argv[])
 	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
 
 	// obtener metadata del restaurante al modulo sindicato
-	t_paquete_v2* pedido = crear_paquete_v2(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
-	enviar_paquete_v2(pedido,conexionSindicato);
+	//t_paquete_v2* pedido = crear_paquete_v2(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
+	//enviar_paquete_v2(pedido,conexionSindicato);
 
 	// creacion de las distintas colas de planificacion
 

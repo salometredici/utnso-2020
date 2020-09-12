@@ -33,7 +33,7 @@ void consultarPedidoAapp(char *idPedido);
 
 // Mensajes de Ciente al modulo COMANDA(2)
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido);
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPedida);
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos);
 void confirmarPedidoAComanda(char *idPedido); 
 void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido);
@@ -49,7 +49,7 @@ void consultarPedidoARestaurante(char *idPedido);
 void obtenerRestauranteASindicato(char *nombreRestaurante);
 void consultarPlatosASindicato(char *nombreRestaurante);
 void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido);
-void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPedida);
+void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos);
 void confirmarPedidoASindicato(char *idPedido);
 void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);

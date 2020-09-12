@@ -55,6 +55,11 @@ typedef enum{
 t_log *logger;
 t_config *config;
 
+typedef struct {
+    char *key;
+    int valor;
+} t_keys;
+
 void limpiarPantalla();
 void inicializarProceso(p_code proceso);
 void finalizarProceso();

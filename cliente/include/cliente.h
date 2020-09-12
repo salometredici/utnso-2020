@@ -15,13 +15,12 @@ int conexionSindicato;
 
 pthread_t threadConsola;
 
-/////////////// INTERFAZ DE CLIENTE ///////////////////
-///// General ////
 void inicializarConsola();
 void finalizarConsola();
 void mostrarComandosValidos();
 
-// Mensajes de Ciente al modulo APP (1)
+// Mensajes Cliente - APP
+
 void consultarRestaurantesAapp();
 void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante);
 void consultarPlatosAapp(char *nombreRestaurante);
@@ -31,21 +30,24 @@ void confirmarPedidoAapp(char *idPedido);
 void platoListoAapp(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void consultarPedidoAapp(char *idPedido);
 
-// Mensajes de Ciente al modulo COMANDA(2)
+// Mensajes Clente - COMANDA
+
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido);
 void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos);
 void confirmarPedidoAComanda(char *idPedido); 
 void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido);
 
-// Mensajes de Ciente al modulo RESTAURANTE (3)
+// Mensajes Cliente - RESTAURANTE
+
 void consultarPlatosARestaurante(char *nombreRestaurante);
 void crearPedidoARestaurante();
 void aniadirPlatoARestaurante(char *nombrePlato, char *idPedido);
 void confirmarPedidoARestaurante(char *idPedido);
 void consultarPedidoARestaurante(char *idPedido);
 
-// Mensajes de Ciente al modulo SINDICATO (4)
+// Mensajes Cliente - SINDICATO
+
 void obtenerRestauranteASindicato(char *nombreRestaurante);
 void consultarPlatosASindicato(char *nombreRestaurante);
 void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido);
@@ -54,18 +56,19 @@ void confirmarPedidoASindicato(char *idPedido);
 void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 
-// Opciones - consola
-
 #define ERROR -1
-#define APP 1
-#define COMANDA 2
-#define RESTAURANTE 3
-#define SINDICATO 4
-#define AIUDA 5
-#define BAI 6
-#define CLEAR 7
 
-// Opciones - comandos
+// Defines - opciones - consola
+
+#define OPTION_APP 1
+#define OPTION_COMANDA 2
+#define OPTION_RESTAURANTE 3
+#define OPTION_SINDICATO 4
+#define OPTION_AIUDA 5
+#define OPTION_BAI 6
+#define OPTION_CLEAR 7
+
+// Defines - comandos - consola
 
 #define CONSULTAR_RESTAURANTES 11
 #define SELECCIONAR_RESTAURANTE 12
@@ -83,22 +86,19 @@ void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 #define TERMINAR_PEDIDO 24
 #define OBTENER_RECETA 25
 
-typedef struct {
-    char *key;
-    int valor;
-} t_keys;
+// Diccionarios
 
-static t_keys diccionarioProcesos[] = {
-    { "APP", APP },
-    { "COMANDA", COMANDA },
-    { "RESTAURANTE", RESTAURANTE },
-    { "SINDICATO", SINDICATO },
-    { "AIUDA", AIUDA },
-    { "BAI", BAI },
-    { "CLEAR", CLEAR }
+static t_keys diccionarioOpciones[] = {
+    { "APP", OPTION_APP },
+    { "COMANDA", OPTION_COMANDA },
+    { "RESTAURANTE", OPTION_RESTAURANTE },
+    { "SINDICATO", OPTION_SINDICATO },
+    { "AIUDA", OPTION_AIUDA },
+    { "BAI", OPTION_BAI },
+    { "CLEAR", OPTION_CLEAR }
 };
 
-#define CONSOLENKEYS (sizeof(diccionarioProcesos)/sizeof(t_keys))
+#define CONSOLENKEYS (sizeof(diccionarioOpciones)/sizeof(t_keys))
 
 static t_keys diccionarioComandos[] = {
     { "CONSULTAR_RESTAURANTES", CONSULTAR_RESTAURANTES },
@@ -122,7 +122,7 @@ static t_keys diccionarioComandos[] = {
 
 int stringAKey(char *key, int size) {
     t_keys *diccionario;
-    if (size == CONSOLENKEYS) { diccionario = diccionarioProcesos; }
+    if (size == CONSOLENKEYS) { diccionario = diccionarioOpciones; }
     else { diccionario = diccionarioComandos; }
     for (int i = 0; i < size; i++) {
         t_keys sym = diccionario[i];

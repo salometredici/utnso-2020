@@ -23,38 +23,36 @@ void mostrarComandosValidos();
 
 // Mensajes de Ciente al modulo APP (1)
 void consultarRestaurantesAapp();
-void seleccionarRestauranteAapp();
-void consultarPlatosAapp();
-void crearPedidoAapp();
-void aniadirPlatoAapp();
-void confirmarPedidoAapp();
-void platoListoAapp();
-void consultarPedidoAapp();
+void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante);
+void consultarPlatosAapp(char *nombreRestaurante);
+void crearPedidoAapp(); 
+void aniadirPlatoAapp(char *nombrePlato, char* idPedido);
+void confirmarPedidoAapp(char *idPedido); 
+void platoListoAapp(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void consultarPedidoAapp(char *idPedido);
 
 // Mensajes de Ciente al modulo COMANDA(2)
-void guardarPedidoAComanda();
-void guardarPlatoAComanda();
-void confirmarPedidoAComanda();
-void platoListoAComanda();
-void obtenerPedidoAComanda();
+void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido);
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void confirmarPedidoAComanda(char *idPedido); 
+void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido);
 
 // Mensajes de Ciente al modulo RESTAURANTE (3)
-void consultarPlatosARestaurante();
+void consultarPlatosARestaurante(char *nombreRestaurante);
 void crearPedidoARestaurante();
-void aniadirPlatoARestaurante();
-void confirmarPedidoARestaurante();
-void consultarPedidoARestaurante();
+void aniadirPlatoARestaurante(char *nombrePlato, char *idPedido);
+void confirmarPedidoARestaurante(char *idPedido);
+void consultarPedidoARestaurante(char *idPedido);
 
 // Mensajes de Ciente al modulo SINDICATO (4)
-void obtenerRestauranteASindicato();
-void consultarPlatosASindicato();
-void guardarPedidoASindicato();
-void guardarPlatoASindicato();
-void confirmarPedidoASindicato();
-void platoListoASindicato();
-void obtenerPedidoASindicato();
-
-
+void obtenerRestauranteASindicato(char *nombreRestaurante);
+void consultarPlatosASindicato(char *nombreRestaurante);
+void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido);
+void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void confirmarPedidoASindicato(char *idPedido);
+void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 
 // Opciones - consola
 

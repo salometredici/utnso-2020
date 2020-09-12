@@ -24,31 +24,33 @@ typedef struct {
 } pthread_data;
 
 typedef enum {
-	APP,
-	CLIENTE,
-	COMANDA,
-	RESTAURANTE,
-	SINDICATO
+	APP = 0,
+	CLIENTE = 1,
+	COMANDA = 2,
+	RESTAURANTE = 3,
+	SINDICATO = 4
 } p_code;
 
-typedef enum{
-    CONSULTAR_RESTAURANTES,
-	SELECCIONAR_RESTAURANTE,
-	OBTENER_RESTAURANTE,
-	CONSULTAR_PLATOS,
-	CREAR_PEDIDO,
-	GUARDAR_PEDIDO,
-	ANIADIR_PLATO,
-	GUARDAR_PLATO,
-	CONFIRMAR_PEDIDO,
-	PLATO_LISTO,
-	CONSULTAR_PEDIDO,
-	OBTENER_PEDIDO,
-	FINALIZAR_PEDIDO,
-	TERMINAR_PEDIDO,
-	OBTENER_RECETA,
+// API Global
 
-	RTA_OBTENER_RESTAURANTE
+typedef enum{
+    CONSULTAR_RESTAURANTES = 100,
+	SELECCIONAR_RESTAURANTE = 101,
+	OBTENER_RESTAURANTE = 102,
+	CONSULTAR_PLATOS = 103,
+	CREAR_PEDIDO = 104,
+	GUARDAR_PEDIDO = 105,
+	ANIADIR_PLATO = 106,
+	GUARDAR_PLATO = 107,
+	CONFIRMAR_PEDIDO = 108,
+	PLATO_LISTO = 109,
+	CONSULTAR_PEDIDO = 110,
+	OBTENER_PEDIDO = 111,
+	FINALIZAR_PEDIDO = 112,
+	TERMINAR_PEDIDO = 113,
+	OBTENER_RECETA = 114,
+
+	RTA_OBTENER_RESTAURANTE = 115
 } m_code;
 
 // Commons
@@ -68,11 +70,12 @@ void finalizarProceso();
 // Config
 
 int obtenerPuertoEscucha();
+char* obtenerNombreRestaurante();
 
 // Conexiones
 
-int conectarseA(p_code proceso);
 int iniciarServidor();
+int conectarseA(p_code proceso);
 int aceptarCliente(int socketServidor);
 void liberarConexion(int conexion);
 
@@ -121,4 +124,5 @@ void enviar_paquete_v2(t_paquete_v2* paquete, int socket_cliente);
 void eliminar_paquete_v2(t_paquete_v2* paquete);
 t_paquete_v2* recibir_header_paquete(int socket);
 t_paquete_v2* recibir_payload_paquete(t_paquete_v2* header, int socket);
+
 #endif

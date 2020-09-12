@@ -27,34 +27,39 @@ void* threadLecturaConsola(void * args) {
             strcpy(comandoOriginal, comandoLeido);
             string_to_upper(comandoLeido);
             string_trim(&comandoLeido);
+
+			// Parámetros
             parametros = string_split(comandoLeido, " ");
 			mensaje = parametros[0];
             free(comandoOriginal);
+			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
-            opcion = stringAProceso(mensaje); 
+            opcion = stringAKey(mensaje, CONSOLENKEYS);
 			switch (opcion) {
-				case CREARRESTAURANTE:
+				case OPT_CREAR_RESTAURANTE:
 					printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");
 					break;
-				case CREARRECETA:
+				case OPT_CREAR_RECETA:
 					printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
 					break;
-				case AIUDA:
+				case OPT_AIUDA:
 					mostrarComandosValidos();
 					break;
-				case BAI:
+				case OPT_BAI:
 					printf("adiosss (๑♡3♡๑)!\n");
 					break;
-				case CLEAR:
+				case OPT_CLEAR:
 					limpiarPantalla();
+					break;
 				case ERROR:
+				default:
 					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
 					break;
 			}
 
 			free(mensaje);
             free(parametros);
-            if (opcion == BAI) { break; }
+            if (opcion == OPT_BAI) { break; }
 
             free(comandoLeido);
 			comandoLeido = readline("(=^.^=)~>");

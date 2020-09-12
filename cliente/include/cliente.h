@@ -58,7 +58,7 @@ void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 
 #define ERROR -1
 
-// Defines - opciones - consola
+// Diccionario de opciones/módulos para la consola de Cliente
 
 #define OPTION_APP 1
 #define OPTION_COMANDA 2
@@ -67,26 +67,6 @@ void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 #define OPTION_AIUDA 5
 #define OPTION_BAI 6
 #define OPTION_CLEAR 7
-
-// Defines - comandos - consola
-
-#define CONSULTAR_RESTAURANTES 11
-#define SELECCIONAR_RESTAURANTE 12
-#define OBTENER_RESTAURANTE 13
-#define CONSULTAR_PLATOS 14
-#define CREAR_PEDIDO 15
-#define GUARDAR_PEDIDO 16
-#define ANIADIR_PLATO 17
-#define GUARDAR_PLATO 18
-#define CONFIRMAR_PEDIDO 19
-#define PLATO_LISTO 20
-#define CONSULTAR_PEDIDO 21
-#define OBTENER_PEDIDO 22
-#define FINALIZAR_PEDIDO 23
-#define TERMINAR_PEDIDO 24
-#define OBTENER_RECETA 25
-
-// Diccionarios
 
 static t_keys diccionarioOpciones[] = {
     { "APP", OPTION_APP },
@@ -99,6 +79,8 @@ static t_keys diccionarioOpciones[] = {
 };
 
 #define CONSOLENKEYS (sizeof(diccionarioOpciones)/sizeof(t_keys))
+
+// Diccionario de todos los comandos definidos para la API Global, utiliza los valores de m_code de las shared_utils
 
 static t_keys diccionarioComandos[] = {
     { "CONSULTAR_RESTAURANTES", CONSULTAR_RESTAURANTES },

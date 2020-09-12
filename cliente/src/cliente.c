@@ -328,10 +328,10 @@ void mostrarComandosValidos() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
-    //conexionApp = conectarseA(APP);
+    conexionApp = conectarseA(APP);
 	//conexionComanda = conectarseA(COMANDA);
 	conexionRestaurante = conectarseA(RESTAURANTE);
-	//conexionSindicato = conectarseA(SINDICATO);
+	conexionSindicato = conectarseA(SINDICATO);
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
@@ -341,6 +341,7 @@ int main(int argc, char* argv[]) {
 		//TODO: Lógica del Cliente
 	}
 
+	liberarConexion(conexionApp);
 	liberarConexion(conexionRestaurante);
     finalizarProceso();
     return EXIT_SUCCESS;

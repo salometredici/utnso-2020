@@ -22,7 +22,7 @@ void *atenderConexiones(void *conexionNueva)
 				log_error(logger, "el cliente se desconecto. Terminando servidor");
 				return EXIT_FAILURE;
 			default:
-				printf("Operacion desconocida. No quieras meter la pata");
+				printf("Operacion desconocida. No quieras meter la pata\n");
 				break;
 		}
 	}
@@ -40,9 +40,14 @@ int main(int argc, char* argv[])
 	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
 
 	// obtener metadata del restaurante al modulo sindicato
-	t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
-	enviarPaquete(pedido,conexionSindicato);
+		t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
+		enviarPaquete(pedido,conexionSindicato);
 
+		t_paquete* data = recibirHeaderPaquete(conexionSindicato);
+		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
+		data = recibirPayloadPaquete(data, conexionSindicato);
+		printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
+	
 	// creacion de las distintas colas de planificacion
 
 	// Inicio del bucle que va a generar los diferentes hilos de conexión

@@ -101,10 +101,20 @@ static t_keys diccionarioComandos[] = {
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
 
 int stringAKey(char *key, int size) {
-    t_keys *diccionario;
-    if (size == CONSOLENKEYS) { diccionario = diccionarioOpciones; }
-    else { diccionario = diccionarioComandos; }
-    for (int i = 0; i < size; i++) {
+    t_keys *diccionario = diccionarioComandos;
+    for (int i = 0; i < COMMANDNKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
+    }
+    return ERROR;
+}
+
+
+int clientOptionToKey(char *key) {
+    t_keys *diccionario = diccionarioOpciones;
+    for (int i = 0; i < CONSOLENKEYS; i++) {
         t_keys sym = diccionario[i];
         if (strcmp(sym.key, key) == 0) {
             return sym.valor;

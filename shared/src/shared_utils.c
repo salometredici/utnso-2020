@@ -10,6 +10,17 @@ void limpiarPantalla() {
 	system("clear");
 }
 
+int commandToString(char *key) {
+    t_keys *diccionario = diccionarioComandos;
+    for (int i = 0; i < COMMANDNKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
+    }
+    return ERROR;
+}
+
 // Commons
 
 void inicializarProceso(p_code proceso) {

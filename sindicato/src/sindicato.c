@@ -34,7 +34,7 @@ void* threadLecturaConsola(void * args) {
         free(comandoOriginal);
 		log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
-        opcion = stringAKey(mensaje, CONSOLENKEYS);
+        opcion = sindicatoOptionToKey(mensaje);
 		switch (opcion) {
 			case OPT_CREAR_RESTAURANTE:
 				printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");

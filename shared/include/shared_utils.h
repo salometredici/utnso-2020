@@ -85,21 +85,13 @@ static t_keys diccionarioComandos[] = {
     { "OBTENER_PEDIDO", OBTENER_PEDIDO },
     { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
-    { "OBTENER_RECETA", OBTENER_RECETA }
+    { "OBTENER_RECETA", OBTENER_RECETA },
+    { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE }
 };
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
 
-int stringAKey(char *key, int size) {
-    t_keys *diccionario = diccionarioComandos;
-    for (int i = 0; i < COMMANDNKEYS; i++) {
-        t_keys sym = diccionario[i];
-        if (strcmp(sym.key, key) == 0) {
-            return sym.valor;
-        }
-    }
-    return ERROR;
-}
+int commandToString(char *key);
 
 // Config
 

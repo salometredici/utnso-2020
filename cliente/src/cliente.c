@@ -29,7 +29,7 @@ void* threadLecturaConsola(void * args) {
 		// Setear módulo/opción y de haberlo, el mensaje
 		opcion = clientOptionToKey(modulo);
 		if (mensaje) {
-			comando = stringAKey(mensaje, COMMANDNKEYS);
+			comando = commandToString(mensaje);
 		}
 		
 		switch (opcion) {

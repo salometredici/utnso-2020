@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
 		data = recibirPayloadPaquete(data, conexionSindicato);
 		printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
-	
+  
 	// creacion de las distintas colas de planificacion
 
 	// Inicio del bucle que va a generar los diferentes hilos de conexión

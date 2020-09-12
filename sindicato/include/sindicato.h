@@ -1,13 +1,10 @@
 #ifndef SINDICATO_H
 #define SINDICATO_H
-#include <stdio.h>
-#include <commons/log.h>
-#include <stdbool.h>
-#include <pthread.h>
-#include "../../shared/include/shared_utils.h"
-#include "tests.h"
+
 #include <commons/string.h>
 #include <readline/readline.h>
+#include "../../shared/include/shared_utils.h"
+#include "tests.h"
 
 void inicializarConsola();
 void finalizarConsola();

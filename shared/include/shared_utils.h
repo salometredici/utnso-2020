@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include <sys/socket.h>
 #include <commons/log.h>
 #include <commons/config.h>

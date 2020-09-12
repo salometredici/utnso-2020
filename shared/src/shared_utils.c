@@ -302,7 +302,7 @@ t_paquete *recibirHeaderPaquete(int socket){
 
 	void* buffer = malloc(sizeof(int)*2);
 
-	if(recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
+	if (recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
 		memcpy(&proceso,buffer,sizeof(int));
 		memcpy(&mensaje,buffer+sizeof(int),sizeof(int));
 		header->procesoOrigen = proceso;
@@ -313,7 +313,6 @@ t_paquete *recibirHeaderPaquete(int socket){
 	}
 
 	free(buffer);
-
 	return header;
 }
 

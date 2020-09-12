@@ -94,11 +94,11 @@ void *atenderConexiones(void *conexionNueva) {
 				t_paquete* pedido = crearPaquete(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
 				enviarPaquete(pedido, info);
 				break;
-			case -1:
-				log_error(logger, "el cliente se desconecto. Terminando servidor");
+			case ERROR:
+				log_error(logger, "El cliente %d se desconectó. Terminando servidor...", info);
 				return EXIT_FAILURE;
 			default:
-				printf("Operacion desconocida. No quieras meter la pata");
+				printf("Operación desconocida. No quieras meter la pata!!!(｀Д´*)\n");
 				break;
 		}
 	}

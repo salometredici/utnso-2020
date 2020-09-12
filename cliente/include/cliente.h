@@ -15,12 +15,44 @@ int conexionSindicato;
 
 pthread_t threadConsola;
 
-// Interfaz Cliente
+/////////////// INTERFAZ DE CLIENTE ///////////////////
+///// General ////
 void inicializarConsola();
 void finalizarConsola();
-void enviarConsultarRestaurantesAApp();
-void enviarConsultarPlatosARestaurante();
 void mostrarComandosValidos();
+
+// Mensajes de Ciente al modulo APP (1)
+void consultarRestaurantesAapp();
+void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante);
+void consultarPlatosAapp(char *nombreRestaurante);
+void crearPedidoAapp(); 
+void aniadirPlatoAapp(char *nombrePlato, char* idPedido);
+void confirmarPedidoAapp(char *idPedido); 
+void platoListoAapp(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void consultarPedidoAapp(char *idPedido);
+
+// Mensajes de Ciente al modulo COMANDA(2)
+void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido);
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void confirmarPedidoAComanda(char *idPedido); 
+void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido);
+
+// Mensajes de Ciente al modulo RESTAURANTE (3)
+void consultarPlatosARestaurante(char *nombreRestaurante);
+void crearPedidoARestaurante();
+void aniadirPlatoARestaurante(char *nombrePlato, char *idPedido);
+void confirmarPedidoARestaurante(char *idPedido);
+void consultarPedidoARestaurante(char *idPedido);
+
+// Mensajes de Ciente al modulo SINDICATO (4)
+void obtenerRestauranteASindicato(char *nombreRestaurante);
+void consultarPlatosASindicato(char *nombreRestaurante);
+void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido);
+void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void confirmarPedidoASindicato(char *idPedido);
+void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
+void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 
 // Opciones - consola
 

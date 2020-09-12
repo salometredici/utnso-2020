@@ -27,9 +27,9 @@ void* threadLecturaConsola(void * args) {
 		log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
 		// Setear módulo/opción y de haberlo, el mensaje
-		opcion = stringAKey(modulo, CONSOLENKEYS);
+		opcion = clientOptionToKey(modulo);
 		if (mensaje) {
-			comando = stringAKey(mensaje, COMMANDNKEYS);
+			comando = commandToString(mensaje);
 		}
 		
 		switch (opcion) {

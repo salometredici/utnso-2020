@@ -77,13 +77,12 @@ void *atenderConexiones(void *conexionNueva) {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int info = t_data->socketThread;
     free(t_data);
-	
-	// 
+
 	t_list* lista;
 	while(1) {
 		//int cod_op = recibir_operacion(info);
 		t_paquete* data = recibirHeaderPaquete(info);
-		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
+		log_info(logger, "Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen, data->codigoOperacion);
 
 		switch(data->codigoOperacion) {
 			case OBTENER_RESTAURANTE:

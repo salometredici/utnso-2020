@@ -12,19 +12,11 @@ void *atenderConexiones(void *conexionNueva)
 	t_list* lista;
 	while(1) {
 		//int cod_op = recibir_operacion(info);
-		t_paquete* data = recibir_header_paquete(info);
-		switch(data->codigo_operacion) {
+		t_paquete* data = recibirHeaderPaquete(info);
+		switch(data->codigoOperacion) {
 			case RTA_OBTENER_RESTAURANTE:
-				data = recibir_payload_paquete(data, info);
+				data = recibirPayloadPaquete(data, info);
 				printf("Me llego: %s\n", data->buffer->stream);
-				break;
-			case MENSAJE:
-				recibir_mensaje(info);
-				break;
-			case PAQUETE:
-				lista = recibir_paquete(info);
-				printf("Me llegaron los siguientes valores:\n");
-				list_iterate(lista, (void*) iterator);
 				break;
 			case -1:
 				log_error(logger, "el cliente se desconecto. Terminando servidor");
@@ -48,8 +40,8 @@ int main(int argc, char* argv[])
 	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
 
 	// obtener metadata del restaurante al modulo sindicato
-	t_paquete* pedido = crear_paquete_v2(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
-	enviar_paquete_v2(pedido,conexionSindicato);
+	t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
+	enviarPaquete(pedido,conexionSindicato);
 
 	// creacion de las distintas colas de planificacion
 

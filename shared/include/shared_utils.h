@@ -80,13 +80,7 @@ int conectarseA(p_code proceso);
 int aceptarCliente(int socketServidor);
 void liberarConexion(int conexion);
 
-//TODO
-
-typedef enum
-{
-	MENSAJE,
-	PAQUETE
-} op_code;
+// Serialización
 
 typedef struct
 {
@@ -96,22 +90,24 @@ typedef struct
 
 typedef struct
 {
-	p_code proceso_origen;
-	m_code codigo_operacion;
+	p_code procesoOrigen;
+	m_code codigoOperacion;
 	t_buffer* buffer;
 } t_paquete;
+
+t_paquete* crearPaquete(p_code procesoOrigen, m_code codigoOperacion, int size, void* stream);
+void* serializarPaquete(t_paquete* paquete, int bytes);
+void enviarPaquete(t_paquete* paquete, int socketCliente);
+void eliminarPaquete(t_paquete* paquete);
+t_paquete* recibirHeaderPaquete(int socket);
+t_paquete* recibirPayloadPaquete(t_paquete* header, int socket);
+
+// Para limpiar o refactorizar
 
 void* recibir_buffer(int*, int);
 t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);
 void enviar_mensaje(char* mensaje, int socket_cliente);
-
-t_paquete* crear_paquete_v2(p_code proc_org, m_code cod_op, int size, void* stream);
-void* serializar_paquete_v2(t_paquete* paquete, int bytes);
-void enviar_paquete_v2(t_paquete* paquete, int socket_cliente);
-void eliminar_paquete_v2(t_paquete* paquete);
-t_paquete* recibir_header_paquete(int socket);
-t_paquete* recibir_payload_paquete(t_paquete* header, int socket);
 
 #endif

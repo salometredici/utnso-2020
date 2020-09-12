@@ -184,7 +184,7 @@ void finalizarProceso() {
 	log_destroy(logger);
 }
 
-// Serialización
+// Para revisar
 
 int recibir_operacion(int socket_cliente)
 {
@@ -241,30 +241,32 @@ t_list* recibir_paquete(int socket_cliente)
 	return NULL;
 }
 
+// Serialización
 
-//jej
-t_paquete* crear_paquete_v2(p_code proc_org, m_code cod_op, int size, void* stream)
+t_paquete* crearPaquete(p_code procesoOrigen, m_code codigoOperacion, int size, void* stream)
 {
-	t_paquete* paquete = malloc(sizeof(t_paquete));
+	t_paquete *paquete = malloc(sizeof(t_paquete));
 	paquete->buffer = malloc(sizeof(t_buffer));
+
 	paquete->buffer->size = size;
 	paquete->buffer->stream = stream;
-
-	paquete->proceso_origen = proc_org;
-	paquete->codigo_operacion = cod_op;
-	// paquete->buffer = malloc(sizeof(t_buffer))
+	paquete->procesoOrigen = procesoOrigen;
+	paquete->codigoOperacion = codigoOperacion;
 
 	return paquete;
 }
-void* serializar_paquete_v2(t_paquete* paquete, int bytes)
+
+void* serializarPaquete(t_paquete* paquete, int bytes)
 {
-	void * magic = malloc(bytes);
+	void *magic = malloc(bytes);
 	int desplazamiento = 0;
 
-	memcpy(magic + desplazamiento, &(paquete->proceso_origen), sizeof(int));
+	// Memcpy de atributos propios de t_paquete
+	memcpy(magic + desplazamiento, &(paquete->procesoOrigen), sizeof(int));
 	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
+	memcpy(magic + desplazamiento, &(paquete->codigoOperacion), sizeof(int));
 	desplazamiento+= sizeof(int);
+	// Memcpy de atributos de t_buffer
 	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
 	desplazamiento+= sizeof(int);
 	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
@@ -272,23 +274,26 @@ void* serializar_paquete_v2(t_paquete* paquete, int bytes)
 
 	return magic;
 }
-void enviar_paquete_v2(t_paquete* paquete, int socket_cliente)
+
+void enviarPaquete(t_paquete* paquete, int socket_cliente)
 {
+	// Vamos a enviar algo con una cantidad de bytes igual al tamaño del buffer más 3 ints (procesoOrigen, codigoOperacion, size)
 	int bytes = paquete->buffer->size + 3*sizeof(int);
-	void* a_enviar = serializar_paquete_v2(paquete, bytes);
+	void *a_enviar = serializarPaquete(paquete, bytes);
 
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
 }
-void eliminar_paquete_v2(t_paquete* paquete)
+
+void eliminarPaquete(t_paquete* paquete)
 {
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
 }
 
-t_paquete* recibir_header_paquete(int socket){
+t_paquete *recibirHeaderPaquete(int socket){
 	int proceso, mensaje;
 	t_paquete* header = malloc(sizeof(t_paquete));
 	header->buffer = malloc(sizeof(t_buffer));
@@ -300,11 +305,11 @@ t_paquete* recibir_header_paquete(int socket){
 	if(recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
 		memcpy(&proceso,buffer,sizeof(int));
 		memcpy(&mensaje,buffer+sizeof(int),sizeof(int));
-		header->proceso_origen = proceso;
-		header->codigo_operacion = mensaje;
+		header->procesoOrigen = proceso;
+		header->codigoOperacion = mensaje;
 	} else {
 		close(socket);
-		header->proceso_origen = -1;
+		header->procesoOrigen = ERROR;
 	}
 
 	free(buffer);
@@ -312,12 +317,11 @@ t_paquete* recibir_header_paquete(int socket){
 	return header;
 }
 
-t_paquete* recibir_payload_paquete(t_paquete* header, int socket){
+t_paquete* recibirPayloadPaquete(t_paquete* header, int socket){
 	int size;
-	void* buffer;
-
-	buffer = recibir_buffer(&size, socket);
+	void* buffer = recibir_buffer(&size, socket);
 	char* valor = malloc(size);
+
 	memcpy(valor, buffer, size);
 	header->buffer->size = size;
 	header->buffer->stream = valor;

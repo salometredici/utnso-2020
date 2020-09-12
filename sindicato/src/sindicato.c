@@ -82,25 +82,17 @@ void *atenderConexiones(void *conexionNueva) {
 	t_list* lista;
 	while(1) {
 		//int cod_op = recibir_operacion(info);
-		t_paquete* data = recibir_header_paquete(info);
-		printf("Me llegaron los siguientes valores: %d %d\n", data->proceso_origen,data->codigo_operacion);
+		t_paquete* data = recibirHeaderPaquete(info);
+		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
 
-		switch(data->codigo_operacion) {
+		switch(data->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
-				data = recibir_payload_paquete(data, info);
+				data = recibirPayloadPaquete(data, info);
 				printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
 
 				char* mock = "RESPUESTA_NOMBRE_RESTAURANTE";
-				t_paquete* pedido = crear_paquete_v2(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
-				enviar_paquete_v2(pedido, info);
-				break;
-			case MENSAJE:
-				recibir_mensaje(info);
-				break;
-			case PAQUETE:
-				lista = recibir_paquete(info);
-				printf("Me llegaron los siguientes valores:\n");
-				list_iterate(lista, (void*) iterator);
+				t_paquete* pedido = crearPaquete(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
+				enviarPaquete(pedido, info);
 				break;
 			case -1:
 				log_error(logger, "el cliente se desconecto. Terminando servidor");

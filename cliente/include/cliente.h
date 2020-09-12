@@ -56,8 +56,6 @@ void confirmarPedidoASindicato(char *idPedido);
 void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
 
-#define ERROR -1
-
 // Diccionario de opciones/módulos para la consola de Cliente
 
 #define OPTION_APP 1

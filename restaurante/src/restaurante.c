@@ -12,7 +12,7 @@ void *atenderConexiones(void *conexionNueva)
 	t_list* lista;
 	while(1) {
 		//int cod_op = recibir_operacion(info);
-		t_paquete_v2* data = recibir_header_paquete(info);
+		t_paquete* data = recibir_header_paquete(info);
 		switch(data->codigo_operacion) {
 			case RTA_OBTENER_RESTAURANTE:
 				data = recibir_payload_paquete(data, info);
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
 
 	// obtener metadata del restaurante al modulo sindicato
-	t_paquete_v2* pedido = crear_paquete_v2(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
+	t_paquete* pedido = crear_paquete_v2(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
 	enviar_paquete_v2(pedido,conexionSindicato);
 
 	// creacion de las distintas colas de planificacion

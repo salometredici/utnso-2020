@@ -2,9 +2,12 @@
 
 void mostrarComandosValidos() {
     printf("-------------------Comandos Válidos-------------------\n");
+	printf("Ejemplo: AIUDA\n");
+	printf("Ejemplo: CLEAR\n");
+	printf("Ejemplo: BAI\n");
     printf("Formato: [MENSAJE] [PARAMETROS]\n");
-	printf("Ejemplo: CrearRestaurante [NOMBRE] [CANTIDAD_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANTIDAD_HORNOS]\n");
-	printf("Ejemplo: CrearReceta [NOMBRE] [PASOS] [TIEMPO_PASOS] \n");
+	printf("Ejemplo: CREAR_RESTAURANTE [NOMBRE] [CANTIDAD_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANTIDAD_HORNOS]\n");
+	printf("Ejemplo: CREAR_RECETA [NOMBRE] [PASOS] [TIEMPO_PASOS] \n");
     printf("------------------------------------------------------\n");
 }
 
@@ -19,63 +22,58 @@ void* threadLecturaConsola(void * args) {
     char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
-        if (!comandoLeido || string_equals_ignore_case(comandoLeido, "")) {
-            continue;
-        } else {
-            add_history(comandoLeido);
-            comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
-            strcpy(comandoOriginal, comandoLeido);
-            string_to_upper(comandoLeido);
-            string_trim(&comandoLeido);
+        add_history(comandoLeido);
+        comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
+        strcpy(comandoOriginal, comandoLeido);
+        string_to_upper(comandoLeido);
+        string_trim(&comandoLeido);
 
-			// Parámetros
-            parametros = string_split(comandoLeido, " ");
-			mensaje = parametros[0];
-            free(comandoOriginal);
-			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
+		// Parámetros
+        parametros = string_split(comandoLeido, " ");
+		mensaje = parametros[0];
+        free(comandoOriginal);
+		log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
-            opcion = stringAKey(mensaje, CONSOLENKEYS);
-			switch (opcion) {
-				case OPT_CREAR_RESTAURANTE:
-					printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");
-					break;
-				case OPT_CREAR_RECETA:
-					printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
-					break;
-				case OPT_AIUDA:
-					mostrarComandosValidos();
-					break;
-				case OPT_BAI:
-					printf("adiosss (๑♡3♡๑)!\n");
-					break;
-				case OPT_CLEAR:
-					limpiarPantalla();
-					break;
-				case ERROR:
-				default:
-					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
-					break;
-			}
+        opcion = stringAKey(mensaje, CONSOLENKEYS);
+		switch (opcion) {
+			case OPT_CREAR_RESTAURANTE:
+				printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");
+				break;
+			case OPT_CREAR_RECETA:
+				printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
+				break;
+			case OPT_AIUDA:
+				mostrarComandosValidos();
+				break;
+			case OPT_BAI:
+				printf("adiosss (๑♡3♡๑)!\n");
+				break;
+			case OPT_CLEAR:
+				limpiarPantalla();
+				break;
+			case ERROR:
+			default:
+				printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
+				break;
+		}
 
-			free(mensaje);
-            free(parametros);
-            if (opcion == OPT_BAI) { break; }
+		free(mensaje);
+        free(parametros);
+        free(comandoLeido);
+        if (opcion == OPT_BAI) { break; }
 
-            free(comandoLeido);
-			comandoLeido = readline("(=^.^=)~>");
-        }
+		comandoLeido = readline("(=^.^=)~>");
 	}
 
-	free(comandoLeido);
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
 
 void iterator(char* value)	{
-		printf("%s\n", value);
-	}
-void *atenderConexiones(void *conexionNueva)
-{
+	printf("%s\n", value);
+}
+
+void *atenderConexiones(void *conexionNueva) {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int info = t_data->socketThread;
     free(t_data);
@@ -84,7 +82,7 @@ void *atenderConexiones(void *conexionNueva)
 	t_list* lista;
 	while(1) {
 		//int cod_op = recibir_operacion(info);
-		t_paquete_v2* data = recibir_header_paquete(info);
+		t_paquete* data = recibir_header_paquete(info);
 		printf("Me llegaron los siguientes valores: %d %d\n", data->proceso_origen,data->codigo_operacion);
 
 		switch(data->codigo_operacion) {
@@ -93,7 +91,7 @@ void *atenderConexiones(void *conexionNueva)
 				printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
 
 				char* mock = "RESPUESTA_NOMBRE_RESTAURANTE";
-				t_paquete_v2* pedido = crear_paquete_v2(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
+				t_paquete* pedido = crear_paquete_v2(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
 				enviar_paquete_v2(pedido, info);
 				break;
 			case MENSAJE:

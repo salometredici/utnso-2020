@@ -16,7 +16,7 @@ void enviarConsultarRestaurantesAApp();
 void enviarConsultarPlatosARestaurante();
 void mostrarComandosValidos();
 
-// Mensajes por socket
+// Mensajes correspondientes a m_code que Sindicato puede recibir por socket
 
 static t_keys diccionarioMsgs[] = {
     { "CONSULTAR_PLATOS", CONSULTAR_PLATOS },
@@ -39,7 +39,6 @@ static t_keys diccionarioMsgs[] = {
 #define OPT_AIUDA 3
 #define OPT_BAI 4
 #define OPT_CLEAR 5
-#define ERROR -1
 
 static t_keys diccionarioConsola[] = {
     { "CREAR_RESTAURANTE", OPT_CREAR_RESTAURANTE },

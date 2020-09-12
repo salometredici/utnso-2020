@@ -6,15 +6,8 @@ void* threadLecturaConsola(void * args) {
 
 	char *comandoOriginal;
 	char **parametros;
-	char *modulo = "";
-	char *mensaje = "";
-	char *parametro1 ="";
-	char *parametro2 ="";
-	char *parametro3 ="";
-	char *parametro4 ="";
-	
-	int opcion;
-	int comando;
+	char *modulo = "", *mensaje = "", *parametro1 = "", *parametro2 = "", *parametro3 = "", *parametro4 = "";
+	int opcion, comando;
     char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
@@ -217,7 +210,7 @@ void consultarPedidoAapp(char *idPedido) {
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido) {
 
 }
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida) {
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos) {
 
 }
 void confirmarPedidoAComanda(char *idPedido) {
@@ -260,7 +253,7 @@ void consultarPlatosASindicato(char *nombreRestaurante) {
 void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido) {
 
 }
-void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida) {
+void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos) {
 
 }
 void confirmarPedidoASindicato(char *idPedido) {

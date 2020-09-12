@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 {
 	inicializarProceso(RESTAURANTE);
 	socketServidor = iniciarServidor();
-	conexionSindicato = conectarseA(SINDICATO);
+	//conexionSindicato = conectarseA(SINDICATO);
 	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
 
 	// obtener metadata del restaurante al modulo sindicato

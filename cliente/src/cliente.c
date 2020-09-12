@@ -217,7 +217,7 @@ void consultarPedidoAapp(char *idPedido) {
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido) {
 
 }
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida) {
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPedida) {
 
 }
 void confirmarPedidoAComanda(char *idPedido) {
@@ -260,7 +260,7 @@ void consultarPlatosASindicato(char *nombreRestaurante) {
 void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido) {
 
 }
-void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida) {
+void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPedida) {
 
 }
 void confirmarPedidoASindicato(char *idPedido) {

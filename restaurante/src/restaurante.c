@@ -8,11 +8,18 @@ void *atenderConexiones(void *conexionNueva)
     int info = t_data->socketThread;
     free(t_data);
 	
-	// 
 	t_list* lista;
 	while(1) {
 		//int cod_op = recibir_operacion(info);
 		t_paquete* data = recibirHeaderPaquete(info);
+
+		if(data->procesoOrigen == -1){
+			close(socket);
+			printf("El cliente se desconecto. Terminando servidor\n");
+    		pthread_exit(EXIT_SUCCESS);
+			return EXIT_FAILURE;
+		}
+
 		switch(data->codigoOperacion) {
 			case RTA_OBTENER_RESTAURANTE:
 				data = recibirPayloadPaquete(data, info);
@@ -40,13 +47,13 @@ int main(int argc, char* argv[])
 	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
 
 	// obtener metadata del restaurante al modulo sindicato
-		t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
-		enviarPaquete(pedido,conexionSindicato);
+	t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
+	enviarPaquete(pedido,conexionSindicato);
 
-		t_paquete* data = recibirHeaderPaquete(conexionSindicato);
-		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
-		data = recibirPayloadPaquete(data, conexionSindicato);
-		printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
+	t_paquete* data = recibirHeaderPaquete(conexionSindicato);
+	printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
+	data = recibirPayloadPaquete(data, conexionSindicato);
+	printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
   
 	// creacion de las distintas colas de planificacion
 

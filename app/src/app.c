@@ -18,7 +18,10 @@ int main(int argc, char* argv[])
 	inicializarProceso(APP);
 	socketServidor = iniciarServidor();
 
-	// Inicio del bucle que va a generar los diferentes hilos de conexión
+    conexionComanda = conectarseA(COMANDA);	
+	t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen("HOLASOYAPP")+1, "HOLASOYAPP");
+	enviarPaquete(pedido,conexionComanda);
+
 	int fd;
 	while (1) {
 		fd = aceptarCliente(socketServidor);
@@ -28,12 +31,11 @@ int main(int argc, char* argv[])
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-
-			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
 		}
 	}
 	
 	liberarConexion(socketServidor);
     finalizarProceso();
+    printf("Proceso finalizado");
     return EXIT_SUCCESS;
 }

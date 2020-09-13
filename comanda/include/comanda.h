@@ -5,4 +5,7 @@
 #include <stdbool.h>
 #include "../../shared/include/shared_utils.h"
 #include "tests.h"
+
+pthread_t threadConexiones;
+int socketServidor;
 #endif

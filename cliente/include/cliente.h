@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <commons/string.h>
+#include <commons/collections/list.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 #include "../../shared/include/shared_utils.h"
 #include "tests.h"
 
@@ -55,6 +57,9 @@ void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombr
 void confirmarPedidoASindicato(char *idPedido);
 void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
+
+//Listas 
+ t_list *listaRestaurantes;
 
 // Diccionario de opciones/módulos para la consola de Cliente
 

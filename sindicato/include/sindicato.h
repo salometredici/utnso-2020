@@ -12,8 +12,6 @@ pthread_t threadConexiones;
 
 void inicializarConsola();
 void finalizarConsola();
-void enviarConsultarRestaurantesAApp();
-void enviarConsultarPlatosARestaurante();
 void mostrarComandosValidos();
 
 // Mensajes correspondientes a m_code que Sindicato puede recibir por socket

@@ -1,40 +1,57 @@
 #include "../include/restaurante.h"
-void iterator(char* value)	{
-		printf("%s\n", value);
-	}
+
+void iterator(char *value)	{
+	printf("%s\n", value);
+}
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int info = t_data->socketThread;
     free(t_data);
 	
-	t_list* lista;
+	t_list *lista;
 	while(1) {
-		//int cod_op = recibir_operacion(info);
-		t_paquete* data = recibirHeaderPaquete(info);
 
-		if(data->procesoOrigen == -1){
-			close(socket);
-			printf("El cliente se desconecto. Terminando servidor\n");
+		t_buffer *payload; // Ver cómo liberar este payload después
+		t_header *header = recibirHeaderPaquete(info);
+
+		if (header->procesoOrigen == ERROR) { // Ver cómo manejar esta desconexión
+			log_error("El cliente %d se desconectó. Finalizando hilo...╮(╯_╰)╭\n", info);
+			liberarConexion(info);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
 
-		switch(data->codigoOperacion) {
-			case RTA_OBTENER_RESTAURANTE:
-				data = recibirPayloadPaquete(data, info);
-				printf("Me llego: %s\n", data->buffer->stream);
+		switch (header->codigoOperacion) { // Mensajes y/o rtas que puede manejar Restaurante
+			case CONSULTAR_PLATOS:
+				//TODO
 				break;
-			case -1:
-				log_error(logger, "el cliente se desconecto. Terminando servidor");
+			case CREAR_PEDIDO:
+				//TODO
+				break;
+			case ANIADIR_PLATO:
+				//TODO
+				break;
+			case CONFIRMAR_PEDIDO:
+				//TODO
+				break;
+			case CONSULTAR_PEDIDO:
+				//TODO
+				break;
+			case RTA_OBTENER_RESTAURANTE:
+				payload = recibirPayloadPaquete(header, info);
+				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
+				break;
+			case ERROR:
+				log_error(logger, "El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", info);
 				return EXIT_FAILURE;
 			default:
-				printf("Operacion desconocida. No quieras meter la pata\n");
+				printf("Operación desconocida. Valor recibido: %d. No quieras meter la pata!\n", header->codigoOperacion);
 				break;
 		}
 	}
 
-	// Esto sí tiene que estar para finalizar el hilo por ahora cuando le llegue la cadena vacía
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
@@ -44,18 +61,23 @@ int main(int argc, char* argv[])
 	inicializarProceso(RESTAURANTE);
 	socketServidor = iniciarServidor();
 	conexionSindicato = conectarseA(SINDICATO);
-	nombre = config_get_string_value(config, "NOMBRE_RESTAURANTE");
+	nombreRestaurante = obtenerNombreRestaurante();
 
-	// obtener metadata del restaurante al modulo sindicato
-	t_paquete* pedido = crearPaquete(RESTAURANTE,OBTENER_RESTAURANTE, strlen(nombre)+1, nombre);
-	enviarPaquete(pedido,conexionSindicato);
+	// Obtener metadata del restaurante consultando a Sindicato
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, strlen(nombreRestaurante) + 1, nombreRestaurante); // Ver si se puede simplificar o generalizar esto
 
-	t_paquete* data = recibirHeaderPaquete(conexionSindicato);
-	printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen,data->codigoOperacion);
-	data = recibirPayloadPaquete(data, conexionSindicato);
-	printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
+	t_header *header = recibirHeaderPaquete(conexionSindicato);
+	log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",
+				getStringKeyValue(header->procesoOrigen, PROCNKEYS),
+				getStringKeyValue(header->codigoOperacion, COMMANDNKEYS));
+
+	t_buffer *buffer = recibirPayloadPaquete(header, conexionSindicato);
+
+	t_posicion *pr = buffer->stream;
+	printf("Me llegó size: %d, posX %d, posY %d\n", buffer->size, pr->posX, pr->posY);
   
-	// creacion de las distintas colas de planificacion
+	// Creación de las distintas colas de planificación
+		//TODO
 
 	// Inicio del bucle que va a generar los diferentes hilos de conexión
 	int fd;

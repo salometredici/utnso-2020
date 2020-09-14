@@ -50,7 +50,7 @@ typedef enum{
 	FINALIZAR_PEDIDO = 112,
 	TERMINAR_PEDIDO = 113,
 	OBTENER_RECETA = 114,
-
+    // Ver si vamos a tomar la rta a un comando así o de otra forma
 	RTA_OBTENER_RESTAURANTE = 115
 } m_code;
 
@@ -68,7 +68,19 @@ void limpiarPantalla();
 void inicializarProceso(p_code proceso);
 void finalizarProceso();
 
-// Diccionario de todos los comandos definidos para la API Global, utiliza los valores de m_code de las shared_utils
+// Diccionario de procesos
+
+static t_keys diccionarioProcesos[] = {
+    { "APP", APP },
+    { "CLIENTE", CLIENTE },
+    { "COMANDA", COMANDA },
+    { "RESTAURANTE", RESTAURANTE },
+    { "SINDICATO", SINDICATO }
+};
+
+#define PROCNKEYS (sizeof(diccionarioProcesos)/sizeof(t_keys))
+
+// Diccionario de todos los comandos definidos para la API Global, utiliza los valores de m_code
 
 static t_keys diccionarioComandos[] = {
     { "CONSULTAR_RESTAURANTES", CONSULTAR_RESTAURANTES },
@@ -91,6 +103,7 @@ static t_keys diccionarioComandos[] = {
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
 
+char* getStringKeyValue(int key, int option);
 int commandToString(char *key);
 
 // Config
@@ -113,26 +126,58 @@ typedef struct
 	void* stream;
 } t_buffer;
 
-typedef struct
-{
+typedef struct {
 	p_code procesoOrigen;
 	m_code codigoOperacion;
-	t_buffer* buffer;
-} t_paquete;
+} t_header;
 
-t_paquete* crearPaquete(p_code procesoOrigen, m_code codigoOperacion, int size, void* stream);
-void* serializarPaquete(t_paquete* paquete, int bytes);
-void enviarPaquete(t_paquete* paquete, int socketCliente);
-void eliminarPaquete(t_paquete* paquete);
-t_paquete* recibirHeaderPaquete(int socket);
-t_paquete* recibirPayloadPaquete(t_paquete* header, int socket);
+typedef struct {
+    int posX;
+	int posY;
+} t_posicion;
 
-// Para limpiar o refactorizar
+// Métodos de envío y recepción de streams
 
-void* recibir_buffer(int*, int);
-t_list* recibir_paquete(int);
-void recibir_mensaje(int);
-int recibir_operacion(int);
-void enviar_mensaje(char* mensaje, int socket_cliente);
+void *recibirBuffer(int *size, int socket);
+t_header *recibirHeaderPaquete(int socket);
+t_buffer* recibirPayloadPaquete(t_header* header, int socket);
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void* stream);
+
+// Serializar
+
+void *serializar(m_code codigoOperacion, void *stream, int *sizeStream);
+void *srlzObtenerRestaurante(char *mensaje, int *size); 
+void *srlzRtaObtenerRestaurante(t_posicion* posicion, int* size);
+
+// Deserializar
+
+t_buffer *dsrlzObtenerRestaurante(t_buffer *payload, void *buffer, int size);
+t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
+
+// Cursed
+
+typedef enum {
+    TROCEAR = 3000,
+    EMPANAR = 3001,
+    REPOSAR = 3002,
+    HORNEAR = 3003
+} t_pasoReceta;
+
+typedef struct {
+    int cocinero;
+    char* afinidad; // Hasta que definamos bien estos datos
+} t_cocinero;
+
+typedef struct {
+    t_pasoReceta** pasosReceta;
+    int** tiempoPasos;
+} t_receta;
+
+typedef struct {
+    //t_cocinero** cocineros; // Tiene que ser una lista
+    //t_receta** recetas; // Tiene que ser una lista [Milanesa, Papa]
+    int cantidadHornos;
+    t_posicion *posicionRestaurante;
+} md_restaurante;
 
 #endif

@@ -23,7 +23,7 @@ void* threadLecturaConsola(void * args) {
 
     while (1) {
         add_history(comandoLeido);
-        comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
+        comandoOriginal = malloc(sizeof(char) * strlen(comandoLeido) + 1);
         strcpy(comandoOriginal, comandoLeido);
         string_to_upper(comandoLeido);
         string_trim(&comandoLeido);
@@ -78,39 +78,59 @@ void *atenderConexiones(void *conexionNueva) {
     int info = t_data->socketThread;
     free(t_data);
 
-	t_list* lista;
-	while(1) {
-		//int cod_op = recibir_operacion(info);
-		t_paquete* data = recibirHeaderPaquete(info);
+	t_list *lista; // Revisar un poco más cómo utilizar las listas en los paquetes
+	while (1) {
 
-		if(data->procesoOrigen == -1){
-			close(socket);
-			printf("El cliente se desconecto. Terminando servidor\n");
+		t_buffer *payload;
+		t_header *header = recibirHeaderPaquete(info);
+		log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",
+					getStringKeyValue(header->procesoOrigen, PROCNKEYS),
+					getStringKeyValue(header->codigoOperacion, COMMANDNKEYS));
+
+		if (header->procesoOrigen == ERROR) { //TODO: Manejar desconexiones de sockets
+			printf("El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", info);
+			liberarConexion(info);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
-		}
-		
-		log_info(logger, "Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen, data->codigoOperacion);
+		}		
 
-		switch(data->codigoOperacion) {
+		switch (header->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
-				data = recibirPayloadPaquete(data, info);
-				printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);
 
-				char* mock = "RESPUESTA_NOMBRE_RESTAURANTE";
-				t_paquete* pedido = crearPaquete(SINDICATO,RTA_OBTENER_RESTAURANTE, strlen(mock)+1, mock);
-				enviarPaquete(pedido, info);
+				// Ejemplo de cómo recibir un payload de string, por ahora
+				payload = recibirPayloadPaquete(header, info);
+				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
+
+				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
+				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
+				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, sizeof(t_posicion), posicionRestaurante);
+
+				break;
+			case CONSULTAR_PLATOS:
+				break;
+			case GUARDAR_PEDIDO:
+				break;
+			case GUARDAR_PLATO:
+				break;
+			case CONFIRMAR_PEDIDO:
+				break;
+			case OBTENER_PEDIDO:
+				break;
+			case PLATO_LISTO:
+				break;
+			case TERMINAR_PEDIDO:
+				break;
+			case OBTENER_RECETA:
 				break;
 			case ERROR:
-				log_error(logger, "El cliente %d se desconectó. Terminando servidor...", info);
+				log_error(logger, "El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", info);
 				return EXIT_FAILURE;
 			default:
-				printf("Operación desconocida. No quieras meter la pata!!!(｀Д´*)\n");
+				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
 				break;
 		}
 	}
 
-	// finalizar el hilo
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }

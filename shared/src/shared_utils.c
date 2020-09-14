@@ -10,6 +10,31 @@ void limpiarPantalla() {
 	system("clear");
 }
 
+// Devuelve el valor en string del proceso/comando
+
+char* getStringKeyValue(int key, int option) {
+	t_keys *diccionario; int size;
+	switch (option) {
+		case PROCNKEYS:
+			diccionario = diccionarioProcesos; size = PROCNKEYS;
+			break;
+		case COMMANDNKEYS:
+			diccionario = diccionarioComandos; size = COMMANDNKEYS;
+			break;
+		default:
+			return ERROR;
+	}
+    for (int i = 0; i < size; i++) {
+    	t_keys sym = diccionario[i];
+    	if (key == sym.valor) {
+        	return sym.key;
+    	}
+	}
+    return ERROR;
+}
+
+// Devuelve el valor correspondiente al enum del comando para utilizarlo en un switch o similar
+
 int commandToString(char *key) {
     t_keys *diccionario = diccionarioComandos;
     for (int i = 0; i < COMMANDNKEYS; i++) {
@@ -56,7 +81,7 @@ void inicializarProceso(p_code proceso) {
 	}
 	logger = log_create(log_path, program, 1, LOG_LEVEL_INFO);
 	config = config_create(config_path);
-	log_info(logger, "Proceso iniciado ..."); // Info
+	log_info(logger, "Proceso iniciado...");
 }
 
 // Config
@@ -197,35 +222,15 @@ void finalizarProceso() {
 
 // Para revisar
 
-int recibir_operacion(int socket_cliente)
+void *recibirBuffer(int *size, int socket)
 {
-	int cod_op;
-	if(recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) != 0)
-		return cod_op;
-	else
-	{
-		close(socket_cliente);
-		return ERROR;
-	}
-}
+	void *buffer;
 
-void* recibir_buffer(int* size, int socket_cliente)
-{
-	void * buffer;
-
-	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
+	recv(socket, size, sizeof(int), MSG_WAITALL);
 	buffer = malloc(*size);
-	recv(socket_cliente, buffer, *size, MSG_WAITALL);
+	recv(socket, buffer, *size, MSG_WAITALL);
 
 	return buffer;
-}
-
-void recibir_mensaje(int socket_cliente)
-{
-	int size;
-	char* buffer = recibir_buffer(&size, socket_cliente);
-	log_info(logger, "Me llego el mensaje %s", buffer);
-	free(buffer);
 }
 
 //podemos usar la lista de valores para poder hablar del for y de como recorrer la lista
@@ -237,7 +242,7 @@ t_list* recibir_paquete(int socket_cliente)
 	t_list* valores = list_create();
 	int tamanio;
 
-	buffer = recibir_buffer(&size, socket_cliente);
+	buffer = recibirBuffer(&size, socket_cliente);
 	while(desplazamiento < size)
 	{
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
@@ -254,88 +259,149 @@ t_list* recibir_paquete(int socket_cliente)
 
 // Serialización
 
-t_paquete* crearPaquete(p_code procesoOrigen, m_code codigoOperacion, int size, void* stream)
-{
-	t_paquete *paquete = malloc(sizeof(t_paquete));
-	paquete->buffer = malloc(sizeof(t_buffer));
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream){
 
-	paquete->buffer->size = size;
-	paquete->buffer->stream = stream;
-	paquete->procesoOrigen = procesoOrigen;
-	paquete->codigoOperacion = codigoOperacion;
-
-	return paquete;
-}
-
-void* serializarPaquete(t_paquete* paquete, int bytes)
-{
-	void *magic = malloc(bytes);
 	int desplazamiento = 0;
 
-	// Memcpy de atributos propios de t_paquete
-	memcpy(magic + desplazamiento, &(paquete->procesoOrigen), sizeof(int));
-	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, &(paquete->codigoOperacion), sizeof(int));
-	desplazamiento+= sizeof(int);
-	// Memcpy de atributos de t_buffer
-	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
-	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
-	desplazamiento+= paquete->buffer->size;
+	void *mensajeSerializado = serializar(codigoOperacion, stream, &size);
+	int tamanioTotal = sizeof(int) * 3 + size;
+
+	void* buffer = malloc(tamanioTotal);
+	memcpy(buffer+ desplazamiento, &procesoOrigen, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(buffer + desplazamiento, &codigoOperacion, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(buffer + desplazamiento, &size, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(buffer + desplazamiento, mensajeSerializado, size);
+
+	enviarPorSocket(socket, buffer, tamanioTotal);
+
+	free(buffer);
+	free(mensajeSerializado);
+
+}
+
+void *serializar(m_code codigoOperacion, void *stream, int *sizeStream) {
+	void *buffer;
+	switch(codigoOperacion) {
+		case OBTENER_RESTAURANTE:
+			buffer = srlzObtenerRestaurante(stream, sizeStream);
+			break;
+		case RTA_OBTENER_RESTAURANTE:
+			buffer = srlzRtaObtenerRestaurante(stream, sizeStream);
+			break;
+		default:
+			buffer = NULL; //TODO: Excepciones
+			break;
+	}
+	return buffer;
+}
+
+void *srlzObtenerRestaurante(char *mensaje, int *size) { //Sacar int
+	char *unMensaje = (char*) mensaje;
+
+	*size =  strlen(mensaje) + 1;  // Tamaño del char
+
+	void* magic = malloc(*size);
+	memcpy(magic, mensaje, *size);
+	return magic;
+}
+
+void *srlzRtaObtenerRestaurante(t_posicion* posicion, int* size) { // Es un ejemplo
+	t_posicion* unaPosicion = (t_posicion*) posicion;
+	int desplazamiento = 0;
+
+	*size = sizeof(t_posicion); // Tamaño de la posición de un restaurante
+
+	void* magic = malloc(*size);
+
+	memcpy(magic + desplazamiento, &unaPosicion->posX, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &unaPosicion->posY, sizeof(int));
 
 	return magic;
 }
 
-void enviarPaquete(t_paquete* paquete, int socket_cliente)
-{
-	// Vamos a enviar algo con una cantidad de bytes igual al tamaño del buffer más 3 ints (procesoOrigen, codigoOperacion, size)
-	int bytes = paquete->buffer->size + 3*sizeof(int);
-	void *a_enviar = serializarPaquete(paquete, bytes);
+// Enviar paquete
 
-	send(socket_cliente, a_enviar, bytes, 0);
-
-	free(a_enviar);
+int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {	
+	int bytesEnviados;
+	int totalEnviado = 0;
+	while (totalEnviado < totalAEnviar) {
+		bytesEnviados = send(socket, mensaje + totalEnviado, totalAEnviar, 0);
+		if (bytesEnviados == -1) {
+			break;
+		}	
+		totalEnviado += bytesEnviados;
+		totalAEnviar -= bytesEnviados;	
+	}
+	return bytesEnviados;
 }
 
-void eliminarPaquete(t_paquete* paquete)
-{
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-}
-
-t_paquete *recibirHeaderPaquete(int socket){
+t_header *recibirHeaderPaquete(int socket) {
 	int proceso, mensaje;
-	t_paquete* header = malloc(sizeof(t_paquete));
-	header->buffer = malloc(sizeof(t_buffer));
-	header->buffer->size = 0;
-	header->buffer->stream = NULL;
+	t_header *header = malloc(sizeof(t_header));
 
-	void* buffer = malloc(sizeof(int)*2);
+	void *buffer = malloc(sizeof(int)*2);
 
 	if (recv(socket, buffer, sizeof(int)*2, MSG_WAITALL) != 0) {
-		memcpy(&proceso,buffer,sizeof(int));
-		memcpy(&mensaje,buffer+sizeof(int),sizeof(int));
+		memcpy(&proceso, buffer, sizeof(int));
+		memcpy(&mensaje, buffer + sizeof(int), sizeof(int));
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
 	} else {
 		close(socket);
 		header->procesoOrigen = ERROR;
+		header->codigoOperacion = ERROR;
 	}
 
 	free(buffer);
 	return header;
 }
 
-t_paquete* recibirPayloadPaquete(t_paquete* header, int socket){
+t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	int size;
-	void* buffer = recibir_buffer(&size, socket);
-	char* valor = malloc(size);
+	t_buffer *payload;
 
-	memcpy(valor, buffer, size);
-	header->buffer->size = size;
-	header->buffer->stream = valor;
+	void *buffer = recibirBuffer(&size, socket);
+	payload = malloc(sizeof(size));
+
+	switch (header->codigoOperacion) {
+		case RTA_OBTENER_RESTAURANTE:
+			payload = dsrlzRtaObtenerRestaurante(payload, buffer);			
+			break;
+		case OBTENER_RESTAURANTE:
+			payload = dsrlzObtenerRestaurante(payload, buffer, size);
+			break;
+		default:
+			printf("Qué ha pasao'?! џ(ºДºџ)\n");
+			break;
+	}
+
+	payload->size = size;
 
 	free(buffer);
-	return header;
+	return payload;
+}
+
+t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) {
+	t_posicion *posicion = malloc(sizeof(t_posicion));
+	int desplazamiento = 0;
+
+	memcpy(&posicion->posX, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&posicion->posY, buffer + desplazamiento, sizeof(int));
+
+	payload->stream = posicion;
+	return payload;
+}
+
+t_buffer *dsrlzObtenerRestaurante(t_buffer *payload, void *buffer, int size) { // Más adelante se podría generalizar para deserializar un string
+	char *restaurante = malloc(size);
+
+	memcpy(restaurante, buffer, size);
+
+	payload->stream = restaurante;
+	return payload;
 }

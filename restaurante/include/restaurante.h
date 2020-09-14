@@ -4,10 +4,10 @@
 #include "../../shared/include/shared_utils.h"
 #include "tests.h"
 
-int conexionSindicato;
 int socketServidor;
+int conexionSindicato;
+char *nombreRestaurante;
+md_restaurante *mdRestaurante;
 pthread_t threadConexiones;
-
-char *nombre;
 
 #endif

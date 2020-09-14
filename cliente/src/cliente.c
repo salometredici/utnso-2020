@@ -167,14 +167,14 @@ void* threadLecturaConsola(void * args) {
 				break;
 		}
 
-		free(modulo);
-		free(mensaje);
-        free(parametros);
-    	free(comandoLeido);
-		free(parametro1);
-		free(parametro2);
-		free(parametro3);
-		free(parametro4);
+		//free(modulo);
+		//free(mensaje);
+        //free(parametros);
+    	//free(comandoLeido);
+		//free(parametro1);
+		//free(parametro2);
+		//free(parametro3);
+		//free(parametro4);
 		if (opcion == OPTION_BAI) { break; }
 
 		comandoLeido = readline("(=^.^=)~>");

@@ -6,12 +6,7 @@ char* mi_funcion_compartida() {
 
 // Utils
 
-void limpiarPantalla() {
-	system("clear");
-}
-
 // Devuelve el valor en string del proceso/comando
-
 char* getStringKeyValue(int key, int option) {
 	t_keys *diccionario; int size;
 	switch (option) {
@@ -34,7 +29,6 @@ char* getStringKeyValue(int key, int option) {
 }
 
 // Devuelve el valor correspondiente al enum del comando para utilizarlo en un switch o similar
-
 int commandToString(char *key) {
     t_keys *diccionario = diccionarioComandos;
     for (int i = 0; i < COMMANDNKEYS; i++) {
@@ -220,7 +214,7 @@ void finalizarProceso() {
 	log_destroy(logger);
 }
 
-// Para revisar
+// Método OK
 
 void *recibirBuffer(int *size, int socket)
 {
@@ -231,30 +225,6 @@ void *recibirBuffer(int *size, int socket)
 	recv(socket, buffer, *size, MSG_WAITALL);
 
 	return buffer;
-}
-
-//podemos usar la lista de valores para poder hablar del for y de como recorrer la lista
-t_list* recibir_paquete(int socket_cliente)
-{
-	int size;
-	int desplazamiento = 0;
-	void * buffer;
-	t_list* valores = list_create();
-	int tamanio;
-
-	buffer = recibirBuffer(&size, socket_cliente);
-	while(desplazamiento < size)
-	{
-		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-		desplazamiento+=sizeof(int);
-		char* valor = malloc(tamanio);
-		memcpy(valor, buffer+desplazamiento, tamanio);
-		desplazamiento+=tamanio;
-		list_add(valores, valor);
-	}
-	free(buffer);
-	return valores;
-	return NULL;
 }
 
 // Serialización
@@ -286,10 +256,13 @@ void *serializar(m_code codigoOperacion, void *stream, int *sizeStream) {
 	void *buffer;
 	switch(codigoOperacion) {
 		case OBTENER_RESTAURANTE:
-			buffer = srlzObtenerRestaurante(stream, sizeStream);
+			buffer = srlzString(stream, sizeStream);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
 			buffer = srlzRtaObtenerRestaurante(stream, sizeStream);
+			break;
+		case RTA_CONSULTAR_RESTAURANTES:
+			buffer = srlzListaStrings(stream, sizeStream);
 			break;
 		default:
 			buffer = NULL; //TODO: Excepciones
@@ -298,12 +271,13 @@ void *serializar(m_code codigoOperacion, void *stream, int *sizeStream) {
 	return buffer;
 }
 
-void *srlzObtenerRestaurante(char *mensaje, int *size) { //Sacar int
+// Método para serializar un sólo string
+void *srlzString(char *mensaje, int *size) { // Sacar int ?
 	char *unMensaje = (char*) mensaje;
 
 	*size =  strlen(mensaje) + 1;  // Tamaño del char
 
-	void* magic = malloc(*size);
+	void *magic = malloc(*size);
 	memcpy(magic, mensaje, *size);
 	return magic;
 }
@@ -314,11 +288,32 @@ void *srlzRtaObtenerRestaurante(t_posicion* posicion, int* size) { // Es un ejem
 
 	*size = sizeof(t_posicion); // Tamaño de la posición de un restaurante
 
-	void* magic = malloc(*size);
+	void *magic = malloc(*size);
 
 	memcpy(magic + desplazamiento, &unaPosicion->posX, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &unaPosicion->posY, sizeof(int));
+
+	return magic;
+}
+
+// Método para serializar una lista de strings
+void *srlzListaStrings(t_list *listaStrings, int *sizeLista) {
+	t_list *unaLista = (t_list*) listaStrings;
+	int desplazamiento = 0;
+
+	int longitudLista = list_size(listaStrings);
+	void *magic = malloc(*sizeLista);
+
+	for (int i = 0; i < longitudLista; i++) {
+		char *palabra = list_get(listaStrings, i);
+		int longitudPalabra = strlen(palabra) + 1;
+		// Vamos a copiar en el stream el tamaño de la palabra y la palabra, para saber cada uno al deserializar
+		memcpy(magic + desplazamiento, &longitudPalabra, sizeof(int));
+		desplazamiento += sizeof(int);
+		memcpy(magic + desplazamiento, palabra, longitudPalabra);
+		desplazamiento += longitudPalabra;
+	}
 
 	return magic;
 }
@@ -338,6 +333,8 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 	}
 	return bytesEnviados;
 }
+
+// Métodos de deserialización y recepción de paquetes
 
 t_header *recibirHeaderPaquete(int socket) {
 	int proceso, mensaje;
@@ -368,11 +365,14 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	payload = malloc(sizeof(size));
 
 	switch (header->codigoOperacion) {
+		case OBTENER_RESTAURANTE:
+			payload = dsrlzString(payload, buffer, size);
+			break;
 		case RTA_OBTENER_RESTAURANTE:
 			payload = dsrlzRtaObtenerRestaurante(payload, buffer);			
 			break;
-		case OBTENER_RESTAURANTE:
-			payload = dsrlzObtenerRestaurante(payload, buffer, size);
+		case RTA_CONSULTAR_RESTAURANTES:
+			payload = dsrlzListaStrings(payload, buffer, size);
 			break;
 		default:
 			printf("Qué ha pasao'?! џ(ºДºџ)\n");
@@ -385,7 +385,7 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	return payload;
 }
 
-t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) {
+t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por ahora
 	t_posicion *posicion = malloc(sizeof(t_posicion));
 	int desplazamiento = 0;
 
@@ -397,11 +397,28 @@ t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) {
 	return payload;
 }
 
-t_buffer *dsrlzObtenerRestaurante(t_buffer *payload, void *buffer, int size) { // Más adelante se podría generalizar para deserializar un string
-	char *restaurante = malloc(size);
-
-	memcpy(restaurante, buffer, size);
-
+t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString) {
+	char *restaurante = malloc(sizeString);
+	memcpy(restaurante, buffer, sizeString);
 	payload->stream = restaurante;
+	return payload;
+}
+
+// Método para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
+t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista) {
+	int longitudPalabra;
+	int desplazamiento = 0;
+	t_list *valores = list_create();
+
+	while (desplazamiento < sizeLista) {
+		memcpy(&longitudPalabra, buffer + desplazamiento, sizeof(int));
+		desplazamiento += sizeof(int);
+		char *palabra = malloc(longitudPalabra);
+		memcpy(palabra, buffer + desplazamiento, longitudPalabra);
+		desplazamiento += longitudPalabra;
+		list_add(valores, palabra);
+	}
+
+	payload->stream = valores;
 	return payload;
 }

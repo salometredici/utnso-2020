@@ -7,24 +7,25 @@ void *atenderConexiones(void *conexionNueva)
     free(t_data);
 	
 	while(1) {
-		t_paquete* data = recibirHeaderPaquete(socket);
+		t_buffer *payload;
+        t_header *data = recibirHeaderPaquete(socket);
 
-		if(data->procesoOrigen == -1){
-			close(socket);
-			printf("El cliente se desconecto. Terminando servidor\n");
+		if (data->procesoOrigen == ERROR || data->codigoOperacion == ERROR) {
+			log_info(logger, "El cliente %d se desconectó. Terminando el hilo...\n", socket);
+			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
 
-		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen ,data -> codigoOperacion);
+		log_info(logger, "Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen, data -> codigoOperacion);
 
-		switch(data->codigoOperacion) {
+		switch (data->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
-				data = recibirPayloadPaquete(data, socket);
-				printf("Me llego: %d %s\n", data->buffer->size ,data->buffer->stream);							
+				payload = recibirPayloadPaquete(data, socket);
+                log_info(logger, "Me llego: %d %s\n", payload->size ,payload->stream);
 			break;
 			default:
-				printf("Operacion desconocida. No quieras meter la pata\n");
+				printf("Operacion desconocida. No quieras meter la pata!!!\n");
 				break;
 		}
 	}
@@ -48,6 +49,7 @@ int main(int argc, char ** argv){
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
+			log_info(logger, "Nuevo hilo para atender a App con el socket %d", fd);
 		}
 		else		
 			pthread_kill(threadConexiones, SIGTERM);

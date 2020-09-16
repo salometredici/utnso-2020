@@ -10,14 +10,6 @@ void* threadLecturaConsola(void * args) {
 	int opcion, comando;
   	char *comandoLeido = readline("(=^.^=)~>");
 
-	 //Lista Harcodeada para probar mensaje consultar restaurantes  
-    listaRestaurantes = list_create();
-    list_add(listaRestaurantes,"Mac Donald");
-    list_add(listaRestaurantes,"Burguer King");
-    list_add(listaRestaurantes,"Mostaza");
-  
-
-
     while (1) {
         add_history(comandoLeido);
         comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
@@ -167,10 +159,10 @@ void* threadLecturaConsola(void * args) {
 				break;
 		}
 
-		//free(modulo);
-		//free(mensaje);
-        //free(parametros);
-    	//free(comandoLeido);
+		free(modulo);
+		free(mensaje);
+        free(parametros);
+    	free(comandoLeido);
 		//free(parametro1);
 		//free(parametro2);
 		//free(parametro3);
@@ -187,16 +179,12 @@ void* threadLecturaConsola(void * args) {
 // App
 
 void consultarRestaurantesAapp() { 
-    printf("Buscando Restaurantes ...!!! \n");
-       // Se debe conectar con APP y traer la lista de resturantes
-	printf("\nLOS RESTAURANTES SON:\n");
-	//Recorre la lista de restaurantes y muestra sus elementos
-   for(int i = 0; i < list_size(listaRestaurantes); i++) {
-        printf("Restaurante %d: %s\n",i+1, (char *)list_get(listaRestaurantes,i));
-    }
-    for(int i = 0; i < list_size(listaRestaurantes); i++) {
-        list_remove(listaRestaurantes,i);
-    }
+    printf("Consultar Restaurantes ◑.◑...!!!\n");
+	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_RESTAURANTES, 0, NULL);
+	// Recibimos la respuesta de App
+    t_header *header = recibirHeaderPaquete(conexionApp);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionApp);
+	mostrarListaStrings(payload->stream);
 }
 
 void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante) {
@@ -347,10 +335,10 @@ void mostrarComandosValidos() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
-    //conexionApp = conectarseA(APP);
+    conexionApp = conectarseA(APP);
 	//conexionComanda = conectarseA(COMANDA);
 	conexionRestaurante = conectarseA(RESTAURANTE);
-	conexionSindicato = conectarseA(SINDICATO);
+	//conexionSindicato = conectarseA(SINDICATO);
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);

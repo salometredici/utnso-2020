@@ -51,7 +51,8 @@ typedef enum{
 	TERMINAR_PEDIDO = 113,
 	OBTENER_RECETA = 114,
     // Ver si vamos a tomar la rta a un comando así o de otra forma
-	RTA_OBTENER_RESTAURANTE = 115
+	RTA_OBTENER_RESTAURANTE = 115,
+    RTA_CONSULTAR_RESTAURANTES = 116
 } m_code;
 
 // Commons
@@ -64,7 +65,6 @@ typedef struct {
     int valor;
 } t_keys;
 
-void limpiarPantalla();
 void inicializarProceso(p_code proceso);
 void finalizarProceso();
 
@@ -98,7 +98,8 @@ static t_keys diccionarioComandos[] = {
     { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
     { "OBTENER_RECETA", OBTENER_RECETA },
-    { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE }
+    { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE },
+    { "RTA_CONSULTAR_RESTAURANTES", RTA_CONSULTAR_RESTAURANTES }
 };
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
@@ -120,8 +121,7 @@ void liberarConexion(int conexion);
 
 // Serialización
 
-typedef struct
-{
+typedef struct {
 	int size;
 	void* stream;
 } t_buffer;
@@ -140,19 +140,21 @@ typedef struct {
 
 void *recibirBuffer(int *size, int socket);
 t_header *recibirHeaderPaquete(int socket);
-t_buffer* recibirPayloadPaquete(t_header* header, int socket);
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void* stream);
+t_buffer *recibirPayloadPaquete(t_header *header, int socket);
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream);
 
 // Serializar
 
 void *serializar(m_code codigoOperacion, void *stream, int *sizeStream);
-void *srlzObtenerRestaurante(char *mensaje, int *size); 
-void *srlzRtaObtenerRestaurante(t_posicion* posicion, int* size);
+void *srlzString(char *mensaje, int *sizeString); 
+void *srlzRtaObtenerRestaurante(t_posicion *posicion, int* size);
+void *srlzListaStrings(t_list *listaStrings, int *sizeLista);
 
 // Deserializar
 
-t_buffer *dsrlzObtenerRestaurante(t_buffer *payload, void *buffer, int size);
+t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
 t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
+t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
 
 // Cursed
 

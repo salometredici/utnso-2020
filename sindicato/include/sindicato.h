@@ -4,6 +4,7 @@
 #include <commons/string.h>
 #include <readline/readline.h>
 #include "../../shared/include/shared_utils.h"
+#include "../../shared/include/shared_commons.h"
 #include "tests.h"
 
 int socketServidor;

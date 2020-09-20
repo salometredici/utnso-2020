@@ -232,19 +232,30 @@ void *recibirBuffer(int *size, int socket)
 void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream){
 
 	int desplazamiento = 0;
+	int tamanioTotal;
 
 	void *mensajeSerializado = serializar(codigoOperacion, stream, &size);
-	int tamanioTotal = sizeof(int) * 3 + size;
+
+	if (size != 0) {
+		tamanioTotal = sizeof(int) * 3 + size; // Si tiene payload
+	} else {
+		tamanioTotal = sizeof(int) * 2;
+	}
 
 	void* buffer = malloc(tamanioTotal);
+
+	// Serializado del header
 	memcpy(buffer+ desplazamiento, &procesoOrigen, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(buffer + desplazamiento, &codigoOperacion, sizeof(int));
 	desplazamiento += sizeof(int);
-	memcpy(buffer + desplazamiento, &size, sizeof(int));
-	desplazamiento += sizeof(int);
-	memcpy(buffer + desplazamiento, mensajeSerializado, size);
 
+	if (size != 0) { // Si tiene payload para serializar
+		memcpy(buffer + desplazamiento, &size, sizeof(int));
+		desplazamiento += sizeof(int);
+		memcpy(buffer + desplazamiento, mensajeSerializado, size);
+	}
+	
 	enviarPorSocket(socket, buffer, tamanioTotal);
 
 	free(buffer);

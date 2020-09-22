@@ -227,7 +227,7 @@ void *recibirBuffer(int *size, int socket)
 	return buffer;
 }
 
-// Serialización
+// Métodos para la serialización
 
 // Devuelve el tamaño en bytes de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud
 // Copiado acá hasta que separemos las utils en varios files
@@ -243,38 +243,80 @@ int getBytesAEnviarListaStrings(t_list *listaStrings) {
 	return bytesAEnviar;
 }
 
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream){
+int getBytesAEnviarString(char *string) {
+	return strlen(string) + 1;
+}
 
-	int desplazamiento = 0;
-	int tamanioTotal;
+int getBytesAEnviarEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
+	return sizeof(t_posicion);
+}
 
-	void *mensajeSerializado = serializar(codigoOperacion, stream);
+int getBytesHeader() {
+	return sizeof(int) * 2;
+}
 
-	if (size != 0) {
-		tamanioTotal = sizeof(int) * 3 + size; // Si tiene payload
-	} else {
-		tamanioTotal = sizeof(int) * 2;
-	}
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream) {
+	int tamanioTotal = getTamanioTotalPaquete(codigoOperacion, stream);
 
-	void* buffer = malloc(tamanioTotal);
+	void *buffer = malloc(tamanioTotal);
 
-	// Serializado del header
-	memcpy(buffer+ desplazamiento, &procesoOrigen, sizeof(int));
-	desplazamiento += sizeof(int);
-	memcpy(buffer + desplazamiento, &codigoOperacion, sizeof(int));
-	desplazamiento += sizeof(int);
-
-	if (size != 0) { // Si tiene payload para serializar
-		memcpy(buffer + desplazamiento, &size, sizeof(int));
-		desplazamiento += sizeof(int);
-		memcpy(buffer + desplazamiento, mensajeSerializado, size);
-	}
+	serializarHeader(buffer, procesoOrigen, codigoOperacion);
+	serializarPayload(buffer, codigoOperacion, stream);
 	
 	enviarPorSocket(socket, buffer, tamanioTotal);
 
 	free(buffer);
-	free(mensajeSerializado);
+}
 
+void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion) {
+	memcpy(buffer, &procesoOrigen, sizeof(int));
+	memcpy(buffer + sizeof(int), &codigoOperacion, sizeof(int));
+}
+
+// Obtiene el tamaño total del paquete a enviar, es decir: header (dos ints) + payload (si existe: un int para el size + size del stream)
+int getTamanioTotalPaquete(m_code codigoOperacion, void *stream) {
+	int tamanioTotal = getBytesHeader();
+	int payloadSize = getPayloadSize(codigoOperacion, stream);
+	if (payloadSize != 0) {
+		tamanioTotal += payloadSize + sizeof(int);
+	}
+	return tamanioTotal;
+}
+
+int getPayloadSize(m_code codigoOperacion, void *stream) {
+	int payloadSize = 0;
+	switch(codigoOperacion) {
+		// Casos en los que se envíe un sólo string
+		case OBTENER_RESTAURANTE:
+			payloadSize += getBytesAEnviarString(stream);
+			break;
+		// Caso con estructura t_posicion de ejemplo
+		case RTA_OBTENER_RESTAURANTE:
+			payloadSize += getBytesAEnviarEjemplo();
+			break;
+		// Casos en los que se envíe una lista de strings
+		case RTA_CONSULTAR_RESTAURANTES:
+			payloadSize += getBytesAEnviarListaStrings(stream);
+			break;
+		// Si no tiene parámetros que serializar, queda en 0
+		default:
+			break;
+	}
+	return payloadSize;
+}
+
+/* Serialización */
+
+void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
+	int desplazamiento = getBytesHeader();
+	int payloadSize = getPayloadSize(codigoOperacion, stream);
+	if (payloadSize != 0) { // Si tiene payload para serializar
+		void *mensajeSerializado = serializar(codigoOperacion, stream);
+		memcpy(buffer + desplazamiento, &payloadSize, sizeof(int));
+		desplazamiento += sizeof(int);
+		memcpy(buffer + desplazamiento, mensajeSerializado, payloadSize);
+		free(mensajeSerializado);
+	}
 }
 
 void *serializar(m_code codigoOperacion, void *stream) {
@@ -300,7 +342,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 void *srlzString(char *mensaje) {
 	char *unMensaje = (char*) mensaje;
 
-	int size =  strlen(mensaje) + 1;  // Tamaño de la palabra
+	int size =  getBytesAEnviarString(mensaje);  // Tamaño de la palabra
 
 	void *magic = malloc(size);
 	memcpy(magic, mensaje, size);
@@ -311,7 +353,7 @@ void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	t_posicion* unaPosicion = (t_posicion*) posicion;
 	int desplazamiento = 0;
 
-	int size = sizeof(t_posicion); // Tamaño de la posición de un restaurante
+	int size = getBytesAEnviarEjemplo(); // Tamaño de la posición de un restaurante
 
 	void *magic = malloc(size);
 

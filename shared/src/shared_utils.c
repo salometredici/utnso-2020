@@ -267,7 +267,7 @@ void *serializar(m_code codigoOperacion, void *stream, int *sizeStream) {
 	void *buffer;
 	switch(codigoOperacion) {
 		case OBTENER_RESTAURANTE:
-			buffer = srlzString(stream, sizeStream);
+			buffer = srlzString(stream);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
 			buffer = srlzRtaObtenerRestaurante(stream, sizeStream);
@@ -283,13 +283,13 @@ void *serializar(m_code codigoOperacion, void *stream, int *sizeStream) {
 }
 
 // Método para serializar un sólo string
-void *srlzString(char *mensaje, int *size) { // Sacar int ?
+void *srlzString(char *mensaje) {
 	char *unMensaje = (char*) mensaje;
 
-	*size =  strlen(mensaje) + 1;  // Tamaño del char
+	int size =  strlen(mensaje) + 1;  // Tamaño de la palabra
 
-	void *magic = malloc(*size);
-	memcpy(magic, mensaje, *size);
+	void *magic = malloc(size);
+	memcpy(magic, mensaje, size);
 	return magic;
 }
 

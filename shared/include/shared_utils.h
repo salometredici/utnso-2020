@@ -145,10 +145,10 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int
 
 // Serializar
 
-void *serializar(m_code codigoOperacion, void *stream, int *sizeStream);
+void *serializar(m_code codigoOperacion, void *stream);
 void *srlzString(char *mensaje); 
-void *srlzRtaObtenerRestaurante(t_posicion *posicion, int* size);
-void *srlzListaStrings(t_list *listaStrings, int *sizeLista);
+void *srlzRtaObtenerRestaurante(t_posicion *posicion);
+void *srlzListaStrings(t_list *listaStrings);
 
 // Deserializar
 

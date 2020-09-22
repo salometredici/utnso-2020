@@ -229,12 +229,26 @@ void *recibirBuffer(int *size, int socket)
 
 // Serialización
 
+// Devuelve el tamaño en bytes de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud
+// Copiado acá hasta que separemos las utils en varios files
+int getBytesAEnviarListaStrings(t_list *listaStrings) {
+	int cantidadElementos = list_size(listaStrings);
+	int bytesAEnviar = cantidadElementos * sizeof(int);
+
+	for (int i = 0; i < cantidadElementos; i++) {
+		char *palabra = list_get(listaStrings, i);
+		bytesAEnviar += strlen(palabra) + 1;
+	}
+
+	return bytesAEnviar;
+}
+
 void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream){
 
 	int desplazamiento = 0;
 	int tamanioTotal;
 
-	void *mensajeSerializado = serializar(codigoOperacion, stream, &size);
+	void *mensajeSerializado = serializar(codigoOperacion, stream);
 
 	if (size != 0) {
 		tamanioTotal = sizeof(int) * 3 + size; // Si tiene payload
@@ -263,17 +277,17 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int
 
 }
 
-void *serializar(m_code codigoOperacion, void *stream, int *sizeStream) {
+void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
 		case OBTENER_RESTAURANTE:
 			buffer = srlzString(stream);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
-			buffer = srlzRtaObtenerRestaurante(stream, sizeStream);
+			buffer = srlzRtaObtenerRestaurante(stream);
 			break;
 		case RTA_CONSULTAR_RESTAURANTES:
-			buffer = srlzListaStrings(stream, sizeStream);
+			buffer = srlzListaStrings(stream);
 			break;
 		default:
 			buffer = NULL; //TODO: Excepciones
@@ -293,13 +307,13 @@ void *srlzString(char *mensaje) {
 	return magic;
 }
 
-void *srlzRtaObtenerRestaurante(t_posicion* posicion, int* size) { // Es un ejemplo
+void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	t_posicion* unaPosicion = (t_posicion*) posicion;
 	int desplazamiento = 0;
 
-	*size = sizeof(t_posicion); // Tamaño de la posición de un restaurante
+	int size = sizeof(t_posicion); // Tamaño de la posición de un restaurante
 
-	void *magic = malloc(*size);
+	void *magic = malloc(size);
 
 	memcpy(magic + desplazamiento, &unaPosicion->posX, sizeof(int));
 	desplazamiento += sizeof(int);
@@ -309,12 +323,13 @@ void *srlzRtaObtenerRestaurante(t_posicion* posicion, int* size) { // Es un ejem
 }
 
 // Método para serializar una lista de strings
-void *srlzListaStrings(t_list *listaStrings, int *sizeLista) {
-	t_list *unaLista = (t_list*) listaStrings;
+void *srlzListaStrings(t_list *listaStrings) {
 	int desplazamiento = 0;
+	t_list *unaLista = (t_list*) listaStrings;
 
 	int longitudLista = list_size(listaStrings);
-	void *magic = malloc(*sizeLista);
+	int sizeLista = getBytesAEnviarListaStrings(listaStrings);
+	void *magic = malloc(sizeLista);
 
 	for (int i = 0; i < longitudLista; i++) {
 		char *palabra = list_get(listaStrings, i);

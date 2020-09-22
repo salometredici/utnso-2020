@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 	inicializarProceso(APP);
 	socketServidor = iniciarServidor();
 
-    conexionComanda = conectarseA(COMANDA);
+    //conexionComanda = conectarseA(COMANDA);
 
 	int fd;
 	while (1) {

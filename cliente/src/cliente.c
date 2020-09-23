@@ -4,171 +4,168 @@ void* threadLecturaConsola(void * args) {
     printf("Iniciando la consola ...\n");
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
 
-	char *comandoOriginal;
 	char **parametros;
 	char *modulo = "", *mensaje = "", *parametro1 = "", *parametro2 = "", *parametro3 = "", *parametro4 = "";
 	int opcion, comando;
   	char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
-        add_history(comandoLeido);
-        comandoOriginal = malloc(sizeof(char) *strlen(comandoLeido)+1);
-    	strcpy(comandoOriginal, comandoLeido);
-        string_to_upper(comandoLeido);
-        string_trim(&comandoLeido);
-		
-		// Obtenemos el comando ingresado
-        parametros = string_split(comandoLeido, " ");
-		modulo = parametros[0];
-		mensaje = parametros[1];
-		parametro1 = parametros[2]; parametro2 = parametros[3]; parametro3 = parametros[4];	parametro4 = parametros[5];
+	
+		if (!string_is_empty(comandoLeido)) {
+			add_history(comandoLeido);
+        	string_to_upper(comandoLeido);
+        	string_trim(&comandoLeido);
+			parametros = string_split(comandoLeido, " ");
+			modulo = parametros[0];
+			mensaje = parametros[1];
+			parametro1 = parametros[2]; parametro2 = parametros[3]; parametro3 = parametros[4];	parametro4 = parametros[5];
 
-        free(comandoOriginal);
-		log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
+			// Setear módulo/opción y de haberlo, el mensaje
+			opcion = clientOptionToKey(modulo);
+			if (mensaje) { comando = commandToString(mensaje); }
 
-		// Setear módulo/opción y de haberlo, el mensaje
-		opcion = clientOptionToKey(modulo);
-		if (mensaje) {
-			comando = commandToString(mensaje);
-		}
+			// Obtenemos el comando ingresado
+
+			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 		
-		switch (opcion) {
-			case OPTION_APP:
-				printf("Se ha seleccionado el módulo APP\n");
-				switch (comando) {
-					case CONSULTAR_RESTAURANTES:
-						consultarRestaurantesAapp(); //TODO: Implementación
-						break;
-					case SELECCIONAR_RESTAURANTE:
-						seleccionarRestauranteAapp(parametro1, parametro2);
-						break;
-					case CONSULTAR_PLATOS:
-						consultarPlatosAapp(parametro1);
-						break;
-					case CREAR_PEDIDO:
-						crearPedidoAapp();
-						break;
-					case ANIADIR_PLATO:
-						aniadirPlatoAapp(parametro1, parametro2);
-						break;
-					case CONFIRMAR_PEDIDO:
-						confirmarPedidoAapp(parametro1);
-						break;
-					case PLATO_LISTO:
-						platoListoAapp(parametro1, parametro2, parametro3);
-						break;
-					case CONSULTAR_PEDIDO:
-						consultarPedidoAapp(parametro1);
-						break;
-					case ERROR:
-					default:
-						printf("El mensaje ingresado no es válido para el módulo APP (・ε・`*)...!\n");
-						break;
-				}
-				break;
-			case OPTION_COMANDA:
-				printf("Se ha seleccionado el módulo COMANDA\n");
-				switch(comando) {
-					case GUARDAR_PEDIDO:
-						guardarPedidoAComanda(parametro1, parametro2);
-						break;
-					case GUARDAR_PLATO:
-						guardarPlatoAComanda(parametro1, parametro2, parametro3, parametro4);
-						break;
-					case CONFIRMAR_PEDIDO:
-						confirmarPedidoAComanda(parametro1);
-						break;
-					case PLATO_LISTO:
-						platoListoAComanda(parametro1, parametro2, parametro3);
-						break;
-					case OBTENER_PEDIDO:
-						obtenerPedidoAComanda(parametro1, parametro2);
-						break;
-					case ERROR:
-					default:
-						printf("El mensaje ingresado no es válido para el módulo COMANDA (・ε・`*)...!\n");
-						break;
-				}
-				break;
-			case OPTION_RESTAURANTE:
-				printf("Se ha seleccionado el módulo RESTAURANTE\n");
-				switch(comando) {
-					case CONSULTAR_PLATOS:
-						consultarPlatosARestaurante(parametro1);
-						break;
-					case CREAR_PEDIDO:
-						crearPedidoARestaurante();
-						break;
-					case ANIADIR_PLATO:
-						aniadirPlatoARestaurante(parametro1, parametro2);
-						break;
-					case CONFIRMAR_PEDIDO:
-						confirmarPedidoAComanda(parametro1);
-						break;
-					case CONSULTAR_PEDIDO:
-						consultarPedidoARestaurante(parametro1);
-						break;
-					case ERROR:
-					default:
-						printf("El mensaje ingresado no es válido para el módulo RESTAURANTE (・ε・`*)...!\n");
-						break;
-				}
-				break;
-			case OPTION_SINDICATO:
-				printf("Se ha seleccionado el módulo SINDICATO\n");
-				switch(comando) {
-					case OBTENER_RESTAURANTE:
-						obtenerRestauranteASindicato(parametro1);
-						break;
-					case CONSULTAR_PLATOS:
-						consultarPlatosASindicato(parametro1);
-						break;
-					case GUARDAR_PEDIDO:
-						guardarPedidoASindicato(parametro1, parametro2);
+			switch (opcion) {
+				case OPTION_APP:
+					printf("Se ha seleccionado el módulo APP\n");
+					switch (comando) {
+						case CONSULTAR_RESTAURANTES:
+							consultarRestaurantesAapp(); //TODO: Implementación
 							break;
-					case GUARDAR_PLATO:
-						guardarPlatoASindicato(parametro1, parametro2, parametro3, parametro4);
-						break;
-					case CONFIRMAR_PEDIDO:
-						confirmarPedidoASindicato(parametro1);
-						break;
-					case PLATO_LISTO:
-						platoListoASindicato(parametro1, parametro2, parametro3);
-						break;
-					case OBTENER_PEDIDO:
-						obtenerPedidoASindicato(parametro1,parametro2);
-						break;		
-					case ERROR:
-					default:
-						printf("El mensaje ingresado no es válido para el módulo SINDICATO (・ε・`*)...!\n");
-						break;
-				}
-				break;
-			case OPTION_AIUDA:
-				mostrarComandosValidos();
-				break;
-			case OPTION_BAI:
-				printf("adiosss (๑♡3♡๑)!\n");
-				break;
-			case OPTION_CLEAR:
-				limpiarPantalla();
-				break;
-			case ERROR:
-			default:
-				printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado つ´Д`)つ\n");
-				break;
+						case SELECCIONAR_RESTAURANTE:
+							seleccionarRestauranteAapp(parametro1, parametro2);
+							break;
+						case CONSULTAR_PLATOS:
+							consultarPlatosAapp(parametro1);
+							break;
+						case CREAR_PEDIDO:
+							crearPedidoAapp();
+							break;
+						case ANIADIR_PLATO:
+							aniadirPlatoAapp(parametro1, parametro2);
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoAapp(parametro1);
+							break;
+						case PLATO_LISTO:
+							platoListoAapp(parametro1, parametro2, parametro3);
+							break;
+						case CONSULTAR_PEDIDO:
+							consultarPedidoAapp(parametro1);
+							break;
+						case ERROR:
+						default:
+							printf("El mensaje ingresado no es válido para el módulo APP (・ε・`*)...!\n");
+							break;
+					}
+					break;
+				case OPTION_COMANDA:
+					printf("Se ha seleccionado el módulo COMANDA\n");
+					switch(comando) {
+						case GUARDAR_PEDIDO:
+							guardarPedidoAComanda(parametro1, parametro2);
+							break;
+						case GUARDAR_PLATO:
+							guardarPlatoAComanda(parametro1, parametro2, parametro3, parametro4);
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoAComanda(parametro1);
+							break;
+						case PLATO_LISTO:
+							platoListoAComanda(parametro1, parametro2, parametro3);
+							break;
+						case OBTENER_PEDIDO:
+							obtenerPedidoAComanda(parametro1, parametro2);
+							break;
+						case ERROR:
+						default:
+							printf("El mensaje ingresado no es válido para el módulo COMANDA (・ε・`*)...!\n");
+							break;
+					}
+					break;
+				case OPTION_RESTAURANTE:
+					printf("Se ha seleccionado el módulo RESTAURANTE\n");
+					switch(comando) {
+						case CONSULTAR_PLATOS:
+							consultarPlatosARestaurante(parametro1);
+							break;
+						case CREAR_PEDIDO:
+							crearPedidoARestaurante();
+							break;
+						case ANIADIR_PLATO:
+							aniadirPlatoARestaurante(parametro1, parametro2);
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoAComanda(parametro1);
+							break;
+						case CONSULTAR_PEDIDO:
+							consultarPedidoARestaurante(parametro1);
+							break;
+						case ERROR:
+						default:
+							printf("El mensaje ingresado no es válido para el módulo RESTAURANTE (・ε・`*)...!\n");
+							break;
+					}
+					break;
+				case OPTION_SINDICATO:
+					printf("Se ha seleccionado el módulo SINDICATO\n");
+					switch(comando) {
+						case OBTENER_RESTAURANTE:
+							obtenerRestauranteASindicato(parametro1);
+							break;
+						case CONSULTAR_PLATOS:
+							consultarPlatosASindicato(parametro1);
+							break;
+						case GUARDAR_PEDIDO:
+							guardarPedidoASindicato(parametro1, parametro2);
+								break;
+						case GUARDAR_PLATO:
+							guardarPlatoASindicato(parametro1, parametro2, parametro3, parametro4);
+							break;
+						case CONFIRMAR_PEDIDO:
+							confirmarPedidoASindicato(parametro1);
+							break;
+						case PLATO_LISTO:
+							platoListoASindicato(parametro1, parametro2, parametro3);
+							break;
+						case OBTENER_PEDIDO:
+							obtenerPedidoASindicato(parametro1,parametro2);
+							break;		
+						case ERROR:
+						default:
+							printf("El mensaje ingresado no es válido para el módulo SINDICATO (・ε・`*)...!\n");
+							break;
+					}
+					break;
+				case OPTION_AIUDA:
+					mostrarComandosValidos();
+					break;
+				case OPTION_BAI:
+					printf("adiosss (๑♡3♡๑)!\n");
+					break;
+				case OPTION_CLEAR:
+					limpiarPantalla();
+					break;
+				case ERROR:
+				default:
+					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado つ´Д`)つ\n");
+					break;
+			}
+
+			opcion = comando = ERROR;
+			free(modulo);
+			free(mensaje);
+			free(parametros);
+			free(comandoLeido);
+			//free(parametro1);
+			//free(parametro2);
+			//free(parametro3);
+			//free(parametro4);
+			if (opcion == OPTION_BAI) { break; }
 		}
-
-		free(modulo);
-		free(mensaje);
-        free(parametros);
-    	free(comandoLeido);
-		//free(parametro1);
-		//free(parametro2);
-		//free(parametro3);
-		//free(parametro4);
-		if (opcion == OPTION_BAI) { break; }
-
 		comandoLeido = readline("(=^.^=)~>");
 	}
 
@@ -180,7 +177,7 @@ void* threadLecturaConsola(void * args) {
 
 void consultarRestaurantesAapp() { 
     printf("Consultar Restaurantes ◑.◑...!!!\n");
-	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_RESTAURANTES, 0, NULL);
+	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_RESTAURANTES, NULL);
 	// Recibimos la respuesta de App
     t_header *header = recibirHeaderPaquete(conexionApp);
     t_buffer *payload = recibirPayloadPaquete(header, conexionApp);

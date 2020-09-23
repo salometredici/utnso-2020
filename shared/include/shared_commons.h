@@ -20,6 +20,6 @@
 
 void limpiarPantalla();
 void mostrarListaStrings(t_list *listaStrings);
-int getBytesAEnviarListaStrings(t_list *listaStrings);
+//int getBytesAEnviarListaStrings(t_list *listaStrings);
 
 #endif

@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 	nombreRestaurante = obtenerNombreRestaurante();
 
 	// Obtener metadata del restaurante consultando a Sindicato
-	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, strlen(nombreRestaurante) + 1, nombreRestaurante); // Ver si se puede simplificar o generalizar esto
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante); // Ver si se puede simplificar o generalizar esto
 
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",

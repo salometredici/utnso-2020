@@ -30,7 +30,7 @@ void *atenderConexiones(void *conexionNueva)
             	list_add(restaurantes,"Mostaza");
             	list_add(restaurantes,"Wendys");
 
-            	enviarPaquete(info, APP, RTA_CONSULTAR_RESTAURANTES, getBytesAEnviarListaStrings(restaurantes), restaurantes);
+            	enviarPaquete(info, APP, RTA_CONSULTAR_RESTAURANTES, restaurantes);
         		break;
         	default:
             	printf("Operacion desconocida. No quieras meter la pata\n");
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 	inicializarProceso(APP);
 	socketServidor = iniciarServidor();
 
-    conexionComanda = conectarseA(COMANDA);
+    //conexionComanda = conectarseA(COMANDA);
 
 	int fd;
 	while (1) {

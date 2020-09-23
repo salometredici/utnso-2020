@@ -103,7 +103,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
-				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, sizeof(t_posicion), posicionRestaurante);
+				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
 
 				break;
 			case CONSULTAR_PLATOS:

@@ -30,7 +30,7 @@ void *atenderConexiones(void *conexionNueva)
             	list_add(restaurantes,"Mostaza");
             	list_add(restaurantes,"Wendys");
 
-            	enviarPaquete(info, APP, RTA_CONSULTAR_RESTAURANTES, getBytesAEnviarListaStrings(restaurantes), restaurantes);
+            	enviarPaquete(info, APP, RTA_CONSULTAR_RESTAURANTES, restaurantes);
         		break;
         	default:
             	printf("Operacion desconocida. No quieras meter la pata\n");

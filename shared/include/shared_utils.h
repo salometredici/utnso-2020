@@ -141,7 +141,7 @@ typedef struct {
 void *recibirBuffer(int *size, int socket);
 t_header *recibirHeaderPaquete(int socket);
 t_buffer *recibirPayloadPaquete(t_header *header, int socket);
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream);
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream);
 
 // Serializar
 

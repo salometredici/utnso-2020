@@ -255,7 +255,7 @@ int getBytesHeader() {
 	return sizeof(int) * 2;
 }
 
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, int size, void *stream) {
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream) {
 	int tamanioTotal = getTamanioTotalPaquete(codigoOperacion, stream);
 
 	void *buffer = malloc(tamanioTotal);

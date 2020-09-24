@@ -96,8 +96,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 		switch (header->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
-
-				// Ejemplo de cómo recibir un payload de string, por ahora
+				// Recibe como parámetro el nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
 				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
 
@@ -107,8 +106,14 @@ void *atenderConexiones(void *conexionNueva) {
 
 				break;
 			case CONSULTAR_PLATOS:
+				// Recibe como parámetro el nombre del restaurante
+				payload = recibirPayloadPaquete(header, info);
+				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
+
+				
 				break;
 			case GUARDAR_PEDIDO:
+				
 				break;
 			case GUARDAR_PLATO:
 				break;

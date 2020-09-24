@@ -110,7 +110,7 @@ int commandToString(char *key);
 // Config
 
 int obtenerPuertoEscucha();
-char* obtenerNombreRestaurante();
+char *obtenerNombreRestaurante();
 
 // Conexiones
 

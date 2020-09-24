@@ -78,6 +78,11 @@ void inicializarProceso(p_code proceso) {
 	log_info(logger, "Proceso iniciado...");
 }
 
+void finalizarProceso() {
+	config_destroy(config);
+	log_destroy(logger);
+}
+
 // Config
 
 int obtenerPuertoEscucha() {
@@ -92,7 +97,7 @@ char* obtenerNombreRestaurante() {
 
 int crearSocket(int puerto) {
 	int fd;
-	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == ERROR) {
 		log_error(logger, "Fallo al crear el socket servidor en el puerto %d", puerto);
 		exit(EXIT_FAILURE);
 	}
@@ -145,7 +150,7 @@ int crearConexion(char *ip, int puerto) {
 	dir.sin_addr.s_addr = inet_addr(ip);
 	memset(&(dir.sin_zero), '\0', 8);
 	
-	if (connect(socketCliente, (struct sockaddr*)&dir, sizeof(struct sockaddr)) == -1) {
+	if (connect(socketCliente, (struct sockaddr*)&dir, sizeof(struct sockaddr)) == ERROR) {
 		log_error(logger, "Fallo al realizar la conexión con IP: %s, PUERTO: %d", ip, puerto);
 		close(socketCliente);
 		exit(EXIT_FAILURE);
@@ -170,7 +175,7 @@ int abrirSocketEscucha(int puerto) {
 
 	socketEscucha = crearSocket(puerto);
 
-	if (setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == -1) {
+	if (setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(int)) == ERROR) {
 		log_error(logger, "Fallo en setsockopt");
 		close(socketEscucha);
 		exit(EXIT_FAILURE);
@@ -181,13 +186,13 @@ int abrirSocketEscucha(int puerto) {
 	dirServidor.sin_addr.s_addr = INADDR_ANY;
 	memset(&(dirServidor.sin_zero), '\0', 8);
 
-	if (bind(socketEscucha, (struct sockaddr*)&dirServidor, sizeof(struct sockaddr_in)) == -1) {
+	if (bind(socketEscucha, (struct sockaddr*)&dirServidor, sizeof(struct sockaddr_in)) == ERROR) {
 		log_error(logger, "Fallo al asignar el puerto al socket servidor");
 		close(socketEscucha);
 		exit(EXIT_FAILURE);
 	}
 
-	if (listen(socketEscucha, 5) == -1) {
+	if (listen(socketEscucha, 5) == ERROR) {
 		log_error(logger, "Fallo en listen");
 		exit(EXIT_FAILURE);
 	}
@@ -200,31 +205,11 @@ int aceptarCliente(int socketServidor) {
 	struct sockaddr_in dirCliente;
 	int dirSize = sizeof(struct sockaddr_in);
 	socketConexion = accept(socketServidor, (struct sockaddr*)&dirCliente, &dirSize);
-	if (socketConexion == -1) {
+	if (socketConexion == ERROR) {
 		log_error(logger, "Fallo en la conexión del socket %d", socketServidor);
 		log_error(logger, "Valor de errno: %d", errno);
 	}
 	return socketConexion;
-}
-
-// Finalizar proceso
-
-void finalizarProceso() {
-	config_destroy(config);
-	log_destroy(logger);
-}
-
-// Método OK
-
-void *recibirBuffer(int *size, int socket)
-{
-	void *buffer;
-
-	recv(socket, size, sizeof(int), MSG_WAITALL);
-	buffer = malloc(*size);
-	recv(socket, buffer, *size, MSG_WAITALL);
-
-	return buffer;
 }
 
 // Métodos para la serialización
@@ -386,14 +371,14 @@ void *srlzListaStrings(t_list *listaStrings) {
 	return magic;
 }
 
-// Enviar paquete
+/* Métodos de envío y recepción de header/payload */
 
 int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {	
 	int bytesEnviados;
 	int totalEnviado = 0;
 	while (totalEnviado < totalAEnviar) {
 		bytesEnviados = send(socket, mensaje + totalEnviado, totalAEnviar, 0);
-		if (bytesEnviados == -1) {
+		if (bytesEnviados == ERROR) {
 			break;
 		}	
 		totalEnviado += bytesEnviados;
@@ -401,8 +386,6 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 	}
 	return bytesEnviados;
 }
-
-// Métodos de deserialización y recepción de paquetes
 
 t_header *recibirHeaderPaquete(int socket) {
 	int proceso, mensaje;
@@ -423,6 +406,17 @@ t_header *recibirHeaderPaquete(int socket) {
 
 	free(buffer);
 	return header;
+}
+
+void *recibirBuffer(int *size, int socket)
+{
+	void *buffer;
+
+	recv(socket, size, sizeof(int), MSG_WAITALL);
+	buffer = malloc(*size);
+	recv(socket, buffer, *size, MSG_WAITALL);
+
+	return buffer;
 }
 
 t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
@@ -453,6 +447,8 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	return payload;
 }
 
+/* Deserialización */
+
 t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por ahora
 	t_posicion *posicion = malloc(sizeof(t_posicion));
 	int desplazamiento = 0;
@@ -465,6 +461,7 @@ t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por a
 	return payload;
 }
 
+// Método para deserializar un único string
 t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString) {
 	char *restaurante = malloc(sizeString);
 	memcpy(restaurante, buffer, sizeString);

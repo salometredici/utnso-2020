@@ -18,12 +18,12 @@ void *atenderConexiones(void *conexionNueva)
         	return EXIT_FAILURE;
     	}
 
-		printf("Me llegaron los siguientes valores: %d %d\n", data->procesoOrigen ,data -> codigoOperacion);
+		printf("Me llegaron los siguientes valores PROCESO: %d  OPERACION: %d\n", data->procesoOrigen ,data -> codigoOperacion);
 
     	switch (data->codigoOperacion) {
         	case CONSULTAR_RESTAURANTES:
             	//no recibe parametros
-
+				printf("ME LLEGO CONSULTAR_RESTAURANTES \n");
             	restaurantes = list_create();
             	list_add(restaurantes,"Mc Donalds");
             	list_add(restaurantes,"Burguer King");
@@ -32,6 +32,29 @@ void *atenderConexiones(void *conexionNueva)
 
             	enviarPaquete(info, APP, RTA_CONSULTAR_RESTAURANTES, restaurantes);
         		break;
+			case SELECCIONAR_RESTAURANTE:
+				printf("ME LLEGO SELECCIONAR RESTAURANTE \n");
+				break;
+			case CONSULTAR_PLATOS:
+				printf("ME LLEGO CONSULTAR PLATOS\n");
+				break;	
+			case CREAR_PEDIDO:
+				printf("ME LLEGO CREAR PEDIDO\n");
+				break;	
+			case ANIADIR_PLATO:
+				printf("ME LLEGO ANIADIR PLATO\n");
+				break;	
+			case PLATO_LISTO:
+				printf("ME LLEGO PLATO LISTO\n");
+				break;	
+			case CONFIRMAR_PEDIDO:
+				printf("ME LLEGO CONFIRMAR PEDIDO\n");
+				break;
+			case CONSULTAR_PEDIDO:
+				printf("ME LLEVO CONSULTAR PEDIDO\n");
+				break;	
+				
+			
         	default:
             	printf("Operacion desconocida. No quieras meter la pata\n");
             	break;

@@ -286,9 +286,27 @@ int getTamanioTotalPaquete(m_code codigoOperacion, void *stream) {
 int getPayloadSize(m_code codigoOperacion, void *stream) {
 	int payloadSize = 0;
 	switch(codigoOperacion) {
+		case SELECCIONAR_RESTAURANTE:
+			//payloadSize+=getBytesAEnviarString(stream); // falta ver si serializa un string u otra cosa
+			break;
 		// Casos en los que se envíe un sólo string
 		case OBTENER_RESTAURANTE:
 			payloadSize += getBytesAEnviarString(stream);
+			break;
+		case CONSULTAR_PLATOS:
+			// obtener size payload que depende de lo que sea STREAM
+			break;
+		case ANIADIR_PLATO:
+			// obtener size payload que depende de lo que sea STREAM
+			break;
+		case CONFIRMAR_PEDIDO:
+			// obtener size payload que depende de lo que sea STREAM
+			break;
+		case PLATO_LISTO:
+			// obtener size payload que depende de lo que sea STREAM
+			break;
+		case CONSULTAR_PEDIDO:
+			// obtener size payload que depende de lo que sea STREAM
 			break;
 		// Caso con estructura t_posicion de ejemplo
 		case RTA_OBTENER_RESTAURANTE:
@@ -300,7 +318,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
 		default:
-			break;
+			break; // Aca entran CONSULTAR_RESTAURANTES, CREAR_PEDIDO
 	}
 	return payloadSize;
 }
@@ -322,8 +340,26 @@ void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
+		case SELECCIONAR_RESTAURANTE:
+			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
+			break;
 		case OBTENER_RESTAURANTE:
 			buffer = srlzString(stream);
+			break;
+		case CONSULTAR_PLATOS:
+			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
+			break;
+		case ANIADIR_PLATO:
+			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
+			break;
+		case PLATO_LISTO:
+			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
+			break;
+		case CONFIRMAR_PEDIDO:
+			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
+			break;
+		case CONSULTAR_PEDIDO:
+			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
 		case RTA_OBTENER_RESTAURANTE:
 			buffer = srlzRtaObtenerRestaurante(stream);

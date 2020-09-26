@@ -11,4 +11,6 @@
 int socketServidor;
 pthread_t threadConexiones;
 
+char* respuesta;
+
 #endif

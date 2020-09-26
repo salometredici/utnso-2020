@@ -286,6 +286,14 @@ int getTamanioTotalPaquete(m_code codigoOperacion, void *stream) {
 int getPayloadSize(m_code codigoOperacion, void *stream) {
 	int payloadSize = 0;
 	switch(codigoOperacion) {
+		case RTA_GUARDAR_PEDIDO:
+		case RTA_GUARDAR_PLATO:
+		case RTA_CONFIRMAR_PEDIDO:
+		case RTA_PLATO_LISTO:
+		case RTA_OBTENER_PEDIDO:
+			payloadSize += getBytesAEnviarString(stream);
+			break;
+
 		case SELECCIONAR_RESTAURANTE:
 			//payloadSize+=getBytesAEnviarString(stream); // falta ver si serializa un string u otra cosa
 			break;
@@ -340,6 +348,14 @@ void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
+		case RTA_GUARDAR_PEDIDO:
+		case RTA_GUARDAR_PLATO:
+		case RTA_CONFIRMAR_PEDIDO:
+		case RTA_PLATO_LISTO:
+		case RTA_OBTENER_PEDIDO:
+			buffer = srlzString(stream);
+			break;
+
 		case SELECCIONAR_RESTAURANTE:
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
@@ -466,9 +482,19 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	t_buffer *payload;
 
 	void *buffer = recibirBuffer(&size, socket);
-	payload = malloc(sizeof(size));
+
+	// El siguiente malloc es erroneo. No cumple ninguna funcion y tampoco se esta liberando la memoria
+	// payload = malloc(sizeof(size));
 
 	switch (header->codigoOperacion) {
+		case RTA_GUARDAR_PEDIDO:
+		case RTA_GUARDAR_PLATO:
+		case RTA_CONFIRMAR_PEDIDO:
+		case RTA_PLATO_LISTO:
+		case RTA_OBTENER_PEDIDO:
+			payload = dsrlzString(payload, buffer, size);
+			break;
+		
 		case OBTENER_RESTAURANTE:
 			payload = dsrlzString(payload, buffer, size);
 			break;
@@ -502,9 +528,9 @@ t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por a
 }
 
 t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString) {
-	char *restaurante = malloc(sizeString);
-	memcpy(restaurante, buffer, sizeString);
-	payload->stream = restaurante;
+	char *cadena = malloc(sizeString);
+	memcpy(cadena, buffer, sizeString);
+	payload->stream = cadena;
 	return payload;
 }
 

@@ -15,6 +15,8 @@ int conexionComanda;
 int conexionRestaurante;
 int conexionSindicato;
 
+t_list *params;
+
 pthread_t threadConsola;
 
 void inicializarConsola();
@@ -35,7 +37,7 @@ void consultarPedidoAapp(char *idPedido);
 // Mensajes Clente - COMANDA
 
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido);
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos);
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos);
 void confirmarPedidoAComanda(char *idPedido); 
 void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
 void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido);

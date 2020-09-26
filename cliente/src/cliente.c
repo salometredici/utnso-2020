@@ -223,52 +223,75 @@ void consultarPedidoAapp(char *idPedido) {
 // Mensajes hacia COMANDA
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido) {
 	printf("Operacion seleccionada: GUARDAR_PEDIDO\n");
-	enviarPaquete(conexionComanda, CLIENTE, GUARDAR_PEDIDO, NULL);
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+
+	enviarPaquete(conexionComanda, CLIENTE, GUARDAR_PEDIDO, params);
 
 	t_header *header = recibirHeaderPaquete(conexionComanda);
     t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
 
-	printf("Respuesta: %s\n", payload->stream);
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos) {
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos) {
 	printf("Operacion seleccionada: GUARDAR_PLATO\n");
-	enviarPaquete(conexionComanda, CLIENTE, GUARDAR_PLATO, NULL);
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+	list_add(params, nombreComida);
+	list_add(params, cantidadPlatos);
+
+	enviarPaquete(conexionComanda, CLIENTE, GUARDAR_PLATO, params);
 
 	t_header *header = recibirHeaderPaquete(conexionComanda);
     t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
 
-	printf("Respuesta: %s\n", payload->stream);
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void confirmarPedidoAComanda(char *idPedido) {
 	printf("Operacion seleccionada: CONFIRMAR_PEDIDO\n");
-	enviarPaquete(conexionComanda, CLIENTE, CONFIRMAR_PEDIDO, NULL);
+	enviarPaquete(conexionComanda, CLIENTE, CONFIRMAR_PEDIDO, idPedido);
 
 	t_header *header = recibirHeaderPaquete(conexionComanda);
     t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
 
-	printf("Respuesta: %s\n", payload->stream);
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida) {
 	printf("Operacion seleccionada: PLATO_LISTO\n");
-	enviarPaquete(conexionComanda, CLIENTE, PLATO_LISTO, NULL);
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+	list_add(params, nombreComida);
+
+	enviarPaquete(conexionComanda, CLIENTE, PLATO_LISTO, params);
 
 	t_header *header = recibirHeaderPaquete(conexionComanda);
     t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
 
-	printf("Respuesta: %s\n", payload->stream);
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido) {
 	printf("Operacion seleccionada: OBTENER_PEDIDO\n");
-	enviarPaquete(conexionComanda, CLIENTE, OBTENER_PEDIDO, NULL);
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+
+	enviarPaquete(conexionComanda, CLIENTE, OBTENER_PEDIDO, params);
 
 	t_header *header = recibirHeaderPaquete(conexionComanda);
     t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
 
-	printf("Respuesta: %s\n", payload->stream);
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 // Restaurante
@@ -369,7 +392,7 @@ void mostrarComandosValidos() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
-    conexionApp = conectarseA(APP);
+    //conexionApp = conectarseA(APP);
 	conexionComanda = conectarseA(COMANDA);
 	//conexionRestaurante = conectarseA(RESTAURANTE);
 	//conexionSindicato = conectarseA(SINDICATO);

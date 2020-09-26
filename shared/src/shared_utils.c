@@ -286,6 +286,14 @@ int getTamanioTotalPaquete(m_code codigoOperacion, void *stream) {
 int getPayloadSize(m_code codigoOperacion, void *stream) {
 	int payloadSize = 0;
 	switch(codigoOperacion) {
+		case GUARDAR_PEDIDO:
+		case GUARDAR_PLATO:
+		case PLATO_LISTO:
+		case OBTENER_PEDIDO:
+			payloadSize += getBytesAEnviarListaStrings(stream);
+			break;
+		
+		case CONFIRMAR_PEDIDO:
 		case RTA_GUARDAR_PEDIDO:
 		case RTA_GUARDAR_PLATO:
 		case RTA_CONFIRMAR_PEDIDO:
@@ -305,12 +313,6 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			// obtener size payload que depende de lo que sea STREAM
 			break;
 		case ANIADIR_PLATO:
-			// obtener size payload que depende de lo que sea STREAM
-			break;
-		case CONFIRMAR_PEDIDO:
-			// obtener size payload que depende de lo que sea STREAM
-			break;
-		case PLATO_LISTO:
 			// obtener size payload que depende de lo que sea STREAM
 			break;
 		case CONSULTAR_PEDIDO:
@@ -348,6 +350,14 @@ void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
+		case GUARDAR_PEDIDO:
+		case GUARDAR_PLATO:
+		case PLATO_LISTO:
+		case OBTENER_PEDIDO:
+			buffer = srlzListaStrings(stream);
+			break;
+		
+		case CONFIRMAR_PEDIDO:
 		case RTA_GUARDAR_PEDIDO:
 		case RTA_GUARDAR_PLATO:
 		case RTA_CONFIRMAR_PEDIDO:
@@ -366,12 +376,6 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
 		case ANIADIR_PLATO:
-			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
-			break;
-		case PLATO_LISTO:
-			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
-			break;
-		case CONFIRMAR_PEDIDO:
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
 		case CONSULTAR_PEDIDO:
@@ -479,14 +483,21 @@ t_header *recibirHeaderPaquete(int socket) {
 
 t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	int size;
-	t_buffer *payload;
+	t_buffer *payload = malloc(sizeof(t_buffer));
 
 	void *buffer = recibirBuffer(&size, socket);
 
-	// El siguiente malloc es erroneo. No cumple ninguna funcion y tampoco se esta liberando la memoria
 	// payload = malloc(sizeof(size));
 
 	switch (header->codigoOperacion) {
+		case GUARDAR_PEDIDO:
+		case GUARDAR_PLATO:
+		case PLATO_LISTO:
+		case OBTENER_PEDIDO:
+			payload = dsrlzListaStrings(payload, buffer, size);
+			break;
+		
+		case CONFIRMAR_PEDIDO:
 		case RTA_GUARDAR_PEDIDO:
 		case RTA_GUARDAR_PLATO:
 		case RTA_CONFIRMAR_PEDIDO:

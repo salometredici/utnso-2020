@@ -30,7 +30,7 @@ void* threadLecturaConsola(void * args) {
 		
 			switch (opcion) {
 				case OPTION_APP:
-					printf("Se ha seleccionado el módulo APP\n");
+					//printf("Se ha seleccionado el módulo APP\n");
 					switch (comando) {
 						case CONSULTAR_RESTAURANTES:
 							consultarRestaurantesAapp(); //TODO: Implementación
@@ -63,7 +63,7 @@ void* threadLecturaConsola(void * args) {
 					}
 					break;
 				case OPTION_COMANDA:
-					printf("Se ha seleccionado el módulo COMANDA\n");
+					printf("Modulo seleccionado: COMANDA\n");
 					switch(comando) {
 						case GUARDAR_PEDIDO:
 							guardarPedidoAComanda(parametro1, parametro2);
@@ -176,8 +176,9 @@ void* threadLecturaConsola(void * args) {
 // App
 
 void consultarRestaurantesAapp() { 
-    printf("Consultar Restaurantes ◑.◑...!!!\n");
+    printf("Restaurantes Disponibles ◑.◑...!!!\n");
 	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_RESTAURANTES, NULL);
+	
 	// Recibimos la respuesta de App
     t_header *header = recibirHeaderPaquete(conexionApp);
     t_buffer *payload = recibirPayloadPaquete(header, conexionApp);
@@ -185,53 +186,112 @@ void consultarRestaurantesAapp() {
 }
 
 void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante) {
-	printf("\n Usted selecciono SELECCIONAR RESTAURANTE");
+	printf("\n Usted selecciono SELECCIONAR RESTAURANTE\n");
+	enviarPaquete(conexionApp, CLIENTE, SELECCIONAR_RESTAURANTE, NULL);
 }
 
 void consultarPlatosAapp(char *nombreRestaurante) {
-	printf("\n Usted selecciono CONSULTAR PLATOS");
+	printf("\n Usted selecciono CONSULTAR PLATOS\n");
+	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_PLATOS, NULL);
 }
 
 void crearPedidoAapp() {
-	printf("\n Usted selecciono CREAR PEDIDO");
+	printf("\n Usted selecciono CREAR PEDIDO\n");
+	enviarPaquete(conexionApp, CLIENTE, CREAR_PEDIDO, NULL);
 }
 
 void aniadirPlatoAapp(char *nombrePlato, char* idPedido) { 
-	printf("\n Usted selecciono: ANIADIR PLATO");
+	printf("\n Usted selecciono: ANIADIR PLATO\n");
+	enviarPaquete(conexionApp, CLIENTE, ANIADIR_PLATO, NULL);
 }
 
 void confirmarPedidoAapp(char *idPedido) {
-	printf("\n Usted selecciono: CONFIRMAR PEDIDO");
+	printf("\n Usted selecciono: CONFIRMAR PEDIDO\n");
+	enviarPaquete(conexionApp, CLIENTE, CONFIRMAR_PEDIDO, NULL);
 }
 
 void platoListoAapp(char *nombreRestaurante, char *idPedido, char *nombreComida) {
-	printf("\n Usted selecciono:PLATO LISTO");
+	printf("\n Usted selecciono:PLATO LISTO\n");
+	enviarPaquete(conexionApp, CLIENTE, PLATO_LISTO, NULL);
 }
 
 void consultarPedidoAapp(char *idPedido) {
-	printf("\n Usted selecciono: CONSULTAR PEDIDO");
+	printf("\n Usted selecciono: CONSULTAR PEDIDO\n");
+	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_PEDIDO, NULL);
 }
 
-// Comanda
-
+// Mensajes hacia COMANDA
 void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido) {
-	//TODO
+	printf("Operacion seleccionada: GUARDAR_PEDIDO\n");
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+
+	enviarPaquete(conexionComanda, CLIENTE, GUARDAR_PEDIDO, params);
+
+	t_header *header = recibirHeaderPaquete(conexionComanda);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos) {
-	//TODO
+void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos) {
+	printf("Operacion seleccionada: GUARDAR_PLATO\n");
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+	list_add(params, nombreComida);
+	list_add(params, cantidadPlatos);
+
+	enviarPaquete(conexionComanda, CLIENTE, GUARDAR_PLATO, params);
+
+	t_header *header = recibirHeaderPaquete(conexionComanda);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void confirmarPedidoAComanda(char *idPedido) {
-	//TODO
+	printf("Operacion seleccionada: CONFIRMAR_PEDIDO\n");
+	enviarPaquete(conexionComanda, CLIENTE, CONFIRMAR_PEDIDO, idPedido);
+
+	t_header *header = recibirHeaderPaquete(conexionComanda);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida) {
-	//TODO
+	printf("Operacion seleccionada: PLATO_LISTO\n");
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+	list_add(params, nombreComida);
+
+	enviarPaquete(conexionComanda, CLIENTE, PLATO_LISTO, params);
+
+	t_header *header = recibirHeaderPaquete(conexionComanda);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido) {
-	//TODO
+	printf("Operacion seleccionada: OBTENER_PEDIDO\n");
+
+	params = list_create();
+	list_add(params, nombreRestaurante);
+	list_add(params, idPedido);
+
+	enviarPaquete(conexionComanda, CLIENTE, OBTENER_PEDIDO, params);
+
+	t_header *header = recibirHeaderPaquete(conexionComanda);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionComanda);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 // Restaurante
@@ -332,9 +392,9 @@ void mostrarComandosValidos() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
-    conexionApp = conectarseA(APP);
-	//conexionComanda = conectarseA(COMANDA);
-	conexionRestaurante = conectarseA(RESTAURANTE);
+    //conexionApp = conectarseA(APP);
+	conexionComanda = conectarseA(COMANDA);
+	//conexionRestaurante = conectarseA(RESTAURANTE);
 	//conexionSindicato = conectarseA(SINDICATO);
 
 	// Inicio del hilo de la consola y su lectura

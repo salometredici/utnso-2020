@@ -83,9 +83,6 @@ void *atenderConexiones(void *conexionNueva) {
 
 		t_buffer *payload;
 		t_header *header = recibirHeaderPaquete(info);
-		log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",
-					getStringKeyValue(header->procesoOrigen, PROCNKEYS),
-					getStringKeyValue(header->codigoOperacion, COMMANDNKEYS));
 
 		if (header->procesoOrigen == ERROR) { //TODO: Manejar desconexiones de sockets
 			printf("El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", info);
@@ -96,41 +93,28 @@ void *atenderConexiones(void *conexionNueva) {
 
 		switch (header->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
-				printf("OBTENER RESTAURANTE\n");
 				// Recibe como parámetro el nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
-				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
 
 				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
 				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
-
 				break;
 			case CONSULTAR_PLATOS:
-				printf("CONSULTAR PLATOS\n");
 				// Recibe como parámetro el nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
-				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
 
 				
 				break;
-			case GUARDAR_PEDIDO:
-				printf("GUARDAR PEDIDO\n");				
+			case GUARDAR_PEDIDO:		
 				// Recibe como parámetro un t_req_pedido (a revisar si actualizan las definiciones)
 				payload = recibirPayloadPaquete(header, info);
-				printf("Me llegó un payload de tamaño %d\n", payload->size);
 				t_req_pedido *p = malloc(sizeof(t_req_pedido));
 				p = payload->stream;
-				printf("datos del pedido a guardar:\n");
-				printf("id del pedido: %d, nombre del restaurante: %s", p->idPedido, p->restaurante);
-				
-				
-				// char *we;
-				// sprintf(we, "Pedido %d guardado con éxito", payload->idPedido);
-				// enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, res);
-				// int sizeOfResult = strlen("Pedido %d guardado con éxito", payload->idPedido + 1);
-				// t_result *res = malloc(sizeof(bool) + sizeOfResult);
-
+				printf("Datos del pedido a guardar:\n");
+				log_info(logger, "Id pedido: %d, Restaurante: %s", p->idPedido, p->restaurante);
+				char *mensaje = "Pedido guardado correctamente";
+				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, mensaje);
 				break;
 			case GUARDAR_PLATO:
 				break;

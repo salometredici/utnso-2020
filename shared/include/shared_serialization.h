@@ -43,10 +43,10 @@ typedef struct {
 
 // Métodos de envío y recepción de streams
 
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream);
 void *recibirBuffer(int *size, int socket);
 t_header *recibirHeaderPaquete(int socket);
 t_buffer *recibirPayloadPaquete(t_header *header, int socket);
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream);
 
 // Serializar
 
@@ -59,7 +59,8 @@ void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 // Deserializar
 
 t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
-t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
 t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
+t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
+t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
 
 #endif

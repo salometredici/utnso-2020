@@ -96,23 +96,22 @@ int main(int argc, char* argv[]) {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",
-				getStringKeyValue(header->procesoOrigen, PROCNKEYS),
-				getStringKeyValue(header->codigoOperacion, COMMANDNKEYS));
+	t_buffer *payload = recibirPayloadPaquete(header, conexionSindicato);
 
-	t_buffer *buffer = recibirPayloadPaquete(header, conexionSindicato);
+	t_posicion *pr = payload->stream;
+	printf("Me llegó size: %d, posX %d, posY %d\n", payload->size, pr->posX, pr->posY);
 
-	t_posicion *pr = buffer->stream;
-	printf("Me llegó size: %d, posX %d, posY %d\n", buffer->size, pr->posX, pr->posY);
+	// Prueba de GUARDAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
 
-	// Prueba de GUARDAR_PEDIDO
-
-	/*t_req_pedido *pedido = malloc(sizeof(t_req_pedido));
+	t_req_pedido *pedido = malloc(sizeof(t_req_pedido));
 	pedido->restaurante = nombreRestaurante;
 	pedido->idPedido = 777;
 
-	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);*/
-  
+	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	char *resultado = payload->stream;
+	log_info(logger, "%s", resultado);
 	// Creación de las distintas colas de planificación
 		//TODO
 

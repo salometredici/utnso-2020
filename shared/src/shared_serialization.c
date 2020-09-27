@@ -96,18 +96,6 @@ void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion
 	memcpy(buffer + sizeof(int), &codigoOperacion, sizeof(int));
 }
 
-void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
-	int desplazamiento = getBytesHeader();
-	int payloadSize = getPayloadSize(codigoOperacion, stream);
-	if (payloadSize != 0) { // Si tiene payload para serializar
-		void *mensajeSerializado = serializar(codigoOperacion, stream);
-		memcpy(buffer + desplazamiento, &payloadSize, sizeof(int));
-		desplazamiento += sizeof(int);
-		memcpy(buffer + desplazamiento, mensajeSerializado, payloadSize);
-		free(mensajeSerializado);
-	}
-}
-
 void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
@@ -184,16 +172,19 @@ void *srlzListaStrings(t_list *listaStrings) {
 
 // Método para serializar un t_req_pedido
 void *srlzReqPedido(t_req_pedido *request) {
-    // int longitudPalabra;
-    // int desplazamiento = 0;
+    int desplazamiento = 0;
+    int size = getBytesAEnviarReqPedido(request);
+    int longitudPalabra = getBytesAEnviarString(request->restaurante);
+	char *palabra = request->restaurante;
 
-    // int size
-    // int size = getBytesAEnviarReqPedido(request);
+    void *magic = malloc(size);
+    memcpy(magic, &longitudPalabra, sizeof(int));
+    desplazamiento += sizeof(int);
+    memcpy(magic + desplazamiento, palabra, longitudPalabra);
+    desplazamiento += longitudPalabra;
+    memcpy(magic + desplazamiento, &request->idPedido, sizeof(int));
 
-    // void *magic = malloc(size);
-    // memcpy(magic, )
-    void * we = malloc(sizeof(int));
-    return we;
+    return magic;
 }
 
 void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
@@ -211,7 +202,19 @@ void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	return magic;
 }
 
-/* Métodos de envío y recepción de header/payload */
+void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
+	int desplazamiento = getBytesHeader();
+	int payloadSize = getPayloadSize(codigoOperacion, stream);
+	if (payloadSize != 0) { // Si tiene payload para serializar
+		void *mensajeSerializado = serializar(codigoOperacion, stream);
+		memcpy(buffer + desplazamiento, &payloadSize, sizeof(int));
+		desplazamiento += sizeof(int);
+		memcpy(buffer + desplazamiento, mensajeSerializado, payloadSize);
+		free(mensajeSerializado);
+	}
+}
+
+/* Métodos de envío de header/payload */
 
 void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream) {
 	int tamanioTotal = getTamanioTotalPaquete(codigoOperacion, stream);
@@ -222,6 +225,7 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, voi
 	serializarPayload(buffer, codigoOperacion, stream);
 	
 	enviarPorSocket(socket, buffer, tamanioTotal);
+	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
 
 	free(buffer);
 }
@@ -240,6 +244,70 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 	return bytesEnviados;
 }
 
+
+/* Deserialización */
+
+// Método para deserializar un único string
+t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString) {
+	char *cadena = malloc(sizeString);
+	memcpy(cadena, buffer, sizeString);
+	payload->stream = cadena;
+	return payload;
+}
+
+// Método para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
+t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista) {
+	int longitudPalabra;
+	int desplazamiento = 0;
+	t_list *valores = list_create();
+
+	while (desplazamiento < sizeLista) {
+		memcpy(&longitudPalabra, buffer + desplazamiento, sizeof(int));
+		desplazamiento += sizeof(int);
+		char *palabra = malloc(longitudPalabra);
+		memcpy(palabra, buffer + desplazamiento, longitudPalabra);
+		desplazamiento += longitudPalabra;
+		list_add(valores, palabra);
+	}
+
+	payload->stream = valores;
+	return payload;
+}
+
+t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer) {
+	int longitudPalabra;
+	int desplazamiento = 0;
+	
+	memcpy(&longitudPalabra, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	char *restaurante = malloc(longitudPalabra);
+	t_req_pedido *request = malloc(sizeof(t_req_pedido));
+
+	memcpy(restaurante, buffer + desplazamiento, longitudPalabra);
+	desplazamiento += longitudPalabra;
+	memcpy(&request->idPedido, buffer + desplazamiento, sizeof(int));
+
+	request->restaurante = restaurante;
+	payload->stream = request;
+
+	return payload;
+}
+
+t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por ahora
+	t_posicion *posicion = malloc(sizeof(t_posicion));
+	int desplazamiento = 0;
+
+	memcpy(&posicion->posX, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&posicion->posY, buffer + desplazamiento, sizeof(int));
+
+	payload->stream = posicion;
+	return payload;
+}
+
+/* Métodos de recepción de paquetes */
+
 t_header *recibirHeaderPaquete(int socket) {
 	int proceso, mensaje;
 	t_header *header = malloc(sizeof(t_header));
@@ -251,6 +319,9 @@ t_header *recibirHeaderPaquete(int socket) {
 		memcpy(&mensaje, buffer + sizeof(int), sizeof(int));
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
+		log_info(logger, "[HEADER] Received %s from %s",
+			getStringKeyValue(header->codigoOperacion, COMMANDNKEYS),
+			getStringKeyValue(header->procesoOrigen, PROCNKEYS));
 	} else {
 		close(socket);
 		header->procesoOrigen = ERROR;
@@ -281,35 +352,31 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	// payload = malloc(sizeof(size));
 
 	switch (header->codigoOperacion) {
-		case GUARDAR_PEDIDO:
-		case ANIADIR_PLATO:
-		case GUARDAR_PLATO:
-		case PLATO_LISTO:
-		case OBTENER_PEDIDO:
-			payload = dsrlzListaStrings(payload, buffer, size);
-			break;
-		
+		case RTA_PLATO_LISTO:
 		case CONSULTAR_PLATOS:
 		case CONFIRMAR_PEDIDO:
 		case CONSULTAR_PEDIDO:
-		case RTA_CONSULTAR_PLATOS:
 		case RTA_CREAR_PEDIDO:
-		case RTA_GUARDAR_PEDIDO:
 		case RTA_ANIADIR_PLATO:
 		case RTA_GUARDAR_PLATO:
+		case RTA_OBTENER_PEDIDO:		
+		case RTA_GUARDAR_PEDIDO:
+		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONFIRMAR_PEDIDO:
-		case RTA_PLATO_LISTO:
 		case RTA_CONSULTAR_PEDIDO:
-		case RTA_OBTENER_PEDIDO:
-			payload = dsrlzString(payload, buffer, size);
-			break;
-		
 		case OBTENER_RESTAURANTE:
 			payload = dsrlzString(payload, buffer, size);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
 			payload = dsrlzRtaObtenerRestaurante(payload, buffer);			
 			break;
+        case GUARDAR_PEDIDO:
+            payload = dsrlzReqPedido(payload, buffer);
+            break;
+		case PLATO_LISTO:
+		case ANIADIR_PLATO:
+		case GUARDAR_PLATO:
+		case OBTENER_PEDIDO:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payload = dsrlzListaStrings(payload, buffer, size);
 			break;
@@ -319,48 +386,8 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 	}
 
 	payload->size = size;
+	log_info(logger, "Payload size: %d", size);
 
 	free(buffer);
-	return payload;
-}
-
-/* Deserialización */
-
-t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por ahora
-	t_posicion *posicion = malloc(sizeof(t_posicion));
-	int desplazamiento = 0;
-
-	memcpy(&posicion->posX, buffer, sizeof(int));
-	desplazamiento += sizeof(int);
-	memcpy(&posicion->posY, buffer + desplazamiento, sizeof(int));
-
-	payload->stream = posicion;
-	return payload;
-}
-
-// Método para deserializar un único string
-t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString) {
-	char *cadena = malloc(sizeString);
-	memcpy(cadena, buffer, sizeString);
-	payload->stream = cadena;
-	return payload;
-}
-
-// Método para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
-t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista) {
-	int longitudPalabra;
-	int desplazamiento = 0;
-	t_list *valores = list_create();
-
-	while (desplazamiento < sizeLista) {
-		memcpy(&longitudPalabra, buffer + desplazamiento, sizeof(int));
-		desplazamiento += sizeof(int);
-		char *palabra = malloc(longitudPalabra);
-		memcpy(palabra, buffer + desplazamiento, longitudPalabra);
-		desplazamiento += longitudPalabra;
-		list_add(valores, palabra);
-	}
-
-	payload->stream = valores;
 	return payload;
 }

@@ -148,7 +148,21 @@ void *atenderConexiones(void *conexionNueva) {
 
 				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
 				break;
-			case CONFIRMAR_PEDIDO:
+			case CONFIRMAR_PEDIDO: // Params: Nombre del restaurante + idPedido
+				payload = recibirPayloadPaquete(header, info);
+				t_req_pedido *reqConfPedido = payload->stream;
+
+				// TODO:
+				// 1. Verificar si R existe en FS... etc.
+				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
+				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
+				// 4. Cambiar el estado del Pedido de "Pendiente" a "Confirmado" - Truncar el archivo de ser necesario
+				// 5. Responder el mensaje con Ok/Fail
+				printf("Datos del pedido a confirmar:\n");
+				log_info(logger, "Id pedido: %d, Restaurante: %s", reqConfPedido->idPedido, reqConfPedido->restaurante);
+				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+
+				enviarPaquete(info, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
 			case OBTENER_PEDIDO:
 				break;

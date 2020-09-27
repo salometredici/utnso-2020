@@ -137,6 +137,18 @@ int main(int argc, char* argv[]) {
 	char *resultGuardarPlato = payload->stream;
 	log_info(logger, "%s", resultGuardarPlato);
 
+	// Prueba de CONFIRMAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	t_req_pedido *pedidoConf = malloc(sizeof(t_req_pedido));
+	pedidoConf->restaurante = nombreRestaurante;
+	pedidoConf->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedido);
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	char *resultConfPedido = payload->stream;
+	log_info(logger, "%s", resultConfPedido);
+
 	// Creación de las distintas colas de planificación
 		//TODO
 

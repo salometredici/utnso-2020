@@ -99,7 +99,7 @@ void* threadLecturaConsola(void * args) {
 							aniadirPlatoARestaurante(parametro1, parametro2);
 							break;
 						case CONFIRMAR_PEDIDO:
-							confirmarPedidoAComanda(parametro1);
+							confirmarPedidoARestaurante(parametro1);
 							break;
 						case CONSULTAR_PEDIDO:
 							consultarPedidoARestaurante(parametro1);
@@ -294,28 +294,60 @@ void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido) {
 	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
-// Restaurante
-
+// Mensajes hacia RESTAURANTE
 void consultarPlatosARestaurante(char *nombreRestaurante) {
-    printf("Buscando Platos ...(°-°)!!! \n");
-    printf("ups... disculpe... aún estamos en fase de implementación ...\n");
-    // ACA VA LOGICA DEL ENVIO DEL MENSAJE POR SOCKET AL MODULO RESTAURANTE Y ESTA SE ENCARGARA DE IMPLEMENTARLA 
+	printf("Operacion seleccionada: CONSULTAR_PLATOS\n");
+	enviarPaquete(conexionRestaurante, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
+
+	t_header *header = recibirHeaderPaquete(conexionRestaurante);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionRestaurante);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void crearPedidoARestaurante() {
-	//TODO
+	printf("Operacion seleccionada: CREAR_PEDIDO\n");
+	enviarPaquete(conexionRestaurante, CLIENTE, CREAR_PEDIDO, NULL);
+
+	t_header *header = recibirHeaderPaquete(conexionRestaurante);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionRestaurante);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void aniadirPlatoARestaurante(char *nombrePlato, char *idPedido) {
-	//TODO
+	printf("Operacion seleccionada: ANIADIR_PLATO\n");
+
+	params = list_create();
+	list_add(params, nombrePlato);
+	list_add(params, idPedido);
+
+	enviarPaquete(conexionRestaurante, CLIENTE, ANIADIR_PLATO, params);
+
+	t_header *header = recibirHeaderPaquete(conexionRestaurante);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionRestaurante);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void confirmarPedidoARestaurante(char *idPedido) {
-	//TODO
+	printf("Operacion seleccionada: CONFIRMAR_PEDIDO\n");
+	enviarPaquete(conexionRestaurante, CLIENTE, CONFIRMAR_PEDIDO, idPedido);
+
+	t_header *header = recibirHeaderPaquete(conexionRestaurante);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionRestaurante);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 void consultarPedidoARestaurante(char *idPedido) {
-	//TODO
+	printf("Operacion seleccionada: CONSULTAR_PEDIDO\n");
+	enviarPaquete(conexionRestaurante, CLIENTE, CONSULTAR_PEDIDO, idPedido);
+
+	t_header *header = recibirHeaderPaquete(conexionRestaurante);
+    t_buffer *payload = recibirPayloadPaquete(header, conexionRestaurante);
+
+	printf("Respuesta obtenida: %s\n", payload->stream);
 }
 
 // Sindicato
@@ -394,13 +426,12 @@ int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
     conexionApp = conectarseA(APP);
 	conexionComanda = conectarseA(COMANDA);
-	//conexionRestaurante = conectarseA(RESTAURANTE);
+	conexionRestaurante = conectarseA(RESTAURANTE);
 	//conexionSindicato = conectarseA(SINDICATO);
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
     pthread_detach(threadConsola);
-
 
 	while (1) {
 		//TODO: Lógica del Cliente

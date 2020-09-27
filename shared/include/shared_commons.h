@@ -21,5 +21,13 @@
 
 void limpiarPantalla();
 void mostrarListaStrings(t_list *listaStrings);
+int calcularPrecioTotal(t_list *listaPlatos);
+
+typedef struct {
+	char *plato;
+	int cantidadPedida;
+	int cantidadLista;
+	int precio;
+} t_plato;
 
 #endif

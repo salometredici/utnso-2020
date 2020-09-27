@@ -19,7 +19,7 @@
 #define BASE_PATH "/utnso/tp-2020-2c-death-code/"
 #define ERROR -1
 
-char* mi_funcion_compartida();
+char *mi_funcion_compartida();
 
 typedef struct {
 	int socketThread;

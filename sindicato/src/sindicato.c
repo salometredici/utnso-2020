@@ -110,12 +110,12 @@ void *atenderConexiones(void *conexionNueva) {
 				// 2. Obtener los platos que puede preparar R del archivo info.AFIP
 				// 3. Responder indicando los platos que puede preparar R
 				printf("Restaurante: %s\n", restPlatos);
-				t_list *platos = list_create(); // Va a retornar una lista de todos los platos que puede preparar el restaurante, como enum o como string?
-				list_add(platos, "Milanesas");
-				list_add(platos, "Lasagna");
-				list_add(platos, "Asado");
+				t_list *platosRest = list_create(); // Va a retornar una lista de todos los platos que puede preparar el restaurante, como enum o como string?
+				list_add(platosRest, "Milanesas");
+				list_add(platosRest, "Lasagna");
+				list_add(platosRest, "Asado");
 
-				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platos);				
+				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);				
 				break;
 			case GUARDAR_PEDIDO: // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
 				payload = recibirPayloadPaquete(header, info);
@@ -174,9 +174,24 @@ void *atenderConexiones(void *conexionNueva) {
 				// 3. Responder indicando si se pudo realizar junto con la información del pedido de ser así
 				printf("Pedido a obtener:\n");
 				log_info(logger, "Id pedido: %d, Restaurante: %s", reqConfPedido->idPedido, reqConfPedido->restaurante);
-				
 
+				t_pedido *pedido = malloc(sizeof(t_pedido));
+				t_list *platos = list_create();
+				t_plato *milanesa = malloc(sizeof(t_plato));
+				t_plato *empanadas = malloc(sizeof(t_plato));
+				t_plato *ensalada = malloc(sizeof(t_plato));
 
+				milanesa->plato = "Milanesa"; milanesa->precio = 200; milanesa->cantidadPedida = 2; milanesa->cantidadLista = 1;
+				empanadas->plato = "Empanadas"; empanadas->precio = 880; empanadas->cantidadPedida = 12; empanadas->cantidadLista = 6;
+				ensalada->plato = "Ensalada"; ensalada->precio = 120; ensalada->cantidadPedida = 1; ensalada->cantidadLista = 0;
+				list_add(platos, milanesa); list_add(platos, empanadas); list_add(platos, ensalada);
+
+				pedido->estado = PENDIENTE;
+				pedido->platos = platos;
+				pedido->precioTotal = calcularPrecioTotal(platos);
+				//Ver cómo generalizar el resultado de las operaciones
+
+				enviarPaquete(info, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				break;
 			case PLATO_LISTO:
 				break;

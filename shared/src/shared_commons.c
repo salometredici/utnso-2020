@@ -13,3 +13,13 @@ void mostrarListaStrings(t_list *listaStrings) {
 		printf("\tPosición %d: %s\n", i, palabra);
 	}
 }
+
+int calcularPrecioTotal(t_list *listaPlatos) {
+	int precioTotal = 0;
+	int cantidadPlatos = list_size(listaPlatos);
+	for (int i = 0; i < cantidadPlatos; i++) {
+		t_plato *plato = list_get(listaPlatos, i);
+		precioTotal += plato->precio;
+	}
+	return precioTotal;
+}

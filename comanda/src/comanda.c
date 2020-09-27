@@ -17,8 +17,6 @@ void *atenderConexiones(void *conexionNueva)
 			return EXIT_FAILURE;
 		}
 
-		log_info(logger, "Me llegaron los siguientes valores: %d %d", data->procesoOrigen, data -> codigoOperacion);
-
 		switch (data->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
 				payload = recibirPayloadPaquete(data, socket);

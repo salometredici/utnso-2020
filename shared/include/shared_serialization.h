@@ -48,8 +48,23 @@ typedef struct {
 	int cantidadPlato;
 } t_req_plato;
 
-typedef struct {
-	
+typedef enum {
+	PENDIENTE = 1,
+	CONFIRMADO = 2,
+	FINALIZADO = 3
+} t_estado;
+
+// typedef struct {
+// 	char *plato;
+// 	int cantidadPedida;
+// 	int cantidadLista;
+// 	int precio;
+// } t_plato;
+
+typedef struct { // Ir actualizando con erratas del TP! No debería tener el id también?
+	t_estado estado;
+	t_list *platos;
+	int precioTotal; // Quizás después corresponda un float o double
 } t_pedido;
 
 // GetBytes
@@ -79,6 +94,7 @@ void *srlzString(char *mensaje);
 void *srlzListaStrings(t_list *listaStrings);
 void *srlzReqPedido(t_req_pedido *request);
 void *srlzReqPlato(t_req_plato *request);
+void *srlzPedido(t_pedido *pedido);
 void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 
 // Deserializar
@@ -87,6 +103,7 @@ t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
 t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
 t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
 t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
+t_buffer *dsrlzPedido(t_buffer *payload, void *buffer, int size);
 t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
 
 #endif

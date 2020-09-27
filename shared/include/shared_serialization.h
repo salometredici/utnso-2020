@@ -19,4 +19,46 @@
 
 #define ERROR -1
 
+// Structs
+
+typedef struct {
+	int size;
+	void *stream;
+} t_buffer;
+
+typedef struct {
+	p_code procesoOrigen;
+	m_code codigoOperacion;
+} t_header;
+
+typedef struct {
+    int posX;
+	int posY;
+} t_posicion;
+
+typedef struct {
+    char *restaurante; // A futuro puede pasar a ser un mensaje general
+    int idPedido;
+} t_req_pedido;
+
+// Métodos de envío y recepción de streams
+
+void *recibirBuffer(int *size, int socket);
+t_header *recibirHeaderPaquete(int socket);
+t_buffer *recibirPayloadPaquete(t_header *header, int socket);
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream);
+
+// Serializar
+
+void *serializar(m_code codigoOperacion, void *stream);
+void *srlzString(char *mensaje); 
+void *srlzRtaObtenerRestaurante(t_posicion *posicion);
+void *srlzListaStrings(t_list *listaStrings);
+
+// Deserializar
+
+t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
+t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
+t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
+
 #endif

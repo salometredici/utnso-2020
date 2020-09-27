@@ -48,6 +48,10 @@ typedef struct {
 	int cantidadPlato;
 } t_req_plato;
 
+typedef struct {
+	
+} t_pedido;
+
 // GetBytes
 
 int getBytesHeader();

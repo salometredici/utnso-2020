@@ -44,6 +44,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 	switch(codigoOperacion) {
         // Casos en los que se envíe un t_req_pedido
 		case GUARDAR_PEDIDO:
+		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
             payloadSize += getBytesAEnviarReqPedido(stream);
             break;
@@ -74,7 +75,6 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		// Casos en los que se envíe una lista de strings
         case PLATO_LISTO:
 		case ANIADIR_PLATO:
-		case OBTENER_PEDIDO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payloadSize += getBytesAEnviarListaStrings(stream);
@@ -107,6 +107,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
         case GUARDAR_PEDIDO:
+		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
             buffer = srlzReqPedido(stream);
             break;
@@ -134,7 +135,6 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			break;
 		case PLATO_LISTO:
 		case ANIADIR_PLATO:
-		case OBTENER_PEDIDO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = srlzListaStrings(stream);
@@ -429,6 +429,7 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 			payload = dsrlzRtaObtenerRestaurante(payload, buffer);			
 			break;
         case GUARDAR_PEDIDO:
+		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
             payload = dsrlzReqPedido(payload, buffer);
             break;
@@ -437,7 +438,6 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 			break;
 		case PLATO_LISTO:
 		case ANIADIR_PLATO:
-		case OBTENER_PEDIDO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payload = dsrlzListaStrings(payload, buffer, size);

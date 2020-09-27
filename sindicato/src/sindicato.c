@@ -165,6 +165,18 @@ void *atenderConexiones(void *conexionNueva) {
 				enviarPaquete(info, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
 			case OBTENER_PEDIDO:
+				payload = recibirPayloadPaquete(header, info);
+				t_req_pedido *reqObtenerPedido = payload->stream;
+
+				// TODO:
+				// 1. Verificar si R existe en FS... etc.
+				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
+				// 3. Responder indicando si se pudo realizar junto con la información del pedido de ser así
+				printf("Pedido a obtener:\n");
+				log_info(logger, "Id pedido: %d, Restaurante: %s", reqConfPedido->idPedido, reqConfPedido->restaurante);
+				
+
+
 				break;
 			case PLATO_LISTO:
 				break;

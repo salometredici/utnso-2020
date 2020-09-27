@@ -26,11 +26,11 @@ typedef struct {
 } pthread_data;
 
 typedef enum {
-	APP = 0,
-	CLIENTE = 1,
-	COMANDA = 2,
-	RESTAURANTE = 3,
-	SINDICATO = 4
+	APP = 1,
+	CLIENTE = 2,
+	COMANDA = 3,
+	RESTAURANTE = 4,
+	SINDICATO = 5
 } p_code;
 
 // API Global

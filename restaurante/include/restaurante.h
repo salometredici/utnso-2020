@@ -11,4 +11,6 @@ char *nombreRestaurante;
 md_restaurante *mdRestaurante;
 pthread_t threadConexiones;
 
+char* respuesta;
+
 #endif

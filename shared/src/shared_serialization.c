@@ -1,49 +1,82 @@
 #include "../include/shared_serialization.h"
 
-// Métodos para la serialización
+/* Funciones que devuelven la cantidad de bytes de un payload */
 
-// Devuelve el tamaño en bytes de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud
-// Copiado acá hasta que separemos las utils en varios files
-int getBytesAEnviarListaStrings(t_list *listaStrings) {
-	int cantidadElementos = list_size(listaStrings);
-	int bytesAEnviar = cantidadElementos * sizeof(int);
-
-	for (int i = 0; i < cantidadElementos; i++) {
-		char *palabra = list_get(listaStrings, i);
-		bytesAEnviar += strlen(palabra) + 1;
-	}
-
-	return bytesAEnviar;
+int getBytesHeader() {
+	return sizeof(int) * 2;
 }
 
 int getBytesAEnviarString(char *string) {
 	return strlen(string) + 1;
 }
 
+// Devuelve el tamaño en bytes de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud
+int getBytesAEnviarListaStrings(t_list *listaStrings) {
+	int cantidadElementos = list_size(listaStrings);
+	int bytesAEnviar = cantidadElementos * sizeof(int);
+
+	for (int i = 0; i < cantidadElementos; i++) {
+		char *palabra = list_get(listaStrings, i);
+		bytesAEnviar += getBytesAEnviarString(palabra);
+	}
+
+	return bytesAEnviar;
+}
+
+// Devuelve el tamaño de dos ints (uno para idPedido y otro para el tamaño del nombre del restaurante) más la longitud de la palabra 
+int getBytesAEnviarReqPedido(t_req_pedido *request) {
+    return sizeof(int) * 2 + getBytesAEnviarString(request->restaurante);
+}
+
 int getBytesAEnviarEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
 	return sizeof(t_posicion);
 }
 
-int getBytesHeader() {
-	return sizeof(int) * 2;
-}
+/* GetBytes de payload y buffer */
 
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream) {
-	int tamanioTotal = getTamanioTotalPaquete(codigoOperacion, stream);
-
-	void *buffer = malloc(tamanioTotal);
-
-	serializarHeader(buffer, procesoOrigen, codigoOperacion);
-	serializarPayload(buffer, codigoOperacion, stream);
-	
-	enviarPorSocket(socket, buffer, tamanioTotal);
-
-	free(buffer);
-}
-
-void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion) {
-	memcpy(buffer, &procesoOrigen, sizeof(int));
-	memcpy(buffer + sizeof(int), &codigoOperacion, sizeof(int));
+int getPayloadSize(m_code codigoOperacion, void *stream) {
+	int payloadSize = 0;
+	switch(codigoOperacion) {
+        // Casos en los que se envíe un t_req_pedido
+		case GUARDAR_PEDIDO:
+            payloadSize += getBytesAEnviarReqPedido(stream);
+            break;
+		case SELECCIONAR_RESTAURANTE:
+			//payloadSize+=getBytesAEnviarString(stream); // falta ver si serializa un string u otra cosa
+			break;
+		// Casos en los que se envíe un sólo string
+		case OBTENER_RESTAURANTE:
+        case CONSULTAR_PLATOS:
+		case CONFIRMAR_PEDIDO:
+		case CONSULTAR_PEDIDO:
+		case RTA_PLATO_LISTO:
+		case RTA_CREAR_PEDIDO:
+		case RTA_ANIADIR_PLATO:
+		case RTA_GUARDAR_PLATO:
+		case RTA_GUARDAR_PEDIDO:
+		case RTA_OBTENER_PEDIDO:
+		case RTA_CONFIRMAR_PEDIDO:
+		case RTA_CONSULTAR_PLATOS:
+		case RTA_CONSULTAR_PEDIDO:
+			payloadSize += getBytesAEnviarString(stream);
+			break;
+		// Caso con estructura t_posicion de ejemplo
+		case RTA_OBTENER_RESTAURANTE:
+			payloadSize += getBytesAEnviarEjemplo();
+			break;
+		// Casos en los que se envíe una lista de strings
+        case PLATO_LISTO:
+		case ANIADIR_PLATO:
+		case GUARDAR_PLATO:
+		case OBTENER_PEDIDO:
+		case RTA_CONSULTAR_RESTAURANTES:
+			payloadSize += getBytesAEnviarListaStrings(stream);
+			break;
+		// Si no tiene parámetros que serializar, queda en 0
+		default:
+			break; // Aca entran CONSULTAR_RESTAURANTES, CREAR_PEDIDO
+	}
+	return payloadSize;
 }
 
 // Obtiene el tamaño total del paquete a enviar, es decir: header (dos ints) + payload (si existe: un int para el size + size del stream)
@@ -56,55 +89,12 @@ int getTamanioTotalPaquete(m_code codigoOperacion, void *stream) {
 	return tamanioTotal;
 }
 
-int getPayloadSize(m_code codigoOperacion, void *stream) {
-	int payloadSize = 0;
-	switch(codigoOperacion) {
-		case GUARDAR_PEDIDO:
-		case ANIADIR_PLATO:
-		case GUARDAR_PLATO:
-		case PLATO_LISTO:
-		case OBTENER_PEDIDO:
-			payloadSize += getBytesAEnviarListaStrings(stream);
-			break;
-		
-		case CONSULTAR_PLATOS:
-		case CONFIRMAR_PEDIDO:
-		case CONSULTAR_PEDIDO:
-		case RTA_CONSULTAR_PLATOS:
-		case RTA_CREAR_PEDIDO:
-		case RTA_GUARDAR_PEDIDO:
-		case RTA_ANIADIR_PLATO:
-		case RTA_GUARDAR_PLATO:
-		case RTA_CONFIRMAR_PEDIDO:
-		case RTA_PLATO_LISTO:
-		case RTA_CONSULTAR_PEDIDO:
-		case RTA_OBTENER_PEDIDO:
-			payloadSize += getBytesAEnviarString(stream);
-			break;
-
-		case SELECCIONAR_RESTAURANTE:
-			//payloadSize+=getBytesAEnviarString(stream); // falta ver si serializa un string u otra cosa
-			break;
-		// Casos en los que se envíe un sólo string
-		case OBTENER_RESTAURANTE:
-			payloadSize += getBytesAEnviarString(stream);
-			break;
-		// Caso con estructura t_posicion de ejemplo
-		case RTA_OBTENER_RESTAURANTE:
-			payloadSize += getBytesAEnviarEjemplo();
-			break;
-		// Casos en los que se envíe una lista de strings
-		case RTA_CONSULTAR_RESTAURANTES:
-			payloadSize += getBytesAEnviarListaStrings(stream);
-			break;
-		// Si no tiene parámetros que serializar, queda en 0
-		default:
-			break; // Aca entran CONSULTAR_RESTAURANTES, CREAR_PEDIDO
-	}
-	return payloadSize;
-}
-
 /* Serialización */
+
+void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion) {
+	memcpy(buffer, &procesoOrigen, sizeof(int));
+	memcpy(buffer + sizeof(int), &codigoOperacion, sizeof(int));
+}
 
 void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 	int desplazamiento = getBytesHeader();
@@ -121,38 +111,34 @@ void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
-		case GUARDAR_PEDIDO:
-		case ANIADIR_PLATO:
-		case GUARDAR_PLATO:
-		case PLATO_LISTO:
-		case OBTENER_PEDIDO:
-			buffer = srlzListaStrings(stream);
-			break;
-		
-		case CONSULTAR_PLATOS:
-		case CONFIRMAR_PEDIDO:
-		case CONSULTAR_PEDIDO:
-		case RTA_CONSULTAR_PLATOS:
-		case RTA_CREAR_PEDIDO:
-		case RTA_GUARDAR_PEDIDO:
-		case RTA_ANIADIR_PLATO:
-		case RTA_GUARDAR_PLATO:
-		case RTA_CONFIRMAR_PEDIDO:
-		case RTA_PLATO_LISTO:
-		case RTA_CONSULTAR_PEDIDO:
-		case RTA_OBTENER_PEDIDO:
-			buffer = srlzString(stream);
-			break;
-
+        case GUARDAR_PEDIDO:
+            buffer = srlzReqPedido(stream);
+            break;
 		case SELECCIONAR_RESTAURANTE:
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
+		case RTA_PLATO_LISTO:
+        case CONSULTAR_PLATOS:
+		case CONFIRMAR_PEDIDO:
+		case CONSULTAR_PEDIDO:
+		case RTA_CREAR_PEDIDO:
+		case RTA_ANIADIR_PLATO:
+		case RTA_GUARDAR_PLATO:
+		case RTA_OBTENER_PEDIDO:
+		case RTA_GUARDAR_PEDIDO:
+		case RTA_CONFIRMAR_PEDIDO:
+		case RTA_CONSULTAR_PEDIDO:
+		case RTA_CONSULTAR_PLATOS:
 		case OBTENER_RESTAURANTE:
 			buffer = srlzString(stream);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
 			buffer = srlzRtaObtenerRestaurante(stream);
 			break;
+		case PLATO_LISTO:
+		case ANIADIR_PLATO:
+		case GUARDAR_PLATO:
+		case OBTENER_PEDIDO:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = srlzListaStrings(stream);
 			break;
@@ -174,6 +160,42 @@ void *srlzString(char *mensaje) {
 	return magic;
 }
 
+// Método para serializar una lista de strings
+void *srlzListaStrings(t_list *listaStrings) {
+	int desplazamiento = 0;
+	t_list *unaLista = (t_list*) listaStrings;
+
+	int longitudLista = list_size(listaStrings);
+	int sizeLista = getBytesAEnviarListaStrings(listaStrings);
+	void *magic = malloc(sizeLista);
+
+	for (int i = 0; i < longitudLista; i++) {
+		char *palabra = list_get(listaStrings, i);
+		int longitudPalabra = getBytesAEnviarString(palabra);
+		// Vamos a copiar en el stream el tamaño de la palabra y la palabra, para saber cada uno al deserializar
+		memcpy(magic + desplazamiento, &longitudPalabra, sizeof(int));
+		desplazamiento += sizeof(int);
+		memcpy(magic + desplazamiento, palabra, longitudPalabra);
+		desplazamiento += longitudPalabra;
+	}
+
+	return magic;
+}
+
+// Método para serializar un t_req_pedido
+void *srlzReqPedido(t_req_pedido *request) {
+    // int longitudPalabra;
+    // int desplazamiento = 0;
+
+    // int size
+    // int size = getBytesAEnviarReqPedido(request);
+
+    // void *magic = malloc(size);
+    // memcpy(magic, )
+    void * we = malloc(sizeof(int));
+    return we;
+}
+
 void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	t_posicion* unaPosicion = (t_posicion*) posicion;
 	int desplazamiento = 0;
@@ -189,29 +211,20 @@ void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	return magic;
 }
 
-// Método para serializar una lista de strings
-void *srlzListaStrings(t_list *listaStrings) {
-	int desplazamiento = 0;
-	t_list *unaLista = (t_list*) listaStrings;
-
-	int longitudLista = list_size(listaStrings);
-	int sizeLista = getBytesAEnviarListaStrings(listaStrings);
-	void *magic = malloc(sizeLista);
-
-	for (int i = 0; i < longitudLista; i++) {
-		char *palabra = list_get(listaStrings, i);
-		int longitudPalabra = strlen(palabra) + 1;
-		// Vamos a copiar en el stream el tamaño de la palabra y la palabra, para saber cada uno al deserializar
-		memcpy(magic + desplazamiento, &longitudPalabra, sizeof(int));
-		desplazamiento += sizeof(int);
-		memcpy(magic + desplazamiento, palabra, longitudPalabra);
-		desplazamiento += longitudPalabra;
-	}
-
-	return magic;
-}
-
 /* Métodos de envío y recepción de header/payload */
+
+void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream) {
+	int tamanioTotal = getTamanioTotalPaquete(codigoOperacion, stream);
+
+	void *buffer = malloc(tamanioTotal);
+
+	serializarHeader(buffer, procesoOrigen, codigoOperacion);
+	serializarPayload(buffer, codigoOperacion, stream);
+	
+	enviarPorSocket(socket, buffer, tamanioTotal);
+
+	free(buffer);
+}
 
 int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {	
 	int bytesEnviados;

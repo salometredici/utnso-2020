@@ -52,8 +52,9 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, voi
 
 void *serializar(m_code codigoOperacion, void *stream);
 void *srlzString(char *mensaje); 
-void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 void *srlzListaStrings(t_list *listaStrings);
+void *srlzReqPedido(t_req_pedido *request);
+void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 
 // Deserializar
 

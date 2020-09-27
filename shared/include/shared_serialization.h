@@ -1,5 +1,5 @@
-#ifndef SHARED_COMMONS_H
-#define SHARED_COMMONS_H
+#ifndef SHARED_SERIALIZATION_H
+#define SHARED_SERIALIZATION_H
 
 #include <stdio.h>
 #include <netdb.h>
@@ -14,12 +14,9 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include "../include/shared_commons.h"
+#include "../include/shared_core.h"
 
-#define BASE_PATH "/utnso/tp-2020-2c-death-code/"
-#define OK -7
 #define ERROR -1
-
-void limpiarPantalla();
-void mostrarListaStrings(t_list *listaStrings);
 
 #endif

@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 	nombreRestaurante = obtenerNombreRestaurante();
 
 	// Obtener metadata del restaurante consultando a Sindicato
-	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante); // Ver si se puede simplificar o generalizar esto
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",
@@ -75,6 +75,14 @@ int main(int argc, char* argv[])
 
 	t_posicion *pr = buffer->stream;
 	printf("Me llegó size: %d, posX %d, posY %d\n", buffer->size, pr->posX, pr->posY);
+
+	// Prueba de GUARDAR_PEDIDO
+
+	/*t_req_pedido *pedido = malloc(sizeof(t_req_pedido));
+	pedido->restaurante = nombreRestaurante;
+	pedido->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);*/
   
 	// Creación de las distintas colas de planificación
 		//TODO

@@ -5,6 +5,8 @@
     "comanda.h": "c",
 	"restaurante.h": "c",
 	"sindicato.h": "c",
-    "shared_utils.h": "c"
+    "shared_commons.h": "c",
+    "shared_core.h": "c",
+    "shared_serialization.h": "c"
     }
 }

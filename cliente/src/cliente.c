@@ -392,7 +392,7 @@ void mostrarComandosValidos() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
-    //conexionApp = conectarseA(APP);
+    conexionApp = conectarseA(APP);
 	conexionComanda = conectarseA(COMANDA);
 	//conexionRestaurante = conectarseA(RESTAURANTE);
 	//conexionSindicato = conectarseA(SINDICATO);

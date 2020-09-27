@@ -1,5 +1,5 @@
-#ifndef SHARED_UTILS_H
-#define SHARED_UTILS_H
+#ifndef SHARED_CORE_H
+#define SHARED_CORE_H
 
 #include <stdio.h>
 #include <netdb.h>
@@ -14,6 +14,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include "../include/shared_commons.h"
 
 #define BASE_PATH "/utnso/tp-2020-2c-death-code/"
 #define ERROR -1
@@ -150,6 +151,11 @@ typedef struct {
     int posX;
 	int posY;
 } t_posicion;
+
+typedef struct {
+    char *restaurante; // A futuro puede pasar a ser un mensaje general
+    int idPedido;
+} t_req_pedido;
 
 // Métodos de envío y recepción de streams
 

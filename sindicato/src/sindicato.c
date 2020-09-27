@@ -96,6 +96,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 		switch (header->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
+				printf("OBTENER RESTAURANTE\n");
 				// Recibe como parámetro el nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
 				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
@@ -106,6 +107,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 				break;
 			case CONSULTAR_PLATOS:
+				printf("CONSULTAR PLATOS\n");
 				// Recibe como parámetro el nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
 				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
@@ -113,7 +115,22 @@ void *atenderConexiones(void *conexionNueva) {
 				
 				break;
 			case GUARDAR_PEDIDO:
+				printf("GUARDAR PEDIDO\n");				
+				// Recibe como parámetro un t_req_pedido (a revisar si actualizan las definiciones)
+				payload = recibirPayloadPaquete(header, info);
+				printf("Me llegó un payload de tamaño %d\n", payload->size);
+				t_req_pedido *p = malloc(sizeof(t_req_pedido));
+				p = payload->stream;
+				printf("datos del pedido a guardar:\n");
+				printf("id del pedido: %d, nombre del restaurante: %s", p->idPedido, p->restaurante);
 				
+				
+				// char *we;
+				// sprintf(we, "Pedido %d guardado con éxito", payload->idPedido);
+				// enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, res);
+				// int sizeOfResult = strlen("Pedido %d guardado con éxito", payload->idPedido + 1);
+				// t_result *res = malloc(sizeof(bool) + sizeOfResult);
+
 				break;
 			case GUARDAR_PLATO:
 				break;

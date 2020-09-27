@@ -28,6 +28,11 @@ int getBytesAEnviarReqPedido(t_req_pedido *request) {
     return sizeof(int) * 2 + getBytesAEnviarString(request->restaurante);
 }
 
+// Devuelve el size de cuatro ints (idPedido, cantPlato, size de nombreRestaurante y size de plato) más la longitud del restaurante y la longitud del plato
+int getBytesAEnviarReqPlato(t_req_plato *request) {
+	return sizeof(int) * 4 + getBytesAEnviarString(request->restaurante) + getBytesAEnviarString(request->plato);
+}
+
 int getBytesAEnviarEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
 	return sizeof(t_posicion);
 }
@@ -41,6 +46,9 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case GUARDAR_PEDIDO:
             payloadSize += getBytesAEnviarReqPedido(stream);
             break;
+		case GUARDAR_PLATO:
+			payloadSize += getBytesAEnviarReqPlato(stream);
+			break;
 		case SELECCIONAR_RESTAURANTE:
 			//payloadSize+=getBytesAEnviarString(stream); // falta ver si serializa un string u otra cosa
 			break;
@@ -56,7 +64,6 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case RTA_GUARDAR_PEDIDO:
 		case RTA_OBTENER_PEDIDO:
 		case RTA_CONFIRMAR_PEDIDO:
-		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_PEDIDO:
 			payloadSize += getBytesAEnviarString(stream);
 			break;
@@ -67,8 +74,8 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		// Casos en los que se envíe una lista de strings
         case PLATO_LISTO:
 		case ANIADIR_PLATO:
-		case GUARDAR_PLATO:
 		case OBTENER_PEDIDO:
+		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payloadSize += getBytesAEnviarListaStrings(stream);
 			break;
@@ -102,6 +109,9 @@ void *serializar(m_code codigoOperacion, void *stream) {
         case GUARDAR_PEDIDO:
             buffer = srlzReqPedido(stream);
             break;
+		case GUARDAR_PLATO:
+			buffer = srlzReqPlato(stream);
+			break;
 		case SELECCIONAR_RESTAURANTE:
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
@@ -116,7 +126,6 @@ void *serializar(m_code codigoOperacion, void *stream) {
 		case RTA_GUARDAR_PEDIDO:
 		case RTA_CONFIRMAR_PEDIDO:
 		case RTA_CONSULTAR_PEDIDO:
-		case RTA_CONSULTAR_PLATOS:
 		case OBTENER_RESTAURANTE:
 			buffer = srlzString(stream);
 			break;
@@ -125,8 +134,8 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			break;
 		case PLATO_LISTO:
 		case ANIADIR_PLATO:
-		case GUARDAR_PLATO:
 		case OBTENER_PEDIDO:
+		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = srlzListaStrings(stream);
 			break;
@@ -187,6 +196,31 @@ void *srlzReqPedido(t_req_pedido *request) {
     return magic;
 }
 
+// Método para serializar un t_req_plato
+void *srlzReqPlato(t_req_plato *request) {
+	int desplazamiento = 0;
+	int size = getBytesAEnviarReqPlato(request);
+	char *plato = request->plato;
+	char *restaurante = request->restaurante;
+	int longPlato = getBytesAEnviarString(plato);
+	int longRestaurante = getBytesAEnviarString(restaurante);
+
+	void *magic = malloc(size);
+	memcpy(magic, &longPlato, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, plato, longPlato);
+	desplazamiento += longPlato;
+	memcpy(magic + desplazamiento, &longRestaurante, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, restaurante, longRestaurante);
+	desplazamiento += longRestaurante;
+	memcpy(magic + desplazamiento, &request->idPedido, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &request->cantidadPlato, sizeof(int));
+
+	return magic;
+}
+
 void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	t_posicion* unaPosicion = (t_posicion*) posicion;
 	int desplazamiento = 0;
@@ -244,7 +278,6 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 	return bytesEnviados;
 }
 
-
 /* Deserialización */
 
 // Método para deserializar un único string
@@ -288,6 +321,35 @@ t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer) {
 	desplazamiento += longitudPalabra;
 	memcpy(&request->idPedido, buffer + desplazamiento, sizeof(int));
 
+	request->restaurante = restaurante;
+	payload->stream = request;
+
+	return payload;
+}
+
+t_buffer *dsrlzReqPlato(t_buffer *payload, void *buffer) {
+	int longPlato;
+	int longRestaurante;
+	int desplazamiento = 0;
+	t_req_plato *request = malloc(sizeof(t_req_plato));
+
+	memcpy(&longPlato, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	char *plato = malloc(longPlato);
+	memcpy(plato, buffer + desplazamiento, longPlato);
+	desplazamiento += longPlato;
+	memcpy(&longRestaurante, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	char *restaurante = malloc(longRestaurante);
+	memcpy(restaurante, buffer + desplazamiento, longRestaurante);
+	desplazamiento += longRestaurante;
+	memcpy(&request->idPedido, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&request->cantidadPlato, buffer + desplazamiento, sizeof(int));
+
+	request->plato = plato;
 	request->restaurante = restaurante;
 	payload->stream = request;
 
@@ -349,8 +411,6 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 
 	void *buffer = recibirBuffer(&size, socket);
 
-	// payload = malloc(sizeof(size));
-
 	switch (header->codigoOperacion) {
 		case RTA_PLATO_LISTO:
 		case CONSULTAR_PLATOS:
@@ -361,7 +421,6 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 		case RTA_GUARDAR_PLATO:
 		case RTA_OBTENER_PEDIDO:		
 		case RTA_GUARDAR_PEDIDO:
-		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONFIRMAR_PEDIDO:
 		case RTA_CONSULTAR_PEDIDO:
 		case OBTENER_RESTAURANTE:
@@ -373,10 +432,13 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
         case GUARDAR_PEDIDO:
             payload = dsrlzReqPedido(payload, buffer);
             break;
+		case GUARDAR_PLATO:
+			payload = dsrlzReqPlato(payload, buffer);
+			break;
 		case PLATO_LISTO:
 		case ANIADIR_PLATO:
-		case GUARDAR_PLATO:
 		case OBTENER_PEDIDO:
+		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payload = dsrlzListaStrings(payload, buffer, size);
 			break;

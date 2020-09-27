@@ -110,8 +110,33 @@ int main(int argc, char* argv[]) {
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
 	header = recibirHeaderPaquete(conexionSindicato);
 	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultado = payload->stream;
-	log_info(logger, "%s", resultado);
+	char *resultGuardarPedido = payload->stream;
+	log_info(logger, "%s", resultGuardarPedido);
+
+	// Prueba de CONSULTAR_PLATOS (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
+
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	t_list *platos = payload->stream;
+	mostrarListaStrings(platos);
+
+	// Prueba de GUARDAR_PLATO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
+	reqPlato->restaurante = nombreRestaurante;
+	reqPlato->plato = "Empanadas";
+	reqPlato->cantidadPlato = 3;
+	reqPlato->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
+
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	char *resultGuardarPlato = payload->stream;
+	log_info(logger, "%s", resultGuardarPlato);
+
 	// Creación de las distintas colas de planificación
 		//TODO
 

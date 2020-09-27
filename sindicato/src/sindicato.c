@@ -92,31 +92,61 @@ void *atenderConexiones(void *conexionNueva) {
 		}		
 
 		switch (header->codigoOperacion) {
-			case OBTENER_RESTAURANTE:
-				// Recibe como parámetro el nombre del restaurante
+			case OBTENER_RESTAURANTE: // Params: Nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
+				char *nombreRestaurante = payload->stream;
 
 				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
+
 				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
 				break;
-			case CONSULTAR_PLATOS:
-				// Recibe como parámetro el nombre del restaurante
+			case CONSULTAR_PLATOS: // Params: Nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
+				char *restPlatos = payload->stream;
 
-				
+				// TODO:
+				// 1. Verificar si R existe en FS, buscando en dir Restaurantes si existe un subdir con R - Si no existe informarlo
+				// 2. Obtener los platos que puede preparar R del archivo info.AFIP
+				// 3. Responder indicando los platos que puede preparar R
+				printf("Restaurante: %s\n", restPlatos);
+				t_list *platos = list_create(); // Va a retornar una lista de todos los platos que puede preparar el restaurante, como enum o como string?
+				list_add(platos, "Milanesas");
+				list_add(platos, "Lasagna");
+				list_add(platos, "Asado");
+
+				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platos);				
 				break;
-			case GUARDAR_PEDIDO:		
-				// Recibe como parámetro un t_req_pedido (a revisar si actualizan las definiciones)
+			case GUARDAR_PEDIDO: // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
 				payload = recibirPayloadPaquete(header, info);
-				t_req_pedido *p = malloc(sizeof(t_req_pedido));
-				p = payload->stream;
+				t_req_pedido *reqPedido = payload->stream;
+
+				// TODO:
+				// 1. Verificar si R existe en FS... etc.
+				// 2. Verificar cuál fue el último pedido y crear un nuevo archivo Pedido y ContPedidos++, de ser el 1ero, crear el archivo Pedido1
+				// 3. Responder el mensaje con Ok/Fail
 				printf("Datos del pedido a guardar:\n");
-				log_info(logger, "Id pedido: %d, Restaurante: %s", p->idPedido, p->restaurante);
-				char *mensaje = "Pedido guardado correctamente";
-				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, mensaje);
+				log_info(logger, "Id pedido: %d, Restaurante: %s", reqPedido->idPedido, reqPedido->restaurante);
+				char *msjGuardarPedido = "[GUARDAR_PEDIDO] Ok";
+
+				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);
 				break;
 			case GUARDAR_PLATO:
+				payload = recibirPayloadPaquete(header, info);
+				t_req_plato *reqPlato = payload->stream;
+
+				// TODO:
+				// 1. Verificar si R existe en FS... etc.
+				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
+				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
+				// 4. Verificar si Pl existe en el archivo. CantActual + CantEnviada - Si no existe agregar Pl a lista de Pls y anexar Cant + aumentar precio total del Pedido
+				// 5. Responder el mensaje con Ok/Fail
+				printf("Datos del plato a guardar:\n");
+				log_info(logger, "Restaurante: %s, IdPedido: %d", reqPlato->restaurante, reqPlato->idPedido);
+				log_info(logger, "Plato: %s, CantPlato: %d", reqPlato->plato, reqPlato->cantidadPlato);
+				char *msjGuardarPlato = "[GUARDAR_PLATO] Ok";
+
+				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:
 				break;

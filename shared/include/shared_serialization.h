@@ -37,9 +37,27 @@ typedef struct {
 } t_posicion;
 
 typedef struct {
-    char *restaurante; // A futuro puede pasar a ser un mensaje general
+    char *restaurante;
     int idPedido;
 } t_req_pedido;
+
+typedef struct {
+	char *restaurante;
+	int idPedido;
+	char *plato;
+	int cantidadPlato;
+} t_req_plato;
+
+// GetBytes
+
+int getBytesHeader();
+int getBytesAEnviarString(char *string);
+int getBytesAEnviarListaStrings(t_list *listaStrings);
+int getBytesAEnviarReqPedido(t_req_pedido *request);
+int getBytesAEnviarReqPlato(t_req_plato *request);
+int getBytesAEnviarEjemplo();
+int getPayloadSize(m_code codigoOperacion, void *stream);
+int getTamanioTotalPaquete(m_code codigoOperacion, void *stream);
 
 // Métodos de envío y recepción de streams
 
@@ -51,15 +69,19 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket);
 // Serializar
 
 void *serializar(m_code codigoOperacion, void *stream);
+void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion);
+void serializarPayload(void *buffer, m_code codigoOperacion, void *stream);
 void *srlzString(char *mensaje); 
 void *srlzListaStrings(t_list *listaStrings);
 void *srlzReqPedido(t_req_pedido *request);
+void *srlzReqPlato(t_req_plato *request);
 void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 
 // Deserializar
 
 t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
 t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
+t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
 t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
 t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
 

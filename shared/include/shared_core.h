@@ -1,5 +1,5 @@
-#ifndef SHARED_UTILS_H
-#define SHARED_UTILS_H
+#ifndef SHARED_CORE_H
+#define SHARED_CORE_H
 
 #include <stdio.h>
 #include <netdb.h>
@@ -14,22 +14,23 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include "../include/shared_commons.h"
 
 #define BASE_PATH "/utnso/tp-2020-2c-death-code/"
 #define ERROR -1
 
-char* mi_funcion_compartida();
+char *mi_funcion_compartida();
 
 typedef struct {
 	int socketThread;
 } pthread_data;
 
 typedef enum {
-	APP = 0,
-	CLIENTE = 1,
-	COMANDA = 2,
-	RESTAURANTE = 3,
-	SINDICATO = 4
+	APP = 1,
+	CLIENTE = 2,
+	COMANDA = 3,
+	RESTAURANTE = 4,
+	SINDICATO = 5
 } p_code;
 
 // API Global
@@ -51,7 +52,6 @@ typedef enum {
 	FINALIZAR_PEDIDO = 112,
 	TERMINAR_PEDIDO = 113,
 	OBTENER_RECETA = 114,
-
     // Respuestas
     RTA_CONSULTAR_RESTAURANTES = 200,
 	RTA_SELECCIONAR_RESTAURANTE = 201,
@@ -114,7 +114,20 @@ static t_keys diccionarioComandos[] = {
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
     { "OBTENER_RECETA", OBTENER_RECETA },
     { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE },
-    { "RTA_CONSULTAR_RESTAURANTES", RTA_CONSULTAR_RESTAURANTES }
+    { "RTA_CONSULTAR_RESTAURANTES", RTA_CONSULTAR_RESTAURANTES },
+	{ "RTA_SELECCIONAR_RESTAURANTE", RTA_SELECCIONAR_RESTAURANTE },
+	{ "RTA_CONSULTAR_PLATOS", RTA_CONSULTAR_PLATOS },
+	{ "RTA_CREAR_PEDIDO", RTA_CREAR_PEDIDO },
+	{ "RTA_GUARDAR_PEDIDO", RTA_GUARDAR_PEDIDO },
+	{ "RTA_ANIADIR_PLATO", RTA_ANIADIR_PLATO },
+	{ "RTA_GUARDAR_PLATO", RTA_GUARDAR_PLATO },
+	{ "RTA_CONFIRMAR_PEDIDO", RTA_CONFIRMAR_PEDIDO },
+	{ "RTA_PLATO_LISTO", RTA_PLATO_LISTO },
+	{ "RTA_CONSULTAR_PEDIDO", RTA_CONSULTAR_PEDIDO },
+	{ "RTA_OBTENER_PEDIDO", RTA_OBTENER_PEDIDO },
+	{ "RTA_FINALIZAR_PEDIDO", RTA_FINALIZAR_PEDIDO },
+	{ "RTA_TERMINAR_PEDIDO", RTA_TERMINAR_PEDIDO },
+	{ "RTA_OBTENER_RECETA", RTA_OBTENER_RECETA }
 };
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
@@ -125,7 +138,7 @@ int commandToString(char *key);
 // Config
 
 int obtenerPuertoEscucha();
-char* obtenerNombreRestaurante();
+char *obtenerNombreRestaurante();
 
 // Conexiones
 
@@ -133,68 +146,5 @@ int iniciarServidor();
 int conectarseA(p_code proceso);
 int aceptarCliente(int socketServidor);
 void liberarConexion(int conexion);
-
-// Serialización
-
-typedef struct {
-	int size;
-	void* stream;
-} t_buffer;
-
-typedef struct {
-	p_code procesoOrigen;
-	m_code codigoOperacion;
-} t_header;
-
-typedef struct {
-    int posX;
-	int posY;
-} t_posicion;
-
-// Métodos de envío y recepción de streams
-
-void *recibirBuffer(int *size, int socket);
-t_header *recibirHeaderPaquete(int socket);
-t_buffer *recibirPayloadPaquete(t_header *header, int socket);
-void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream);
-
-// Serializar
-
-void *serializar(m_code codigoOperacion, void *stream);
-void *srlzString(char *mensaje); 
-void *srlzRtaObtenerRestaurante(t_posicion *posicion);
-void *srlzListaStrings(t_list *listaStrings);
-
-// Deserializar
-
-t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
-t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
-t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
-
-// Cursed
-
-typedef enum {
-    TROCEAR = 3000,
-    EMPANAR = 3001,
-    REPOSAR = 3002,
-    HORNEAR = 3003
-} t_pasoReceta;
-
-typedef struct {
-    int cocinero;
-    char* afinidad; // Hasta que definamos bien estos datos
-} t_cocinero;
-
-typedef struct {
-    t_pasoReceta** pasosReceta;
-    int** tiempoPasos;
-} t_receta;
-
-typedef struct {
-    //t_cocinero** cocineros; // Tiene que ser una lista
-    //t_receta** recetas; // Tiene que ser una lista [Milanesa, Papa]
-    int cantidadHornos;
-    t_posicion *posicionRestaurante;
-} md_restaurante;
 
 #endif

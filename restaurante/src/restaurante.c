@@ -93,18 +93,74 @@ int main(int argc, char* argv[]) {
 	nombreRestaurante = obtenerNombreRestaurante();
 
 	// Obtener metadata del restaurante consultando a Sindicato
-	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante); // Ver si se puede simplificar o generalizar esto
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	log_info(logger, "Me llegó procesoOrigen: %s, mensaje: %s\n",
-				getStringKeyValue(header->procesoOrigen, PROCNKEYS),
-				getStringKeyValue(header->codigoOperacion, COMMANDNKEYS));
+	t_buffer *payload = recibirPayloadPaquete(header, conexionSindicato);
 
-	t_buffer *buffer = recibirPayloadPaquete(header, conexionSindicato);
+	t_posicion *pr = payload->stream;
+	printf("Me llegó size: %d, posX %d, posY %d\n", payload->size, pr->posX, pr->posY);
 
-	t_posicion *pr = buffer->stream;
-	printf("Me llegó size: %d, posX %d, posY %d\n", buffer->size, pr->posX, pr->posY);
-  
+	// Prueba de GUARDAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	t_req_pedido *pedido = malloc(sizeof(t_req_pedido));
+	pedido->restaurante = nombreRestaurante;
+	pedido->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	char *resultGuardarPedido = payload->stream;
+	log_info(logger, "%s", resultGuardarPedido);
+
+	// Prueba de CONSULTAR_PLATOS (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
+
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	t_list *platos = payload->stream;
+	mostrarListaStrings(platos);
+
+	// Prueba de GUARDAR_PLATO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
+	reqPlato->restaurante = nombreRestaurante;
+	reqPlato->plato = "Empanadas";
+	reqPlato->cantidadPlato = 3;
+	reqPlato->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
+
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	char *resultGuardarPlato = payload->stream;
+	log_info(logger, "%s", resultGuardarPlato);
+
+	// Prueba de CONFIRMAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	t_req_pedido *pedidoConf = malloc(sizeof(t_req_pedido));
+	pedidoConf->restaurante = nombreRestaurante;
+	pedidoConf->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedido);
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	char *resultConfPedido = payload->stream;
+	log_info(logger, "%s", resultConfPedido);
+
+	// Prueba de OBTENER_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+
+	t_req_pedido *pedidoObt = malloc(sizeof(t_req_pedido));
+	pedidoConf->restaurante = nombreRestaurante;
+	pedidoConf->idPedido = 777;
+
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);
+	header = recibirHeaderPaquete(conexionSindicato);
+	payload = recibirPayloadPaquete(header, conexionSindicato);
+	t_pedido *pedidoCompleto = payload->stream;
+	log_info(logger, "Estado del pedido %d, Precio total: $%d", pedidoCompleto->estado, pedidoCompleto->precioTotal);
+
 	// Creación de las distintas colas de planificación
 		//TODO
 

@@ -7,7 +7,9 @@
 #include <commons/collections/list.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "../../shared/include/shared_utils.h"
+#include "../../shared/include/shared_commons.h"
+#include "../../shared/include/shared_core.h"
+#include "../../shared/include/shared_serialization.h"
 #include "tests.h"
 
 int conexionApp;

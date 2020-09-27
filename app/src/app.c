@@ -13,16 +13,13 @@ void *atenderConexiones(void *conexionNueva)
 
     	if (data->procesoOrigen == ERROR) {
         	close(socket);
-        	printf("El cliente se desconecto. Terminando servidor\n");
+        	printf("El cliente %d se desconectó. Terminando su hilo...\n", info);
         	pthread_exit(EXIT_SUCCESS);
         	return EXIT_FAILURE;
     	}
 
-		printf("Me llegaron los siguientes valores PROCESO: %d  OPERACION: %d\n", data->procesoOrigen ,data -> codigoOperacion);
-
     	switch (data->codigoOperacion) {
-        	case CONSULTAR_RESTAURANTES:
-            	//no recibe parametros
+        	case CONSULTAR_RESTAURANTES: // Sin parámetros
 				printf("ME LLEGO CONSULTAR_RESTAURANTES \n");
             	restaurantes = list_create();
             	list_add(restaurantes,"Mc Donalds");

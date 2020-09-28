@@ -100,6 +100,7 @@ void *atenderConexiones(void *conexionNueva) {
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
 
 				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
+				free(payload);
 				break;
 			case CONSULTAR_PLATOS: // Params: Nombre del restaurante
 				payload = recibirPayloadPaquete(header, info);
@@ -115,7 +116,8 @@ void *atenderConexiones(void *conexionNueva) {
 				list_add(platosRest, "Lasagna");
 				list_add(platosRest, "Asado");
 
-				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);				
+				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
+				free(payload);				
 				break;
 			case GUARDAR_PEDIDO: // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
 				payload = recibirPayloadPaquete(header, info);
@@ -130,6 +132,7 @@ void *atenderConexiones(void *conexionNueva) {
 				char *msjGuardarPedido = "[GUARDAR_PEDIDO] Ok";
 
 				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);
+				free(payload);				
 				break;
 			case GUARDAR_PLATO:
 				payload = recibirPayloadPaquete(header, info);
@@ -147,6 +150,7 @@ void *atenderConexiones(void *conexionNueva) {
 				char *msjGuardarPlato = "[GUARDAR_PLATO] Ok";
 
 				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
+				free(payload);
 				break;
 			case CONFIRMAR_PEDIDO: // Params: Nombre del restaurante + idPedido
 				payload = recibirPayloadPaquete(header, info);
@@ -163,6 +167,7 @@ void *atenderConexiones(void *conexionNueva) {
 				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
 
 				enviarPaquete(info, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
+				free(payload);
 				break;
 			case OBTENER_PEDIDO:
 				payload = recibirPayloadPaquete(header, info);
@@ -192,6 +197,10 @@ void *atenderConexiones(void *conexionNueva) {
 				//Ver cómo generalizar el resultado de las operaciones
 
 				enviarPaquete(info, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
+				free(pedido);
+				free(milanesa);
+				free(empanadas);
+				free(ensalada);
 				break;
 			case PLATO_LISTO:
 				break;
@@ -206,6 +215,7 @@ void *atenderConexiones(void *conexionNueva) {
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
 				break;
 		}
+		free(header);
 	}
 
     pthread_exit(EXIT_SUCCESS);

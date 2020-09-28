@@ -446,6 +446,8 @@ t_buffer *dsrlzPedido(t_buffer *payload, void *buffer, int size) {
 		desplazamiento += sizeof(int);
 		// Por último, agregamos el plato a la lista
 		list_add(platos, platoActual);
+		free(plato);
+		free(platoActual);
 	}
 
 	pedido->platos = platos;

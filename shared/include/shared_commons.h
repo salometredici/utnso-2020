@@ -19,10 +19,6 @@
 #define OK -7
 #define ERROR -1
 
-void limpiarPantalla();
-void mostrarListaStrings(t_list *listaStrings);
-int calcularPrecioTotal(t_list *listaPlatos);
-
 typedef struct {
     int posX;
 	int posY;
@@ -58,5 +54,11 @@ typedef struct { // Ir actualizando con erratas del TP! No debería tener el id 
 	t_list *platos;
 	int precioTotal; // Quizás después corresponda un float o double
 } t_pedido;
+
+void limpiarPantalla();
+void mostrarListaStrings(t_list *listaStrings);
+int calcularPrecioTotal(t_list *listaPlatos);
+void mostrarListaPlatos(t_list *listaPlatos);
+char *getStringEstadoPedido(t_estado estado);
 
 #endif

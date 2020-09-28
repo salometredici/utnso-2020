@@ -159,7 +159,8 @@ int main(int argc, char* argv[]) {
 	header = recibirHeaderPaquete(conexionSindicato);
 	payload = recibirPayloadPaquete(header, conexionSindicato);
 	t_pedido *pedidoCompleto = payload->stream;
-	log_info(logger, "Estado del pedido %d, Precio total: $%d", pedidoCompleto->estado, pedidoCompleto->precioTotal);
+	log_info(logger, "Estado del pedido %s, Precio total: $%d", getStringEstadoPedido(pedidoCompleto->estado), pedidoCompleto->precioTotal);
+	mostrarListaPlatos(pedidoCompleto->platos);
 
 	// Creación de las distintas colas de planificación
 		//TODO

@@ -24,10 +24,39 @@ void mostrarListaStrings(t_list *listaStrings);
 int calcularPrecioTotal(t_list *listaPlatos);
 
 typedef struct {
+    int posX;
+	int posY;
+} t_posicion;
+
+typedef struct {
+    char *restaurante;
+    int idPedido;
+} t_req_pedido;
+
+typedef struct {
+	char *restaurante;
+	int idPedido;
+	char *plato;
+	int cantidadPlato;
+} t_req_plato;
+
+typedef enum {
+	PENDIENTE = 1,
+	CONFIRMADO = 2,
+	FINALIZADO = 3
+} t_estado;
+
+typedef struct {
 	char *plato;
 	int cantidadPedida;
 	int cantidadLista;
 	int precio;
 } t_plato;
+
+typedef struct { // Ir actualizando con erratas del TP! No debería tener el id también?
+	t_estado estado;
+	t_list *platos;
+	int precioTotal; // Quizás después corresponda un float o double
+} t_pedido;
 
 #endif

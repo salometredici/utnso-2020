@@ -15,53 +15,50 @@ void* threadLecturaConsola(void * args) {
     printf("Iniciando la consola ...\n");
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
 
-	char *comandoOriginal;
 	char **parametros;
 	char *mensaje;
 	int opcion;
     char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
-        add_history(comandoLeido);
-        comandoOriginal = malloc(sizeof(char) * strlen(comandoLeido) + 1);
-        strcpy(comandoOriginal, comandoLeido);
-        string_to_upper(comandoLeido);
-        string_trim(&comandoLeido);
+		if (!string_is_empty(comandoLeido)) {
+			add_history(comandoLeido);
+			string_to_upper(comandoLeido);
+			string_trim(&comandoLeido);
 
-		// Parámetros
-        parametros = string_split(comandoLeido, " ");
-		mensaje = parametros[0];
-        free(comandoOriginal);
-		log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
+			// Parámetros
+			parametros = string_split(comandoLeido, " ");
+			mensaje = parametros[0];
+			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
 
-        opcion = sindicatoOptionToKey(mensaje);
-		switch (opcion) {
-			case OPT_CREAR_RESTAURANTE:
-				printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");
-				break;
-			case OPT_CREAR_RECETA:
-				printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
-				break;
-			case OPT_AIUDA:
-				mostrarComandosValidos();
-				break;
-			case OPT_BAI:
-				printf("adiosss (๑♡3♡๑)!\n");
-				break;
-			case OPT_CLEAR:
-				limpiarPantalla();
-				break;
-			case ERROR:
-			default:
-				printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
-				break;
+			opcion = sindicatoOptionToKey(mensaje);
+			switch (opcion) {
+				case OPT_CREAR_RESTAURANTE:
+					printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");
+					break;
+				case OPT_CREAR_RECETA:
+					printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
+					break;
+				case OPT_AIUDA:
+					mostrarComandosValidos();
+					break;
+				case OPT_BAI:
+					printf("adiosss (๑♡3♡๑)!\n");
+					break;
+				case OPT_CLEAR:
+					limpiarPantalla();
+					break;
+				case ERROR:
+				default:
+					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado.\n");
+					break;
+			}
+
+			free(mensaje);
+			free(parametros);
+			free(comandoLeido);
+			if (opcion == OPT_BAI) { break; }
 		}
-
-		free(mensaje);
-        free(parametros);
-        free(comandoLeido);
-        if (opcion == OPT_BAI) { break; }
-
 		comandoLeido = readline("(=^.^=)~>");
 	}
 

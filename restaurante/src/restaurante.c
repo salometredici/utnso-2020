@@ -152,8 +152,8 @@ int main(int argc, char* argv[]) {
 	// Prueba de OBTENER_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
 
 	t_req_pedido *pedidoObt = malloc(sizeof(t_req_pedido));
-	pedidoConf->restaurante = nombreRestaurante;
-	pedidoConf->idPedido = 777;
+	pedidoObt->restaurante = nombreRestaurante;
+	pedidoObt->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);
 	header = recibirHeaderPaquete(conexionSindicato);

@@ -7,5 +7,7 @@
 void logConsoleInput(char *comandoLeido);
 void logClientDisconnection(int socketCliente);
 void logMetadataRestaurante(t_posicion posicion); // Después va a ser un md_restaurante
+void logHeader(m_code codigoOperacion, p_code procesoOrigen);
+void logMessageSent(m_code codigoOperacion);
 
 #endif

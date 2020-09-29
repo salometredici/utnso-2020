@@ -64,7 +64,8 @@ void mostrarListaStrings(t_list *listaStrings) {
 	int cantidadElementos = list_size(listaStrings);
 	for (int i = 0; i < cantidadElementos; i++) {
 		char *palabra = list_get(listaStrings, i);
-		printf("\tPosición %d: %s\n", i, palabra);
+		printf("\t[%d] - %s\n", i, palabra);
+		log_info(logger, "\t[%d] - %s", i, palabra);
 	}
 }
 
@@ -72,8 +73,11 @@ void mostrarListaPlatos(t_list *listaPlatos) {
 	int cantidadPlatos = list_size(listaPlatos);
 	for (int i = 0; i < cantidadPlatos; i++) {
 		t_plato *platoActual = list_get(listaPlatos, i);
-		printf("Plato: %s, Precio: $%d\n", platoActual->plato, platoActual->precio);
-		printf("Cantidad pedida: %d, Cantidad lista: %d\n", platoActual->cantidadPedida, platoActual->cantidadLista);
+		printf("Plato: [%s]\n", platoActual->plato);
+		printf("\tPrecio: $%d\n", platoActual->precio);
+		printf("\tCantidad pedida: %d\n", platoActual->cantidadPedida);
+		printf("\tCantidad lista: %d\n", platoActual->cantidadLista);
+		log_info(logger, "Plato %d: [%s], $%d, Pedido: %d, Listo: %d", i, platoActual->plato, platoActual->precio, platoActual->cantidadPedida, platoActual->cantidadLista);
 		free(platoActual);
 	}
 }

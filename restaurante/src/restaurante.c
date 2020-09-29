@@ -106,6 +106,7 @@ int main(int argc, char* argv[]) {
 	pedido->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
+
 	header = recibirHeaderPaquete(conexionSindicato);
 	char *resultGuardarPedido  = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultGuardarPedido);

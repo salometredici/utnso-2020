@@ -28,10 +28,24 @@ void logConsoleInput(char *input) {
 
 void logClientDisconnection(int socketCliente) {
 	printf("\033[0;31mEl cliente %d se desconectó. Finalizando el hilo...（・∩・)\033[0m\n", socketCliente);
-	log_info(logger, "El cliente %d se desconectó. Finalizando el hilo...（・∩・)\n", socketCliente);
+	log_info(logger, "El cliente %d se desconectó. Finalizando el hilo...（・∩・)", socketCliente);
 }
 
 void logMetadata(t_posicion *posicion) {
-	printf("Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+	printf("\tUbicación del restaurante: posX: %d, posY: %d\n", posicion->posX, posicion->posY);
 	log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+}
+
+void logHeader(m_code codigoOperacion, p_code procesoOrigen) {
+	printf("\033[1;33m[HEADER]\033[0m Received \033[0;33m%s\033[0m from \033[1;34m%s\033[0m\n",
+		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
+		getStringKeyValue(procesoOrigen, PROCNKEYS));
+	log_info(logger, "[HEADER] Received %s from %s",
+		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
+		getStringKeyValue(procesoOrigen, PROCNKEYS));
+}
+
+void logMessageSent(m_code codigoOperacion) {
+	printf("Message \033[0;33m%s\033[0m sent\n", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
+	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
 }

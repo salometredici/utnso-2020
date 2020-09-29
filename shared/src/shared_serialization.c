@@ -313,7 +313,7 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, voi
 	serializarPayload(buffer, codigoOperacion, stream);
 	
 	enviarPorSocket(socket, buffer, tamanioTotal);
-	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
+	logMessageSent(codigoOperacion);
 
 	free(buffer);
 }
@@ -466,9 +466,7 @@ t_header *recibirHeaderPaquete(int socket) {
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
 		if (proceso < 200) {
-		log_info(logger, "[HEADER] Received \033[0;33m%s\033[0m from %s",
-			getStringKeyValue(header->codigoOperacion, COMMANDNKEYS),
-			getStringKeyValue(header->procesoOrigen, PROCNKEYS));
+			logHeader(header->codigoOperacion, header->procesoOrigen);
 		}
 	} else {
 		close(socket);

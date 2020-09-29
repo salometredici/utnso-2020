@@ -71,6 +71,10 @@ p_code process;
 t_config *config;
 
 typedef struct {
+	int socketThread;
+} pthread_data;
+
+typedef struct {
     char *key;
     int valor;
 } t_keys;
@@ -126,6 +130,13 @@ static t_keys diccionarioComandos[] = {
 
 char *getStringKeyValue(int key, int option);
 int commandToString(char *key);
+
+// Config
+
+int obtenerPuertoEscucha();
+char *obtenerNombreRestaurante();
+bool obtenerActiveConsole();
+int obtenerLogLevel();
 
 // Structs
 

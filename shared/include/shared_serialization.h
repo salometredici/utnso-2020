@@ -3,6 +3,8 @@
 
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
+#include "../include/shared_logging.h"
+#include "../include/shared_objects.h"
 
 typedef struct {
 	int size;

@@ -40,6 +40,24 @@ int commandToString(char *key) {
     return ERROR;
 }
 
+/* Config */
+
+int obtenerPuertoEscucha() {
+	return config_get_int_value(config, "PUERTO_ESCUCHA");
+}
+
+char* obtenerNombreRestaurante() {
+	return config_get_string_value(config, "NOMBRE_RESTAURANTE");
+}
+
+bool obtenerActiveConsole() { 
+	return config_get_int_value(config, "ACTIVE_CONSOLE");
+}
+
+int obtenerLogLevel() {
+	return config_get_int_value(config, "LOG_LEVEL");
+}
+
 // Mostrar por consola
 
 void mostrarListaStrings(t_list *listaStrings) {

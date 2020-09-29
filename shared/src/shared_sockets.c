@@ -3,7 +3,7 @@
 /* Inicialización */
 
 void inicializarProceso(p_code proceso) {
-	char *log_path;
+	char *log_path = "";
 	char *program;
 	char *config_path;
 	switch (proceso) {
@@ -34,14 +34,25 @@ void inicializarProceso(p_code proceso) {
 	}
 	process = proceso;
 	config = config_create(config_path);
-	if (proceso == RESTAURANTE) { log_path = crearLogRestaurante(); }
-	crearLoggerProceso(log_path, program);
+	if (proceso == RESTAURANTE) {
+		log_path = crearLogRestaurante();
+		char file[strlen(log_path)];
+		strcpy(file,log_path);
+		crearLoggerProceso(file, program);
+	} else {
+		crearLoggerProceso(log_path, program);
+	}
 	logInitializedProcess();
 }
 
 char *crearLogRestaurante() {
-	char *path = obtenerNombreRestaurante();
-	char *logFile = strcat(path, ".log");
+	char *restaurante = obtenerNombreRestaurante();
+	int filenameLength = strlen(restaurante) + 4;
+	char fullPathArray[filenameLength];
+	strcpy(fullPathArray,restaurante);
+	strcat(fullPathArray, ".log");
+	char *file = malloc(filenameLength);
+	file = fullPathArray;
 
 	/* Comentado hasta que nos den una manera de usar log_create enviando una ruta completa y no un nombre de file */
 	//int fullPathLength = strlen(path) + strlen(LOGS_PATH);
@@ -49,10 +60,7 @@ char *crearLogRestaurante() {
 	//strcpy(fullPathArray, LOGS_PATH);
 	//char *fullPath = strcat(fullPathArray, path);
 
-	// Creamos el archivo si no existe
-	FILE *f = fopen(logFile, "w");
-	fclose(f);
-	return logFile;
+	return file;
 }
 
 void crearLoggerProceso(char *log_path, char *program) {

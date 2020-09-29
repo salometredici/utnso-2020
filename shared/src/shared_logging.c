@@ -49,3 +49,8 @@ void logMessageSent(m_code codigoOperacion) {
 	printf("Message \033[0;33m%s\033[0m sent\n", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
 	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
 }
+
+void logMetadataRequest(char *nombreRestaurante) {
+	printf("\tMetadata requested by \033[0;35m%s\033[0m\n", nombreRestaurante);
+	log_info(logger, "Metadada requested by %s", nombreRestaurante);
+}

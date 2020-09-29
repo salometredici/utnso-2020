@@ -12,6 +12,7 @@
 void inicializarProceso(p_code proceso);
 void finalizarProceso();
 char *crearLogRestaurante();
+void crearLoggerProceso(char *log_path, char *program);
 
 // Conexiones
 

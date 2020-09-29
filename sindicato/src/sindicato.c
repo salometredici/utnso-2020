@@ -88,6 +88,7 @@ void *atenderConexiones(void *conexionNueva) {
 			case OBTENER_RESTAURANTE: // Params: Nombre del restaurante
 				printf(""); // Ya vamos a reemplazar estos printf por algo, pero C no te deja empezar un case con una asignación
 				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
+				logMetadataRequest(nombreRestaurante);
 
 				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion

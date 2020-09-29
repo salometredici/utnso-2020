@@ -3,15 +3,15 @@
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
-    int socket = t_data->socketThread;
+    int socketCliente = t_data->socketThread;
     free(t_data);
 	
 	while(1) {
 		t_buffer *payload;
-        t_header *data = recibirHeaderPaquete(socket);
+        t_header *data = recibirHeaderPaquete(socketCliente);
 
 		if (data->procesoOrigen == ERROR || data->codigoOperacion == ERROR) {
-			log_info(logger, "El cliente %d se desconectó. Terminando el hilo...", socket);
+			logClientDisconnection(socketCliente);
 			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
@@ -19,7 +19,7 @@ void *atenderConexiones(void *conexionNueva)
 
 		switch (data->codigoOperacion) {
 			case OBTENER_RESTAURANTE:
-				payload = recibirPayloadPaquete(data, socket);
+				payload = recibirPayloadPaquete(data, socketCliente);
                 log_info(logger, "Me llego: %d %s\n", payload->size ,payload->stream);
 			break;
 
@@ -27,51 +27,51 @@ void *atenderConexiones(void *conexionNueva)
 			case GUARDAR_PEDIDO:
 				printf("Operacion recibida: GUARDAR_PEDIDO\n");
 
-				payload = recibirPayloadPaquete(data, socket);
+				payload = recibirPayloadPaquete(data, socketCliente);
 				printf("Parametros recibidos:\n");
 				mostrarListaStrings(payload->stream);
 
 				respuesta = "Mensaje de respuesta a GUARDAR_PEDIDO";
-				enviarPaquete(socket, COMANDA, RTA_GUARDAR_PEDIDO, respuesta);
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, respuesta);
 				break;
 			case GUARDAR_PLATO:
 				printf("Operacion recibida: GUARDAR_PLATO\n");
 
-				payload = recibirPayloadPaquete(data, socket);
+				payload = recibirPayloadPaquete(data, socketCliente);
 				printf("Parametros recibidos:\n");
 				mostrarListaStrings(payload->stream);
 
 				respuesta = "Mensaje de respuesta a GUARDAR_PLATO";
-				enviarPaquete(socket, COMANDA, RTA_GUARDAR_PLATO, respuesta);
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, respuesta);
 				break;
 			case CONFIRMAR_PEDIDO:
 				printf("Operacion recibida: CONFIRMAR_PEDIDO\n");
 
-				payload = recibirPayloadPaquete(data, socket);
+				payload = recibirPayloadPaquete(data, socketCliente);
 				printf("Parametro recibido: %s\n", payload->stream);
 				
 				respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
-				enviarPaquete(socket, COMANDA, RTA_CONFIRMAR_PEDIDO, respuesta);
+				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, respuesta);
 				break;
 			case PLATO_LISTO:
 				printf("Operacion recibida: PLATO_LISTO\n");
 
-				payload = recibirPayloadPaquete(data, socket);
+				payload = recibirPayloadPaquete(data, socketCliente);
 				printf("Parametros recibidos:\n");
 				mostrarListaStrings(payload->stream);
 
 				respuesta = "Mensaje de respuesta a PLATO_LISTO";
-				enviarPaquete(socket, COMANDA, RTA_PLATO_LISTO, respuesta);
+				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, respuesta);
 				break;
 			case OBTENER_PEDIDO:
 				printf("Operacion recibida: OBTENER_PEDIDO\n");
 
-				payload = recibirPayloadPaquete(data, socket);
+				payload = recibirPayloadPaquete(data, socketCliente);
 				printf("Parametros recibidos:\n");
 				mostrarListaStrings(payload->stream);
 
 				respuesta = "Mensaje de respuesta a OBTENER_PEDIDO";
-				enviarPaquete(socket, COMANDA, RTA_OBTENER_PEDIDO, respuesta);
+				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, respuesta);
 				break;
 			default:
 				printf("Operacion desconocida. No quieras meter la pata!!!\n");

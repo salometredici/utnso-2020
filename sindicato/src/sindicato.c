@@ -29,9 +29,10 @@ void* threadLecturaConsola(void * args) {
 			// Parámetros
 			parametros = string_split(comandoLeido, " ");
 			mensaje = parametros[0];
-			log_debug(logger, "Comando ingresado: %s", comandoLeido); // Por ahora, para ver lo que toma
+			logConsoleInput(comandoLeido);
 
 			opcion = sindicatoOptionToKey(mensaje);
+
 			switch (opcion) {
 				case OPT_CREAR_RESTAURANTE:
 					printf("Crear Restaurante: Se deberá crear una nueva carpeta restaurante, con su respectivo info.AFIP explicado anteriormente\n");
@@ -66,10 +67,6 @@ void* threadLecturaConsola(void * args) {
     return 0;
 }
 
-void iterator(char* value)	{
-	printf("%s\n", value);
-}
-
 void *atenderConexiones(void *conexionNueva) {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int info = t_data->socketThread;
@@ -78,11 +75,10 @@ void *atenderConexiones(void *conexionNueva) {
 	t_list *lista; // Revisar un poco más cómo utilizar las listas en los paquetes
 	while (1) {
 
-		t_buffer *payload;
 		t_header *header = recibirHeaderPaquete(info);
 
 		if (header->procesoOrigen == ERROR) { //TODO: Manejar desconexiones de sockets
-			printf("El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", info);
+			logClientDisconnection(info);
 			liberarConexion(info);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;

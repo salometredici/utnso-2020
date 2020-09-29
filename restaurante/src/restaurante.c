@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_posicion *pr = recibirPayloadPaquete(header, conexionSindicato);
-	printf("Me llegó: posX %d, posY %d\n", pr->posX, pr->posY);
+	logMetadata(pr);
 
 	// Prueba de GUARDAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
 

@@ -19,6 +19,8 @@
 #define OK -7
 #define ERROR -1
 
+// Structs
+
 typedef struct {
     int posX;
 	int posY;

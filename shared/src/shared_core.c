@@ -40,13 +40,49 @@ int commandToString(char *key) {
     return ERROR;
 }
 
-// Commons
+/* Formatted logs */
+
+void logInitializedProcess() {
+	printf("Proceso \033[1;34m%s\033[0m iniciado...\n", getStringKeyValue(process, PROCNKEYS));
+	log_info(logger, "Proceso %s iniciado...", getStringKeyValue(process, PROCNKEYS));
+}
+
+void logConnectionAttempt(p_code process, char *ip, int puerto) {
+	printf("Intentando conectarse a \033[1;34m%s\033[0m en IP: %s, PUERTO: %d...\n", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+	log_info(logger, "Intentando conectarse a %s en IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+}
+
+void logConnectionSuccess(p_code process, int puerto) {
+	printf("\033[1;32mConexión creada con \033[0m\033[1;34m%s\033[0m\033[1;32m en el puerto %d\033[0m\n", getStringKeyValue(process, PROCNKEYS), puerto);
+	log_info(logger, "Conexión creada con %s en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
+}
+
+void logAwaitingConnections(int puerto) {
+	printf("\033[1;34m%s\033[0m\033[1;32m escuchando conexiones en el puerto %d\033[0m\n", getStringKeyValue(process, PROCNKEYS), puerto);
+	log_info(logger, "%s escuchando conexiones en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
+}
+
+void logConsoleInput(char *input) {
+	log_debug(logger, "Comando ingresado: %s", input);
+}
+
+void logClientDisconnection(int socketCliente) {
+	printf("\033[0;31mEl cliente %d se desconectó. Finalizando el hilo...（・∩・)\033[0m\n", socketCliente);
+	log_info(logger, "El cliente %d se desconectó. Finalizando el hilo...（・∩・)\n", socketCliente);
+}
+
+void logMetadata(t_posicion *posicion) {
+	printf("Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+	log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+}
+
+/* Inicialización */
 
 void inicializarProceso(p_code proceso) {
 	char *log_path;
 	char *program;
 	char *config_path;
-	switch(proceso) {
+	switch (proceso) {
 		case APP:
 			log_path = "app.log";
 			program = "app";
@@ -63,7 +99,6 @@ void inicializarProceso(p_code proceso) {
 			config_path = "comanda.config";
 			break;
 		case RESTAURANTE:
-			log_path = "restaurante.log";
 			program = "restaurante";
 			config_path = "restaurante.config";
 			break;
@@ -73,9 +108,33 @@ void inicializarProceso(p_code proceso) {
 			config_path = "sindicato.config";
 			break;
 	}
-	logger = log_create(log_path, program, 1, LOG_LEVEL_INFO);
+	process = proceso;
 	config = config_create(config_path);
-	log_info(logger, "Proceso iniciado...");
+	if (proceso == RESTAURANTE) { log_path = crearLogRestaurante(); }
+	crearLoggerProceso(log_path, program);
+	logInitializedProcess();
+}
+
+char *crearLogRestaurante() {
+	char *path = obtenerNombreRestaurante();
+	char *logFile = strcat(path, ".log");
+
+	/* Comentado hasta que nos den una manera de usar log_create enviando una ruta completa y no un nombre de file */
+	//int fullPathLength = strlen(path) + strlen(LOGS_PATH);
+	//char fullPathArray[fullPathLength];
+	//strcpy(fullPathArray, LOGS_PATH);
+	//char *fullPath = strcat(fullPathArray, path);
+
+	// Creamos el archivo si no existe
+	FILE *f = fopen(logFile, "w");
+	fclose(f);
+	return logFile;
+}
+
+void crearLoggerProceso(char *log_path, char *program) {
+	bool activeConsole = obtenerActiveConsole();
+	int logLevel = obtenerLogLevel();
+	logger = log_create(log_path, program, activeConsole, logLevel);
 }
 
 void finalizarProceso() {
@@ -83,7 +142,7 @@ void finalizarProceso() {
 	log_destroy(logger);
 }
 
-// Config
+/* Config */
 
 int obtenerPuertoEscucha() {
 	return config_get_int_value(config, "PUERTO_ESCUCHA");
@@ -93,7 +152,15 @@ char* obtenerNombreRestaurante() {
 	return config_get_string_value(config, "NOMBRE_RESTAURANTE");
 }
 
-// Conexiones
+bool obtenerActiveConsole() { 
+	return config_get_int_value(config, "ACTIVE_CONSOLE");
+}
+
+int obtenerLogLevel() {
+	return config_get_int_value(config, "LOG_LEVEL");
+}
+
+/* Conexiones */
 
 int crearSocket(int puerto) {
 	int fd;
@@ -135,11 +202,11 @@ int conectarseA(p_code proceso) {
 			puerto = config_get_int_value(config, "PUERTO_SINDICATO");
 			break;
 	}
-	log_info(logger, "Intentando conectarse a IP: %s, PUERTO: %d...", ip, puerto);
-	return crearConexion(ip, puerto);
+	logConnectionAttempt(proceso, ip, puerto);
+	return crearConexion(proceso, ip, puerto);
 }
 
-int crearConexion(char *ip, int puerto) {
+int crearConexion(p_code proceso, char *ip, int puerto) {
 	int socketCliente;
 	struct sockaddr_in dir;
 
@@ -156,7 +223,7 @@ int crearConexion(char *ip, int puerto) {
 		exit(EXIT_FAILURE);
 	}
 
-	log_info(logger, "Conexión creada con el puerto %d", puerto);
+	logConnectionSuccess(proceso, puerto);
 
 	return socketCliente;
 }
@@ -168,7 +235,7 @@ int iniciarServidor() {
 }
 
 int abrirSocketEscucha(int puerto) {
-	log_info(logger, "Iniciando servidor...");
+	logInitializedProcess(puerto);
 	int option = 1;
 	int socketEscucha;
 	struct sockaddr_in dirServidor;
@@ -196,7 +263,7 @@ int abrirSocketEscucha(int puerto) {
 		log_error(logger, "Fallo en listen");
 		exit(EXIT_FAILURE);
 	}
-	log_info(logger, "Escuchando conexiones en %d...", puerto);
+	logAwaitingConnections(puerto);
     return socketEscucha;
 }
 

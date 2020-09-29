@@ -4,6 +4,7 @@
 #include "../include/shared_commons.h"
 
 #define BASE_PATH "/utnso/tp-2020-2c-death-code/"
+#define LOGS_PATH "/home/utnso/logs/"
 
 char *mi_funcion_compartida();
 
@@ -59,6 +60,7 @@ typedef enum {
 // Commons
 
 t_log *logger;
+p_code process;
 t_config *config;
 
 typedef struct {
@@ -118,13 +120,22 @@ static t_keys diccionarioComandos[] = {
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
 
-char* getStringKeyValue(int key, int option);
+char *getStringKeyValue(int key, int option);
 int commandToString(char *key);
+char *crearLogRestaurante();
+
+// Logs
+
+void logConsoleInput(char *comandoLeido);
+void logClientDisconnection(int socketCliente);
+void logMetadataRestaurante(t_posicion posicion); // Después va a ser un md_restaurante
 
 // Config
 
 int obtenerPuertoEscucha();
 char *obtenerNombreRestaurante();
+bool obtenerActiveConsole();
+int obtenerLogLevel();
 
 // Conexiones
 

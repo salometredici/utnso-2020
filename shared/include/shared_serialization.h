@@ -45,7 +45,7 @@ int getTamanioTotalPaquete(m_code codigoOperacion, void *stream);
 void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream);
 void *recibirBuffer(int *size, int socket);
 t_header *recibirHeaderPaquete(int socket);
-t_buffer *recibirPayloadPaquete(t_header *header, int socket);
+void *recibirPayloadPaquete(t_header *header, int socket);
 
 // Serializar
 
@@ -61,11 +61,11 @@ void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 
 // Deserializar
 
-t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString);
-t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista);
-t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
-t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer);
-t_buffer *dsrlzPedido(t_buffer *payload, void *buffer, int size);
-t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer);
+char *dsrlzString(void *buffer, int sizeString);
+t_list *dsrlzListaStrings(void *buffer, int sizeLista);
+t_req_pedido *dsrlzReqPedido(void *buffer);
+t_req_plato *dsrlzReqPlato(void *buffer);
+t_pedido *dsrlzPedido(void *buffer, int size);
+t_posicion *dsrlzRtaObtenerRestaurante(void *buffer);
 
 #endif

@@ -90,18 +90,17 @@ void *atenderConexiones(void *conexionNueva) {
 
 		switch (header->codigoOperacion) {
 			case OBTENER_RESTAURANTE: // Params: Nombre del restaurante
-				payload = recibirPayloadPaquete(header, info);
-				char *nombreRestaurante = payload->stream;
+				printf(""); // Ya vamos a reemplazar estos printf por algo, pero C no te deja empezar un case con una asignación
+				char *nombreRestaurante = recibirPayloadPaquete(header, info);
 
 				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
 
 				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
-				free(payload);
 				break;
 			case CONSULTAR_PLATOS: // Params: Nombre del restaurante
-				payload = recibirPayloadPaquete(header, info);
-				char *restPlatos = payload->stream;
+				printf("");
+				char *restPlatos = recibirPayloadPaquete(header, info);
 
 				// TODO:
 				// 1. Verificar si R existe en FS, buscando en dir Restaurantes si existe un subdir con R - Si no existe informarlo
@@ -114,11 +113,10 @@ void *atenderConexiones(void *conexionNueva) {
 				list_add(platosRest, "Asado");
 
 				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
-				free(payload);				
 				break;
 			case GUARDAR_PEDIDO: // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
-				payload = recibirPayloadPaquete(header, info);
-				t_req_pedido *reqPedido = payload->stream;
+				printf("");
+				t_req_pedido *reqPedido = recibirPayloadPaquete(header, info);
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -128,12 +126,12 @@ void *atenderConexiones(void *conexionNueva) {
 				log_info(logger, "Id pedido: %d, Restaurante: %s", reqPedido->idPedido, reqPedido->restaurante);
 				char *msjGuardarPedido = "[GUARDAR_PEDIDO] Ok";
 
-				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);
-				free(payload);				
+				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);				
 				break;
 			case GUARDAR_PLATO:
-				payload = recibirPayloadPaquete(header, info);
-				t_req_plato *reqPlato = payload->stream;
+				printf("");
+				t_req_plato *reqPlato = recibirPayloadPaquete(header, info);
+				
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -147,11 +145,10 @@ void *atenderConexiones(void *conexionNueva) {
 				char *msjGuardarPlato = "[GUARDAR_PLATO] Ok";
 
 				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
-				free(payload);
 				break;
 			case CONFIRMAR_PEDIDO: // Params: Nombre del restaurante + idPedido
-				payload = recibirPayloadPaquete(header, info);
-				t_req_pedido *reqConfPedido = payload->stream;
+				printf("");
+				t_req_pedido *reqConfPedido = recibirPayloadPaquete(header, info);
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -164,11 +161,10 @@ void *atenderConexiones(void *conexionNueva) {
 				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
 
 				enviarPaquete(info, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
-				free(payload);
 				break;
 			case OBTENER_PEDIDO:
-				payload = recibirPayloadPaquete(header, info);
-				t_req_pedido *reqObtenerPedido = payload->stream;
+				printf("");
+				t_req_pedido *reqObtenerPedido = recibirPayloadPaquete(header, info);
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.

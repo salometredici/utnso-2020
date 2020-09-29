@@ -340,15 +340,14 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 /* Deserialización */
 
 // Método para deserializar un único string
-t_buffer *dsrlzString(t_buffer *payload, void *buffer, int sizeString) {
+char *dsrlzString(void *buffer, int sizeString) {
 	char *cadena = malloc(sizeString);
 	memcpy(cadena, buffer, sizeString);
-	payload->stream = cadena;
-	return payload;
+	return cadena;
 }
 
 // Método para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
-t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista) {
+t_list *dsrlzListaStrings(void *buffer, int sizeLista) {
 	int longitudPalabra;
 	int desplazamiento = 0;
 	t_list *valores = list_create();
@@ -362,11 +361,10 @@ t_buffer *dsrlzListaStrings(t_buffer *payload, void *buffer, int sizeLista) {
 		list_add(valores, palabra);
 	}
 
-	payload->stream = valores;
-	return payload;
+	return valores;
 }
 
-t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer) {
+t_req_pedido *dsrlzReqPedido(void *buffer) {
 	int longitudPalabra;
 	int desplazamiento = 0;
 	
@@ -381,12 +379,10 @@ t_buffer *dsrlzReqPedido(t_buffer *payload, void *buffer) {
 	memcpy(&request->idPedido, buffer + desplazamiento, sizeof(int));
 
 	request->restaurante = restaurante;
-	payload->stream = request;
-
-	return payload;
+	return request;
 }
 
-t_buffer *dsrlzReqPlato(t_buffer *payload, void *buffer) {
+t_req_plato *dsrlzReqPlato(void *buffer) {
 	int longPlato;
 	int longRestaurante;
 	int desplazamiento = 0;
@@ -410,12 +406,10 @@ t_buffer *dsrlzReqPlato(t_buffer *payload, void *buffer) {
 
 	request->plato = plato;
 	request->restaurante = restaurante;
-	payload->stream = request;
-
-	return payload;
+	return request;
 }
 
-t_buffer *dsrlzPedido(t_buffer *payload, void *buffer, int size) {
+t_pedido *dsrlzPedido(void *buffer, int size) {
 	int desplazamiento = 0;
 	t_pedido *pedido = malloc(sizeof(t_pedido));
 	t_list *platos = list_create();
@@ -449,11 +443,10 @@ t_buffer *dsrlzPedido(t_buffer *payload, void *buffer, int size) {
 	}
 
 	pedido->platos = platos;
-	payload->stream = pedido;
-	return payload;
+	return pedido;
 }
 
-t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por ahora
+t_posicion *dsrlzRtaObtenerRestaurante(void *buffer) { // Por ahora
 	t_posicion *posicion = malloc(sizeof(t_posicion));
 	int desplazamiento = 0;
 
@@ -461,8 +454,7 @@ t_buffer *dsrlzRtaObtenerRestaurante(t_buffer *payload, void *buffer) { // Por a
 	desplazamiento += sizeof(int);
 	memcpy(&posicion->posY, buffer + desplazamiento, sizeof(int));
 
-	payload->stream = posicion;
-	return payload;
+	return posicion;
 }
 
 /* Métodos de recepción de paquetes */
@@ -504,9 +496,8 @@ void *recibirBuffer(int *size, int socket)
 	return buffer;
 }
 
-t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
+void *recibirPayloadPaquete(t_header *header, int socket) {
 	int size;
-	t_buffer *payload = malloc(sizeof(t_buffer));
 
 	void *buffer = recibirBuffer(&size, socket);
 
@@ -521,36 +512,33 @@ t_buffer *recibirPayloadPaquete(t_header *header, int socket) {
 		case RTA_CONFIRMAR_PEDIDO:
 		case RTA_CONSULTAR_PEDIDO:
 		case OBTENER_RESTAURANTE:
-			payload = dsrlzString(payload, buffer, size);
+			buffer = dsrlzString(buffer, size);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
-			payload = dsrlzRtaObtenerRestaurante(payload, buffer);			
+			buffer = dsrlzRtaObtenerRestaurante(buffer);			
 			break;
 		case RTA_OBTENER_PEDIDO:
-			payload = dsrlzPedido(payload, buffer, size);
+			buffer = dsrlzPedido(buffer, size);
 			break;
         case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
-            payload = dsrlzReqPedido(payload, buffer);
+            buffer = dsrlzReqPedido(buffer);
             break;
 		case GUARDAR_PLATO:
-			payload = dsrlzReqPlato(payload, buffer);
+			buffer = dsrlzReqPlato(buffer);
 			break;
 		case PLATO_LISTO:
 		case ANIADIR_PLATO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
-			payload = dsrlzListaStrings(payload, buffer, size);
+			buffer = dsrlzListaStrings(buffer, size);
 			break;
 		default:
 			printf("Qué ha pasao'?! џ(ºДºџ)\n");
 			break;
 	}
 
-	payload->size = size;
 	log_info(logger, "Payload size: %d", size);
-
-	free(buffer);
-	return payload;
+	return buffer;
 }

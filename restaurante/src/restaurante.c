@@ -96,10 +96,8 @@ int main(int argc, char* argv[]) {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	t_buffer *payload = recibirPayloadPaquete(header, conexionSindicato);
-
-	t_posicion *pr = payload->stream;
-	printf("Me llegó size: %d, posX %d, posY %d\n", payload->size, pr->posX, pr->posY);
+	t_posicion *pr = recibirPayloadPaquete(header, conexionSindicato);
+	printf("Me llegó: posX %d, posY %d\n", pr->posX, pr->posY);
 
 	// Prueba de GUARDAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
 
@@ -109,8 +107,7 @@ int main(int argc, char* argv[]) {
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultGuardarPedido = payload->stream;
+	char *resultGuardarPedido  = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultGuardarPedido);
 
 	// Prueba de CONSULTAR_PLATOS (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
@@ -118,8 +115,7 @@ int main(int argc, char* argv[]) {
 	enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
 
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	t_list *platos = payload->stream;
+	t_list *platos = recibirPayloadPaquete(header, conexionSindicato);
 	mostrarListaStrings(platos);
 
 	// Prueba de GUARDAR_PLATO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
@@ -133,8 +129,7 @@ int main(int argc, char* argv[]) {
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
 
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultGuardarPlato = payload->stream;
+	char *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultGuardarPlato);
 
 	// Prueba de CONFIRMAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
@@ -145,8 +140,7 @@ int main(int argc, char* argv[]) {
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedido);
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultConfPedido = payload->stream;
+	char *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultConfPedido);
 
 	// Prueba de OBTENER_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
@@ -157,8 +151,7 @@ int main(int argc, char* argv[]) {
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	t_pedido *pedidoCompleto = payload->stream;
+	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "Estado del pedido %s, Precio total: $%d", getStringEstadoPedido(pedidoCompleto->estado), pedidoCompleto->precioTotal);
 	mostrarListaPlatos(pedidoCompleto->platos);
 

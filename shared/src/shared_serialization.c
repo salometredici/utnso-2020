@@ -6,41 +6,41 @@ int getBytesHeader() {
 	return sizeof(int) * 2;
 }
 
-int getBytesAEnviarString(char *string) {
+int getBytesString(char *string) {
 	return strlen(string) + 1;
 }
 
-// Devuelve el tamaño en bytes de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud
-int getBytesAEnviarListaStrings(t_list *listaStrings) {
+// Size de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud + 1
+int getBytesListaStrings(t_list *listaStrings) {
 	int cantidadElementos = list_size(listaStrings);
 	int bytesAEnviar = cantidadElementos * sizeof(int);
 
 	for (int i = 0; i < cantidadElementos; i++) {
 		char *palabra = list_get(listaStrings, i);
-		bytesAEnviar += getBytesAEnviarString(palabra);
+		bytesAEnviar += getBytesString(palabra);
 	}
 
 	return bytesAEnviar;
 }
 
-// Devuelve el tamaño de dos ints (uno para idPedido y otro para el tamaño del nombre del restaurante) más la longitud de la palabra 
-int getBytesAEnviarReqPedido(t_req_pedido *request) {
-    return sizeof(int) * 2 + getBytesAEnviarString(request->restaurante);
+// Size de dos ints (uno para idPedido y otro para el size de nombreRestaurante) más la longitud de nombreRestaurante en sí
+int getBytesReqPedido(t_req_pedido *request) {
+    return sizeof(int) * 2 + getBytesString(request->restaurante);
 }
 
-// Devuelve el size de cuatro ints (idPedido, cantPlato, size de nombreRestaurante y size de plato) más la longitud del restaurante y la longitud del plato
-int getBytesAEnviarReqPlato(t_req_plato *request) {
-	return sizeof(int) * 4 + getBytesAEnviarString(request->restaurante) + getBytesAEnviarString(request->plato);
+// Size de cuatro ints (idPedido, cantPlato, size de nombreRestaurante y size del plato) más la longitud de nombreRestaurante y la longitud del plato
+int getBytesReqPlato(t_req_plato *request) {
+	return sizeof(int) * 4 + getBytesString(request->restaurante) + getBytesString(request->plato);
 }
 
-// Devuelve el size de 4 ints (precio, cantPedida, cantLista y size del nombre) más la longitud del plato en sí
+// Size de 4 ints (precio, cantPedida, cantLista y size del plato) más la longitud del plato en sí
 int getBytesPlato(t_plato *plato) {
-	return sizeof(int) * 4 + getBytesAEnviarString(plato->plato);
+	return sizeof(int) * 4 + getBytesString(plato->plato);
 }
 
-int getBytesAEnviarListaPlatos(t_list *listaPlatos) {
-	int cantidadPlatos = list_size(listaPlatos);
+int getBytesListaPlatos(t_list *listaPlatos) {
 	int bytesAEnviar = 0;
+	int cantidadPlatos = list_size(listaPlatos);
 
 	for (int i = 0; i < cantidadPlatos; i++) {
 		int sizePlato = getBytesPlato(list_get(listaPlatos, i));
@@ -50,13 +50,12 @@ int getBytesAEnviarListaPlatos(t_list *listaPlatos) {
 	return bytesAEnviar;
 }
 
-// Devuelve size de 2 ints (estado y precioTotal) + size de cada t_plato
-int getBytesAEnviarPedido(t_pedido *pedido) {
-	int bytesAEnviar = sizeof(int) * 2 + getBytesAEnviarListaPlatos(pedido->platos);
-	return bytesAEnviar;
+// Size de 2 ints (estado y precioTotal) + size de cada t_plato
+int getBytesPedido(t_pedido *pedido) {
+	return sizeof(int) * 2 + getBytesListaPlatos(pedido->platos);
 }
 
-int getBytesAEnviarEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
+int getBytesEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
 	return sizeof(t_posicion);
 }
 
@@ -65,22 +64,24 @@ int getBytesAEnviarEjemplo() { // Ejemplo para una estructura custom que sólo s
 int getPayloadSize(m_code codigoOperacion, void *stream) {
 	int payloadSize = 0;
 	switch(codigoOperacion) {
-        // Casos en los que se envíe un t_req_pedido
+        // Envío de t_req_pedido
 		case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
-            payloadSize += getBytesAEnviarReqPedido(stream);
+            payloadSize += getBytesReqPedido(stream);
             break;
+		// Envío de t_req_plato
 		case GUARDAR_PLATO:
-			payloadSize += getBytesAEnviarReqPlato(stream);
+			payloadSize += getBytesReqPlato(stream);
 			break;
+		// Envío de t_pedido
 		case RTA_OBTENER_PEDIDO:
-			payloadSize += getBytesAEnviarPedido(stream);
+			payloadSize += getBytesPedido(stream);
 			break;
 		case SELECCIONAR_RESTAURANTE:
-			//payloadSize+=getBytesAEnviarString(stream); // falta ver si serializa un string u otra cosa
+			//payloadSize+=getBytesString(stream); // falta ver si serializa un string u otra cosa
 			break;
-		// Casos en los que se envíe un sólo string
+		// Envío de un sólo string
 		case OBTENER_RESTAURANTE:
         case CONSULTAR_PLATOS:
 		case CONSULTAR_PEDIDO:
@@ -91,18 +92,18 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case RTA_GUARDAR_PEDIDO:
 		case RTA_CONFIRMAR_PEDIDO:
 		case RTA_CONSULTAR_PEDIDO:
-			payloadSize += getBytesAEnviarString(stream);
+			payloadSize += getBytesString(stream);
 			break;
-		// Caso con estructura t_posicion de ejemplo
+		// Envío de t_posicion
 		case RTA_OBTENER_RESTAURANTE:
-			payloadSize += getBytesAEnviarEjemplo();
+			payloadSize += getBytesEjemplo();
 			break;
-		// Casos en los que se envíe una lista de strings
+		// Envío de una lista de strings
         case PLATO_LISTO:
 		case ANIADIR_PLATO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
-			payloadSize += getBytesAEnviarListaStrings(stream);
+			payloadSize += getBytesListaStrings(stream);
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
 		default:
@@ -111,7 +112,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 	return payloadSize;
 }
 
-// Obtiene el tamaño total del paquete a enviar, es decir: header (dos ints) + payload (si existe: un int para el size + size del stream)
+// Obtiene el size total del paquete a enviar, es decir: header (dos ints) + payload (si existe: un int para el size + size del stream)
 int getTamanioTotalPaquete(m_code codigoOperacion, void *stream) {
 	int tamanioTotal = getBytesHeader();
 	int payloadSize = getPayloadSize(codigoOperacion, stream);
@@ -173,12 +174,9 @@ void *serializar(m_code codigoOperacion, void *stream) {
 	return buffer;
 }
 
-// Método para serializar un sólo string
+// Serializar un sólo string
 void *srlzString(char *mensaje) {
-	char *unMensaje = (char*) mensaje;
-
-	int size =  getBytesAEnviarString(mensaje);  // Tamaño de la palabra
-
+	int size =  getBytesString(mensaje);  // Tamaño de la palabra
 	void *magic = malloc(size);
 	memcpy(magic, mensaje, size);
 	return magic;
@@ -187,15 +185,12 @@ void *srlzString(char *mensaje) {
 // Método para serializar una lista de strings
 void *srlzListaStrings(t_list *listaStrings) {
 	int desplazamiento = 0;
-	t_list *unaLista = (t_list*) listaStrings;
+	int lengthLista = list_size(listaStrings);
+	void *magic = malloc(getBytesListaStrings(listaStrings));
 
-	int longitudLista = list_size(listaStrings);
-	int sizeLista = getBytesAEnviarListaStrings(listaStrings);
-	void *magic = malloc(sizeLista);
-
-	for (int i = 0; i < longitudLista; i++) {
+	for (int i = 0; i < lengthLista; i++) {
 		char *palabra = list_get(listaStrings, i);
-		int longitudPalabra = getBytesAEnviarString(palabra);
+		int longitudPalabra = getBytesString(palabra);
 		// Vamos a copiar en el stream el tamaño de la palabra y la palabra, para saber cada uno al deserializar
 		memcpy(magic + desplazamiento, &longitudPalabra, sizeof(int));
 		desplazamiento += sizeof(int);
@@ -209,8 +204,8 @@ void *srlzListaStrings(t_list *listaStrings) {
 // Método para serializar un t_req_pedido
 void *srlzReqPedido(t_req_pedido *request) {
     int desplazamiento = 0;
-    int size = getBytesAEnviarReqPedido(request);
-    int longitudPalabra = getBytesAEnviarString(request->restaurante);
+    int size = getBytesReqPedido(request);
+    int longitudPalabra = getBytesString(request->restaurante);
 	char *palabra = request->restaurante;
 
     void *magic = malloc(size);
@@ -226,11 +221,11 @@ void *srlzReqPedido(t_req_pedido *request) {
 // Método para serializar un t_req_plato
 void *srlzReqPlato(t_req_plato *request) {
 	int desplazamiento = 0;
-	int size = getBytesAEnviarReqPlato(request);
+	int size = getBytesReqPlato(request);
 	char *plato = request->plato;
 	char *restaurante = request->restaurante;
-	int longPlato = getBytesAEnviarString(plato);
-	int longRestaurante = getBytesAEnviarString(restaurante);
+	int longPlato = getBytesString(plato);
+	int longRestaurante = getBytesString(restaurante);
 
 	void *magic = malloc(size);
 	memcpy(magic, &longPlato, sizeof(int));
@@ -254,7 +249,7 @@ void *srlzPedido(t_pedido *pedido) {
 
 	int longListaPlatos = list_size(listaPlatos);
 
-	int size = getBytesAEnviarPedido(pedido);
+	int size = getBytesPedido(pedido);
 
 	void *magic = malloc(size);
 	memcpy(magic, &pedido->estado, sizeof(int));
@@ -263,7 +258,7 @@ void *srlzPedido(t_pedido *pedido) {
 	desplazamiento += sizeof(int);
 	for (int i = 0; i < longListaPlatos; i++) {
 		t_plato *plato = list_get(listaPlatos, i);
-		int longNombrePlato = getBytesAEnviarString(plato->plato);
+		int longNombrePlato = getBytesString(plato->plato);
 		// Vamos a copiar en el stream el tamaño del nombre del plato y el plato, más todos sus otros campos
 		memcpy(magic + desplazamiento, &longNombrePlato, sizeof(int));
 		desplazamiento += sizeof(int);
@@ -284,7 +279,7 @@ void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
 	t_posicion* unaPosicion = (t_posicion*) posicion;
 	int desplazamiento = 0;
 
-	int size = getBytesAEnviarEjemplo(); // Tamaño de la posición de un restaurante
+	int size = getBytesEjemplo(); // Tamaño de la posición de un restaurante
 
 	void *magic = malloc(size);
 
@@ -471,7 +466,7 @@ t_header *recibirHeaderPaquete(int socket) {
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
 		if (proceso < 200) {
-		log_info(logger, "[HEADER] Received %s from %s",
+		log_info(logger, "[HEADER] Received \033[0;33m%s\033[0m from %s",
 			getStringKeyValue(header->codigoOperacion, COMMANDNKEYS),
 			getStringKeyValue(header->procesoOrigen, PROCNKEYS));
 		}

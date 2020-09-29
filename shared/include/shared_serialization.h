@@ -1,23 +1,8 @@
 #ifndef SHARED_SERIALIZATION_H
 #define SHARED_SERIALIZATION_H
 
-#include <stdio.h>
-#include <netdb.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdbool.h>
-#include <pthread.h>
-#include <sys/socket.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/collections/list.h>
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
-
-#define ERROR -1
 
 typedef struct {
 	int size;
@@ -32,11 +17,11 @@ typedef struct {
 // GetBytes
 
 int getBytesHeader();
-int getBytesAEnviarString(char *string);
-int getBytesAEnviarListaStrings(t_list *listaStrings);
-int getBytesAEnviarReqPedido(t_req_pedido *request);
-int getBytesAEnviarReqPlato(t_req_plato *request);
-int getBytesAEnviarEjemplo();
+int getBytesString(char *string);
+int getBytesListaStrings(t_list *listaStrings);
+int getBytesReqPedido(t_req_pedido *request);
+int getBytesReqPlato(t_req_plato *request);
+int getBytesEjemplo();
 int getPayloadSize(m_code codigoOperacion, void *stream);
 int getTamanioTotalPaquete(m_code codigoOperacion, void *stream);
 

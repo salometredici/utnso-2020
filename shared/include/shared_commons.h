@@ -56,9 +56,11 @@ typedef struct { // Ir actualizando con erratas del TP! No debería tener el id 
 } t_pedido;
 
 void limpiarPantalla();
+
 void mostrarListaStrings(t_list *listaStrings);
-int calcularPrecioTotal(t_list *listaPlatos);
 void mostrarListaPlatos(t_list *listaPlatos);
+
+int calcularPrecioTotal(t_list *listaPlatos);
 char *getStringEstadoPedido(t_estado estado);
 
 #endif

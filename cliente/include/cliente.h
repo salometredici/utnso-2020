@@ -27,7 +27,7 @@ void mostrarComandosValidos();
 
 // Mensajes Cliente - APP
 
-void consultarRestaurantesAapp();
+void consultarRestaurantes();
 void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante);
 void consultarPlatosAapp(char *nombreRestaurante);
 void crearPedidoAapp(); 

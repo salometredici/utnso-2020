@@ -1,23 +1,9 @@
 #ifndef SHARED_CORE_H
 #define SHARED_CORE_H
 
-#include <stdio.h>
-#include <netdb.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdbool.h>
-#include <pthread.h>
-#include <sys/socket.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <commons/collections/list.h>
 #include "../include/shared_commons.h"
 
 #define BASE_PATH "/utnso/tp-2020-2c-death-code/"
-#define ERROR -1
 
 char *mi_funcion_compartida();
 

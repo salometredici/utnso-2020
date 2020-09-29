@@ -33,7 +33,7 @@ void* threadLecturaConsola(void * args) {
 					//printf("Se ha seleccionado el módulo APP\n");
 					switch (comando) {
 						case CONSULTAR_RESTAURANTES:
-							consultarRestaurantesAapp(); //TODO: Implementación
+							consultarRestaurantes();
 							break;
 						case SELECCIONAR_RESTAURANTE:
 							seleccionarRestauranteAapp(parametro1, parametro2);
@@ -175,14 +175,13 @@ void* threadLecturaConsola(void * args) {
 
 // App
 
-void consultarRestaurantesAapp() { 
-    printf("Restaurantes Disponibles ◑.◑...!!!\n");
+void consultarRestaurantes() {
 	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_RESTAURANTES, NULL);
-	
-	// Recibimos la respuesta de App
     t_header *header = recibirHeaderPaquete(conexionApp);
-    t_buffer *payload = recibirPayloadPaquete(header, conexionApp);
-	mostrarListaStrings(payload->stream);
+    t_list *restaurantes = recibirPayloadPaquete(header, conexionApp);
+	mostrarListaStrings(restaurantes);
+	free(restaurantes);
+	free(header);
 }
 
 void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante) {

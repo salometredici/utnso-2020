@@ -6,6 +6,40 @@ void limpiarPantalla() {
 	system("clear");
 }
 
+// Devuelve el valor en string del proceso/comando
+char* getStringKeyValue(int key, int option) {
+	t_keys *diccionario; int size;
+	switch (option) {
+		case PROCNKEYS:
+			diccionario = diccionarioProcesos; size = PROCNKEYS;
+			break;
+		case COMMANDNKEYS:
+			diccionario = diccionarioComandos; size = COMMANDNKEYS;
+			break;
+		default:
+			return ERROR;
+	}
+    for (int i = 0; i < size; i++) {
+    	t_keys sym = diccionario[i];
+    	if (key == sym.valor) {
+        	return sym.key;
+    	}
+	}
+    return ERROR;
+}
+
+// Devuelve el valor correspondiente al enum del comando para utilizarlo en un switch o similar
+int commandToString(char *key) {
+    t_keys *diccionario = diccionarioComandos;
+    for (int i = 0; i < COMMANDNKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
+    }
+    return ERROR;
+}
+
 // Mostrar por consola
 
 void mostrarListaStrings(t_list *listaStrings) {
@@ -27,6 +61,7 @@ void mostrarListaPlatos(t_list *listaPlatos) {
 }
 
 // Funciones
+
 int calcularPrecioTotal(t_list *listaPlatos) {
 	int precioTotal = 0;
 	int cantidadPlatos = list_size(listaPlatos);

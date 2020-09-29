@@ -141,7 +141,6 @@ int iniciarServidor() {
 }
 
 int abrirSocketEscucha(int puerto) {
-	logInitializedProcess(puerto);
 	int option = 1;
 	int socketEscucha;
 	struct sockaddr_in dirServidor;

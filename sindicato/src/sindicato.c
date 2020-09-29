@@ -69,17 +69,17 @@ void* threadLecturaConsola(void * args) {
 
 void *atenderConexiones(void *conexionNueva) {
     pthread_data *t_data = (pthread_data*) conexionNueva;
-    int info = t_data->socketThread;
+    int socketCliente = t_data->socketThread;
     free(t_data);
 
 	t_list *lista; // Revisar un poco más cómo utilizar las listas en los paquetes
 	while (1) {
 
-		t_header *header = recibirHeaderPaquete(info);
+		t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR) { //TODO: Manejar desconexiones de sockets
-			logClientDisconnection(info);
-			liberarConexion(info);
+			logClientDisconnection(socketCliente);
+			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}		
@@ -87,16 +87,16 @@ void *atenderConexiones(void *conexionNueva) {
 		switch (header->codigoOperacion) {
 			case OBTENER_RESTAURANTE: // Params: Nombre del restaurante
 				printf(""); // Ya vamos a reemplazar estos printf por algo, pero C no te deja empezar un case con una asignación
-				char *nombreRestaurante = recibirPayloadPaquete(header, info);
+				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
 
 				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
 				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
 
-				enviarPaquete(info, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
 				break;
 			case CONSULTAR_PLATOS: // Params: Nombre del restaurante
 				printf("");
-				char *restPlatos = recibirPayloadPaquete(header, info);
+				char *restPlatos = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
 				// 1. Verificar si R existe en FS, buscando en dir Restaurantes si existe un subdir con R - Si no existe informarlo
@@ -108,11 +108,11 @@ void *atenderConexiones(void *conexionNueva) {
 				list_add(platosRest, "Lasagna");
 				list_add(platosRest, "Asado");
 
-				enviarPaquete(info, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
 				break;
 			case GUARDAR_PEDIDO: // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
 				printf("");
-				t_req_pedido *reqPedido = recibirPayloadPaquete(header, info);
+				t_req_pedido *reqPedido = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -122,11 +122,11 @@ void *atenderConexiones(void *conexionNueva) {
 				log_info(logger, "Id pedido: %d, Restaurante: %s", reqPedido->idPedido, reqPedido->restaurante);
 				char *msjGuardarPedido = "[GUARDAR_PEDIDO] Ok";
 
-				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);				
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);				
 				break;
 			case GUARDAR_PLATO:
 				printf("");
-				t_req_plato *reqPlato = recibirPayloadPaquete(header, info);
+				t_req_plato *reqPlato = recibirPayloadPaquete(header, socketCliente);
 				
 
 				// TODO:
@@ -140,11 +140,11 @@ void *atenderConexiones(void *conexionNueva) {
 				log_info(logger, "Plato: %s, CantPlato: %d", reqPlato->plato, reqPlato->cantidadPlato);
 				char *msjGuardarPlato = "[GUARDAR_PLATO] Ok";
 
-				enviarPaquete(info, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO: // Params: Nombre del restaurante + idPedido
 				printf("");
-				t_req_pedido *reqConfPedido = recibirPayloadPaquete(header, info);
+				t_req_pedido *reqConfPedido = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -156,11 +156,11 @@ void *atenderConexiones(void *conexionNueva) {
 				log_info(logger, "Id pedido: %d, Restaurante: %s", reqConfPedido->idPedido, reqConfPedido->restaurante);
 				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
 
-				enviarPaquete(info, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
 			case OBTENER_PEDIDO:
 				printf("");
-				t_req_pedido *reqObtenerPedido = recibirPayloadPaquete(header, info);
+				t_req_pedido *reqObtenerPedido = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -185,7 +185,7 @@ void *atenderConexiones(void *conexionNueva) {
 				pedido->precioTotal = calcularPrecioTotal(platos);
 				//Ver cómo generalizar el resultado de las operaciones
 
-				enviarPaquete(info, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				free(pedido);
 				free(milanesa);
 				free(empanadas);
@@ -198,7 +198,7 @@ void *atenderConexiones(void *conexionNueva) {
 			case OBTENER_RECETA:
 				break;
 			case ERROR:
-				log_error(logger, "El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", info);
+				log_error(logger, "El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", socketCliente);
 				return EXIT_FAILURE;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

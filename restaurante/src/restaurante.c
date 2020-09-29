@@ -106,7 +106,6 @@ int main(int argc, char* argv[]) {
 	pedido->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
-
 	header = recibirHeaderPaquete(conexionSindicato);
 	char *resultGuardarPedido  = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultGuardarPedido);
@@ -128,7 +127,6 @@ int main(int argc, char* argv[]) {
 	reqPlato->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
-
 	header = recibirHeaderPaquete(conexionSindicato);
 	char *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultGuardarPlato);
@@ -153,8 +151,8 @@ int main(int argc, char* argv[]) {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);
 	header = recibirHeaderPaquete(conexionSindicato);
 	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexionSindicato);
-	log_info(logger, "Estado del pedido %s, Precio total: $%d", getStringEstadoPedido(pedidoCompleto->estado), pedidoCompleto->precioTotal);
 	mostrarListaPlatos(pedidoCompleto->platos);
+	free(pedidoCompleto); // Dejamos este free?
 
 	// Creación de las distintas colas de planificación
 		//TODO

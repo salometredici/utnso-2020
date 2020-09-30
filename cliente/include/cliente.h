@@ -25,42 +25,19 @@ void inicializarConsola();
 void finalizarConsola();
 void mostrarComandosValidos();
 
-// Mensajes Cliente - APP
-
+// API
 void consultarRestaurantes();
-void seleccionarRestauranteAapp(char *nombreCliente, char *nombreRestaurante);
-void consultarPlatosAapp(char *nombreRestaurante);
-void crearPedidoAapp(); 
-void aniadirPlatoAapp(char *nombrePlato, char* idPedido);
-void confirmarPedidoAapp(char *idPedido); 
-void platoListoAapp(char *nombreRestaurante, char *idPedido, char *nombreComida);
-void consultarPedidoAapp(char *idPedido);
-
-// Mensajes Clente - COMANDA
-
-void guardarPedidoAComanda(char *nombreRestaurante, char *idPedido);
-void guardarPlatoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos);
-void confirmarPedidoAComanda(char *idPedido); 
-void platoListoAComanda(char *nombreRestaurante, char *idPedido, char *nombreComida);
-void obtenerPedidoAComanda(char *nombreRestaurante, char *idPedido);
-
-// Mensajes Cliente - RESTAURANTE
-
-void consultarPlatosARestaurante(char *nombreRestaurante);
-void crearPedidoARestaurante();
-void aniadirPlatoARestaurante(char *nombrePlato, char *idPedido);
-void confirmarPedidoARestaurante(char *idPedido);
-void consultarPedidoARestaurante(char *idPedido);
-
-// Mensajes Cliente - SINDICATO
-
-void obtenerRestauranteASindicato(char *nombreRestaurante);
-void consultarPlatosASindicato(char *nombreRestaurante);
-void guardarPedidoASindicato(char *nombreRestaurante, char *idPedido);
-void guardarPlatoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida, int cantidadPlatos);
-void confirmarPedidoASindicato(char *idPedido);
-void platoListoASindicato(char *nombreRestaurante, char *idPedido, char *nombreComida);
-void obtenerPedidoASindicato(char *nombreRestaurante, char *idPedido);
+void seleccionarRestaurante(char *nombreCliente, char *nombreRestaurante);
+void obtenerRestaurante(char *nombreRestaurante);
+void consultarPlatos(int conexion, char *nombreRestaurante);
+void crearPedido(int conexion); 
+void guardarPedido(int conexion, char *nombreRestaurante, char *idPedido);
+void aniadirPlato(int conexion, char *nombrePlato, char* idPedido);
+void guardarPlato(int conexion, char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos);
+void confirmarPedido(int conexion, char *idPedido, char *nombreRestaurante); 
+void platoListo(int conexion, char *nombreRestaurante, char *idPedido, char *nombreComida);
+void consultarPedido(int conexion, char *idPedido);
+void obtenerPedido(int conexion, char *nombreRestaurante, char *idPedido);
 
 //Listas 
  t_list *listaRestaurantes;

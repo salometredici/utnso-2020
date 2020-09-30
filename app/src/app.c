@@ -1,4 +1,4 @@
-#include "../include/app.h"
+     #include "../include/app.h"
 
 void *atenderConexiones(void *conexionNueva)
 {
@@ -141,13 +141,13 @@ void planificar() {
 }
 
 void planificarFIFO() {
-	printf("\n SE PLANIFICARA POR FIFO\n");
+	printf("SE PLANIFICARA POR FIFO\n");
 }
 void planificarHRRN() {
-	printf("\n SE PLANIFICARA POR HRNN\n");
+	printf("SE PLANIFICARA POR HRNN\n");
 }
 void planificarSJF() {
-	printf("\n SE PLANIFICARA POR SJF\n");
+	printf("SE PLANIFICARA POR SJF\n");
 }
 
 int main(int argc, char* argv[])

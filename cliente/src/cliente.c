@@ -168,7 +168,6 @@ void* threadLecturaConsola(void * args) {
     return 0;
 }
 
-
 void consultarRestaurantes() {
 	enviarPaquete(conexionApp, CLIENTE, CONSULTAR_RESTAURANTES, NULL);
     t_header *header = recibirHeaderPaquete(conexionApp);
@@ -197,27 +196,26 @@ void crearPedido(int conexion) {
 	enviarPaquete(conexion, CLIENTE, CREAR_PEDIDO, NULL);
 
 	t_header *header = recibirHeaderPaquete(conexion);
-    char *respuesta = recibirPayloadPaquete(header, conexion);
+    int idPedido = recibirPayloadPaquete(header, conexion);
 
 	//va a recibir un ID de pedido 
-	printf("Respuesta obtenida: %s\n", respuesta);
+	printf("Respuesta obtenida: %d\n", idPedido);
 }
 
 void guardarPedido(int conexion, char *nombreRestaurante, char *idPedido) {
-	params = list_create();
-	list_add(params, nombreRestaurante);
-	list_add(params, idPedido);
+	t_req_pedido *pedido = malloc(sizeof(t_req_pedido));
+	pedido->restaurante = nombreRestaurante;
+	pedido->idPedido = idPedido;
 
-	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, params);
-
+	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-    char *respuesta = recibirPayloadPaquete(header, conexion);
-
-	printf("Respuesta obtenida: %s\n", respuesta);
+	char *resultGuardarPedido  = recibirPayloadPaquete(header, conexion);
+	log_info(logger, "%s", resultGuardarPedido);
 	//envia nombre restaurante y id, recibe ok/fail
 }
 
 void aniadirPlato(int conexion, char *nombrePlato, char* idPedido) { 
+	//TODO
 	params = list_create();
 	list_add(params, nombrePlato);
 	list_add(params, idPedido);
@@ -227,31 +225,32 @@ void aniadirPlato(int conexion, char *nombrePlato, char* idPedido) {
 }
 
 void guardarPlato(int conexion, char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos) {
-	params = list_create();
-	list_add(params, nombreRestaurante);
-	list_add(params, idPedido);
-	list_add(params, nombreComida);
-	list_add(params, cantidadPlatos);
+	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
+	reqPlato->restaurante = nombreRestaurante;
+	reqPlato->plato = nombreComida;
+	reqPlato->cantidadPlato = cantidadPlatos;
+	reqPlato->idPedido = idPedido;
 
-	enviarPaquete(conexion, CLIENTE, GUARDAR_PLATO, params);
-
+	enviarPaquete(conexion, CLIENTE, GUARDAR_PLATO, reqPlato);
 	t_header *header = recibirHeaderPaquete(conexion);
-    char *respuesta = recibirPayloadPaquete(header, conexion);
-	//retorna ok/fail
-	printf("Respuesta obtenida: %s\n", respuesta);
+	char *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
+	log_info(logger, "%s", resultGuardarPlato);
 }
 
 void confirmarPedido(int conexion, char *idPedido, char *nombreRestaurante) {
 	// en caso de parametros opcionales se enviará NULL
-	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, idPedido);
+	t_req_pedido *pedidoConf = malloc(sizeof(t_req_pedido));
+	pedidoConf->restaurante = nombreRestaurante;
+	pedidoConf->idPedido = idPedido;
 
+	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, pedidoConf);
 	t_header *header = recibirHeaderPaquete(conexion);
-    char *respuesta = recibirPayloadPaquete(header, conexion);
-
-	printf("Respuesta obtenida: %s\n", respuesta);
+	char *resultConfPedido = recibirPayloadPaquete(header, conexion);
+	log_info(logger, "%s", resultConfPedido);
 }
 
 void platoListo(int conexion, char *nombreRestaurante, char *idPedido, char *nombreComida) {
+	//TODO
 	params = list_create();
 	list_add(params, nombreRestaurante);
 	list_add(params, idPedido);
@@ -266,21 +265,20 @@ void platoListo(int conexion, char *nombreRestaurante, char *idPedido, char *nom
 }
 
 void consultarPedido(int conexion, char *idPedido) {
+	//TODO
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PEDIDO, idPedido);
 	//retorna un pedido 
 }
 
 void obtenerPedido(int conexion, char *nombreRestaurante, char *idPedido) {
-	params = list_create();
-	list_add(params, nombreRestaurante);
-	list_add(params, idPedido);
+	t_req_pedido *pedidoObt = malloc(sizeof(t_req_pedido));
+	pedidoObt->restaurante = nombreRestaurante;
+	pedidoObt->idPedido = idPedido;
 
-	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, params);
-
+	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, pedidoObt);
 	t_header *header = recibirHeaderPaquete(conexion);
-    char *respuesta = recibirPayloadPaquete(header, conexion);
-
-	printf("Respuesta obtenida: %s\n", respuesta);
+	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexion);
+	mostrarListaPlatos(pedidoCompleto->platos);
 }
 
 void mostrarComandosValidos(char *modulo) {

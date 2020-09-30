@@ -10,5 +10,6 @@ void logMetadataRestaurante(t_posicion posicion); // Después va a ser un md_res
 void logHeader(m_code codigoOperacion, p_code procesoOrigen);
 void logMessageSent(m_code codigoOperacion);
 void logMetadataRequest(char *nombreRestaurante);
+void logNewClientConnection(int socket);
 
 #endif

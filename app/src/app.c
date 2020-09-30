@@ -31,21 +31,37 @@ void *atenderConexiones(void *conexionNueva)
         		break;
 			case SELECCIONAR_RESTAURANTE:
 				printf("ME LLEGO SELECCIONAR RESTAURANTE \n");
+				// TODO
 				break;
-			case CONSULTAR_PLATOS:
-				printf("ME LLEGO CONSULTAR PLATOS\n");
+			case CONSULTAR_PLATOS:;
+				char *restPlatos = recibirPayloadPaquete(data, info);
+
+				printf("Restaurante: %s\n", restPlatos);
+				t_list *platosRest = list_create(); // Va a retornar una lista de todos los platos que puede preparar el restaurante, como enum o como string?
+				list_add(platosRest, "Milanesas");
+				list_add(platosRest, "Lasagna");
+				list_add(platosRest, "Asado");
+
+				enviarPaquete(info, APP, RTA_CONSULTAR_PLATOS, platosRest);
 				break;	
 			case CREAR_PEDIDO:
-				printf("ME LLEGO CREAR PEDIDO\n");
+				enviarPaquete(info, APP, RTA_CREAR_PEDIDO, 77);
 				break;	
 			case ANIADIR_PLATO:
 				printf("ME LLEGO ANIADIR PLATO\n");
 				break;	
 			case PLATO_LISTO:
-				printf("ME LLEGO PLATO LISTO\n");
+				// TODO
 				break;	
-			case CONFIRMAR_PEDIDO:
-				printf("ME LLEGO CONFIRMAR PEDIDO\n");
+			case CONFIRMAR_PEDIDO:;
+				t_req_pedido *request = recibirPayloadPaquete(data, info);
+				logRequestPedido(request);
+				
+				char *respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
+				//devuelve ok/fail
+				enviarPaquete(info, COMANDA, RTA_CONFIRMAR_PEDIDO, respuesta);
+				break;			
+
 				break;
 			case CONSULTAR_PEDIDO:
 				printf("ME LLEVO CONSULTAR PEDIDO\n");
@@ -173,7 +189,7 @@ int main(int argc, char* argv[])
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
+			logNewClientConnection(fd);
 		}
 	}
 	

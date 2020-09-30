@@ -81,12 +81,15 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case SELECCIONAR_RESTAURANTE:
 			//payloadSize+=getBytesString(stream); // falta ver si serializa un string u otra cosa
 			break;
+		// Envío de int
+		case RTA_CREAR_PEDIDO:
+			payloadSize += sizeof(int);
+			break;
 		// Envío de un sólo string
 		case OBTENER_RESTAURANTE:
         case CONSULTAR_PLATOS:
 		case CONSULTAR_PEDIDO:
 		case RTA_PLATO_LISTO:
-		case RTA_CREAR_PEDIDO:
 		case RTA_ANIADIR_PLATO:
 		case RTA_GUARDAR_PLATO:
 		case RTA_GUARDAR_PEDIDO:
@@ -106,8 +109,10 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			payloadSize += getBytesListaStrings(stream);
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
+		case CREAR_PEDIDO:
+		case CONSULTAR_RESTAURANTES:
 		default:
-			break; // Aca entran CONSULTAR_RESTAURANTES, CREAR_PEDIDO
+			break;
 	}
 	return payloadSize;
 }
@@ -143,10 +148,12 @@ void *serializar(m_code codigoOperacion, void *stream) {
 		case SELECCIONAR_RESTAURANTE:
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
+		case RTA_CREAR_PEDIDO:
+			buffer = srlzInt(stream);
+			break;
 		case RTA_PLATO_LISTO:
         case CONSULTAR_PLATOS:
 		case CONSULTAR_PEDIDO:
-		case RTA_CREAR_PEDIDO:
 		case RTA_ANIADIR_PLATO:
 		case RTA_GUARDAR_PLATO:
 		case RTA_GUARDAR_PEDIDO:
@@ -172,6 +179,12 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			break;
 	}
 	return buffer;
+}
+
+void srlzInt(int valor){
+	void *magic = malloc(sizeof(int));
+	memcpy(magic, valor, sizeof(int));
+	return magic;
 }
 
 // Serializar un sólo string
@@ -452,6 +465,12 @@ t_posicion *dsrlzRtaObtenerRestaurante(void *buffer) { // Por ahora
 	return posicion;
 }
 
+int dsrlzInt(void *buffer) {
+	int valor;
+	memcpy(&valor, buffer, sizeof(int));
+	return valor;
+}
+
 /* Métodos de recepción de paquetes */
 
 t_header *recibirHeaderPaquete(int socket) {
@@ -495,10 +514,12 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 	void *buffer = recibirBuffer(&size, socket);
 
 	switch (header->codigoOperacion) {
+		case RTA_CREAR_PEDIDO:
+			buffer = dsrlzInt(buffer);
+			break;
 		case RTA_PLATO_LISTO:
 		case CONSULTAR_PLATOS:
 		case CONSULTAR_PEDIDO:
-		case RTA_CREAR_PEDIDO:
 		case RTA_ANIADIR_PLATO:
 		case RTA_GUARDAR_PLATO:		
 		case RTA_GUARDAR_PEDIDO:

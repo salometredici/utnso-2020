@@ -85,8 +85,7 @@ void *atenderConexiones(void *conexionNueva) {
 		}		
 
 		switch (header->codigoOperacion) {
-			case OBTENER_RESTAURANTE: // Params: Nombre del restaurante
-				printf(""); // Ya vamos a reemplazar estos printf por algo, pero C no te deja empezar un case con una asignación
+			case OBTENER_RESTAURANTE:; // Params: Nombre del restaurante
 				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
 				logMetadataRequest(nombreRestaurante);
 
@@ -95,8 +94,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
 				break;
-			case CONSULTAR_PLATOS: // Params: Nombre del restaurante
-				printf("");
+			case CONSULTAR_PLATOS:;
 				char *restPlatos = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
@@ -111,8 +109,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
 				break;
-			case GUARDAR_PEDIDO: // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
-				printf("");
+			case GUARDAR_PEDIDO:; // Params: Nombre del restaurante + Id del Pedido (¿para qué?) - Nota: Si no le dan utilidad al IdPedido no usar t_req_pedido
 				t_req_pedido *reqPedido = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
@@ -125,10 +122,8 @@ void *atenderConexiones(void *conexionNueva) {
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, msjGuardarPedido);				
 				break;
-			case GUARDAR_PLATO:
-				printf("");
+			case GUARDAR_PLATO:;
 				t_req_plato *reqPlato = recibirPayloadPaquete(header, socketCliente);
-				
 
 				// TODO:
 				// 1. Verificar si R existe en FS... etc.
@@ -143,8 +138,7 @@ void *atenderConexiones(void *conexionNueva) {
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, msjGuardarPlato);
 				break;
-			case CONFIRMAR_PEDIDO: // Params: Nombre del restaurante + idPedido
-				printf("");
+			case CONFIRMAR_PEDIDO:; // Params: Nombre del restaurante + idPedido
 				t_req_pedido *reqConfPedido = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
@@ -153,14 +147,12 @@ void *atenderConexiones(void *conexionNueva) {
 				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
 				// 4. Cambiar el estado del Pedido de "Pendiente" a "Confirmado" - Truncar el archivo de ser necesario
 				// 5. Responder el mensaje con Ok/Fail
-				printf("Datos del pedido a confirmar:\n");
-				log_info(logger, "Id pedido: %d, Restaurante: %s", reqConfPedido->idPedido, reqConfPedido->restaurante);
+				logRequestPedido(reqConfPedido);
 				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
-			case OBTENER_PEDIDO:
-				printf("");
+			case OBTENER_PEDIDO:;
 				t_req_pedido *reqObtenerPedido = recibirPayloadPaquete(header, socketCliente);
 
 				// TODO:
@@ -230,8 +222,7 @@ int main(int argc, char ** argv){
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-
-			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
+			logNewClientConnection(fd);
 		}
 	}
 

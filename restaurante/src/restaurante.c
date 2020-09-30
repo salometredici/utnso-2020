@@ -31,41 +31,36 @@ void *atenderConexiones(void *conexionNueva) {
 				return EXIT_FAILURE;
 			
 			// Mensajes desde CLIENTE
-			case CONSULTAR_PLATOS:
-				printf("Operacion recibida: CONSULTAR_PLATOS\n");
+			case CONSULTAR_PLATOS:;
+				char *restPlatos = recibirPayloadPaquete(header, socket);
 
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametro recibido: %s\n", payload->stream);
-				
-				respuesta = "Mensaje de respuesta a CONSULTAR_PLATOS";
-				enviarPaquete(socket, RESTAURANTE, RTA_CONSULTAR_PLATOS, respuesta);
+				printf("Restaurante: %s\n", restPlatos);
+				t_list *platosRest = list_create(); // Va a retornar una lista de todos los platos que puede preparar el restaurante, como enum o como string?
+				list_add(platosRest, "Milanesas");
+				list_add(platosRest, "Lasagna");
+				list_add(platosRest, "Asado");
+
+				enviarPaquete(socket, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest);
 				break;
 			case CREAR_PEDIDO:
-				printf("Operacion recibida: CREAR_PEDIDO\n");
-
-				printf("No se recibieron parametros\n");
-				
-				respuesta = "Mensaje de respuesta a CREAR_PEDIDO";
-				enviarPaquete(socket, RESTAURANTE, RTA_CREAR_PEDIDO, respuesta);
+				enviarPaquete(socket, RESTAURANTE, RTA_CREAR_PEDIDO, 77);
 				break;
 			case ANIADIR_PLATO:
-				printf("Operacion recibida: ANIADIR_PLATO\n");
-
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametros recibidos:\n");
-				mostrarListaStrings(payload->stream);
-
-				respuesta = "Mensaje de respuesta a ANIADIR_PLATO";
-				enviarPaquete(socket, RESTAURANTE, RTA_ANIADIR_PLATO, respuesta);
+				//TODO;
 				break;
-			case CONFIRMAR_PEDIDO:
-				printf("Operacion recibida: CONFIRMAR_PEDIDO\n");
+			case CONFIRMAR_PEDIDO:;
+				t_req_pedido *reqConfPedido = recibirPayloadPaquete(header, socket);
 
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametro recibido: %s\n", payload->stream);
-				
-				respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
-				enviarPaquete(socket, RESTAURANTE, RTA_CONFIRMAR_PEDIDO, respuesta);
+				// TODO:
+				// 1. Verificar si R existe en FS... etc.
+				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
+				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
+				// 4. Cambiar el estado del Pedido de "Pendiente" a "Confirmado" - Truncar el archivo de ser necesario
+				// 5. Responder el mensaje con Ok/Fail
+				logRequestPedido(reqConfPedido);
+				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+
+				enviarPaquete(socket, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
 			case CONSULTAR_PEDIDO:
 				printf("Operacion recibida: CONSULTAR_PEDIDO\n");
@@ -137,7 +132,7 @@ int main(int argc, char* argv[]) {
 	pedidoConf->restaurante = nombreRestaurante;
 	pedidoConf->idPedido = 777;
 
-	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedido);
+	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedidoConf);
 	header = recibirHeaderPaquete(conexionSindicato);
 	char *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
 	log_info(logger, "%s", resultConfPedido);
@@ -167,8 +162,7 @@ int main(int argc, char* argv[]) {
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-
-			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
+			logNewClientConnection(fd);
 		}
 	}
 	

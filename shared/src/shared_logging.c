@@ -54,3 +54,25 @@ void logMetadataRequest(char *nombreRestaurante) {
 	printf("\tMetadata requested by \033[0;35m%s\033[0m\n", nombreRestaurante);
 	log_info(logger, "Metadada requested by %s", nombreRestaurante);
 }
+
+void logNewClientConnection(int socket) {
+	printf("\033[1;32mNuevo hilo para atender al cliente \033[0m\033[1;34m%d\033[0m\033[1;32m\033[0m\n", socket);
+	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
+}
+
+void logRequestPedido(t_req_pedido *pedido) {
+	printf("Datos del request del pedido\n");
+	printf("\tRestaurante: \033[0;35m%s\033[0m\n", pedido->restaurante);
+	printf("\tPedido: \033[0;35m%d\033[0m\n", pedido->idPedido);
+	log_info(logger, "Datos del request del pedido");
+	log_info(logger, "Restaurante: %s, Pedido: %d", pedido->restaurante, pedido->idPedido);
+}
+
+void logRequestPlato(t_req_plato *plato) {
+	printf("Datos del request del plato\n");
+	printf("\tRestaurante: \033[0;35m%s\033[0m\n", plato->restaurante);
+	printf("\tPedido: \033[1m%d\033[0m\n", plato->idPedido);
+	printf("\tPlato: [\033[1m%s\033[0m]\n", plato->plato);
+	printf("\tCantidad plato: $\033[1m%d\033[0m\n", plato->cantidadPlato);
+	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
+}

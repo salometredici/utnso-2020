@@ -7,7 +7,6 @@ void *atenderConexiones(void *conexionNueva)
     free(t_data);
 	
 	while(1) {
-		t_buffer *payload;
         t_header *data = recibirHeaderPaquete(socketCliente);
 
 		if (data->procesoOrigen == ERROR || data->codigoOperacion == ERROR) {
@@ -18,60 +17,61 @@ void *atenderConexiones(void *conexionNueva)
 		}
 
 		switch (data->codigoOperacion) {
-			case OBTENER_RESTAURANTE:
-				payload = recibirPayloadPaquete(data, socketCliente);
-                log_info(logger, "Me llego: %d %s\n", payload->size ,payload->stream);
+			case OBTENER_RESTAURANTE:;
+				t_posicion *posicion = recibirPayloadPaquete(data, socketCliente);
+                log_info(logger, "Me llego: %d %s\n", posicion->posX, posicion->posY);
 			break;
 
 			// Mensajes desde CLIENTE
-			case GUARDAR_PEDIDO:
-				printf("Operacion recibida: GUARDAR_PEDIDO\n");
-
-				payload = recibirPayloadPaquete(data, socketCliente);
-				printf("Parametros recibidos:\n");
-				mostrarListaStrings(payload->stream);
+			case GUARDAR_PEDIDO:;
+				t_req_pedido *request = recibirPayloadPaquete(data, socketCliente);
+				logRequestPedido(request);
 
 				respuesta = "Mensaje de respuesta a GUARDAR_PEDIDO";
+				//devuelve ok/fail
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, respuesta);
 				break;
-			case GUARDAR_PLATO:
-				printf("Operacion recibida: GUARDAR_PLATO\n");
-
-				payload = recibirPayloadPaquete(data, socketCliente);
-				printf("Parametros recibidos:\n");
-				mostrarListaStrings(payload->stream);
+			case GUARDAR_PLATO:;
+				t_req_plato *plato = recibirPayloadPaquete(data, socketCliente);
+				logRequestPlato(plato);
 
 				respuesta = "Mensaje de respuesta a GUARDAR_PLATO";
+				//devuelve ok/fail
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, respuesta);
 				break;
-			case CONFIRMAR_PEDIDO:
-				printf("Operacion recibida: CONFIRMAR_PEDIDO\n");
-
-				payload = recibirPayloadPaquete(data, socketCliente);
-				printf("Parametro recibido: %s\n", payload->stream);
+			case CONFIRMAR_PEDIDO:;
+				t_req_pedido *requestPedido = recibirPayloadPaquete(data, socketCliente);
+				logRequestPedido(requestPedido);
 				
 				respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
+				//devuelve ok/fail
 				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, respuesta);
 				break;
 			case PLATO_LISTO:
-				printf("Operacion recibida: PLATO_LISTO\n");
+				// Esperando chequedo del plato
+				//payload = recibirPayloadPaquete(data, socketCliente);
 
-				payload = recibirPayloadPaquete(data, socketCliente);
-				printf("Parametros recibidos:\n");
-				mostrarListaStrings(payload->stream);
-
-				respuesta = "Mensaje de respuesta a PLATO_LISTO";
-				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, respuesta);
+				//respuesta = "Mensaje de respuesta a PLATO_LISTO";
+				//enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, respuesta);
 				break;
-			case OBTENER_PEDIDO:
-				printf("Operacion recibida: OBTENER_PEDIDO\n");
+			case OBTENER_PEDIDO:;
+				char *nombreRestaurante = recibirPayloadPaquete(data, socketCliente);
+				logMetadataRequest(nombreRestaurante);
 
-				payload = recibirPayloadPaquete(data, socketCliente);
-				printf("Parametros recibidos:\n");
-				mostrarListaStrings(payload->stream);
+				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
+				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
 
-				respuesta = "Mensaje de respuesta a OBTENER_PEDIDO";
-				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, respuesta);
+				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
+				
+				break;
+
+			case FINALIZAR_PEDIDO:;
+				t_req_pedido *requestF = recibirPayloadPaquete(data, socketCliente);
+				logRequestPedido(requestF);
+				
+				respuesta = "Mensaje de respuesta a FINALIZAR_PEDIDO";
+				//devuelve ok/fail
+				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, respuesta);
 				break;
 			default:
 				printf("Operacion desconocida. No quieras meter la pata!!!\n");
@@ -97,10 +97,10 @@ int main(int argc, char ** argv) {
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-			log_info(logger, "Nuevo hilo para atender a App con el socket %d", fd);
-		}
-		else
+			logNewClientConnection(fd);
+		} else {
 			pthread_kill(threadConexiones, SIGTERM);
+		}
     }
 
     liberarConexion(socketServidor);

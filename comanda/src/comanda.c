@@ -74,6 +74,7 @@ void *atenderConexiones(void *conexionNueva)
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
 				break;
 		}
+		free(header);
 	}
 	
     pthread_exit(EXIT_SUCCESS);

@@ -1,128 +1,98 @@
 #include "../include/restaurante.h"
 
-void iterator(char *value) {
-	printf("%s\n", value);
-}
-
-void *atenderConexiones(void *conexionNueva) {
+void *atenderConexiones(void *conexionNueva)
+{
     pthread_data *t_data = (pthread_data*) conexionNueva;
-    int socket = t_data->socketThread;
+    int socketCliente = t_data->socketThread;
     free(t_data);
-	
-	t_list *lista;
-	while(1) {
-		t_buffer *payload; // Ver cómo liberar este payload después
-		t_header *header = recibirHeaderPaquete(socket);
 
-		if (header->procesoOrigen == ERROR) { // Ver cómo manejar esta desconexión
-			log_error("El cliente %d se desconectó. Finalizando hilo...╮(╯_╰)╭", socket);
+	while (1) {
+
+		t_header *header = recibirHeaderPaquete(socketCliente);
+
+		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
+			logClientDisconnection(socketCliente);
 			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
 
-		switch (header->codigoOperacion) { // Mensajes y/o rtas que puede manejar Restaurante
-			case RTA_OBTENER_RESTAURANTE:
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Me llegó un payload de tamaño %d, Nombre del restaurante: %s\n", payload->size , payload->stream);
+		switch (header->codigoOperacion) {
+			case CONSULTAR_PLATOS:;
+				char *restConsulta = recibirPayloadPaquete(header, socketCliente);
+				logConsultaPlatos(restConsulta);
+				t_list *platosRest = list_create();
+				list_add(platosRest, "Milanesas");
+				list_add(platosRest, "Lasagna");
+				list_add(platosRest, "Asado");
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest);
+				free(platosRest);
 				break;
-			case ERROR:
-				log_error(logger, "El cliente %d se desconectó. Finalizando el hilo...╮(╯_╰)╭\n", socket);
-				return EXIT_FAILURE;
-			
-			// Mensajes desde CLIENTE
-			case CONSULTAR_PLATOS:
-				printf("Operacion recibida: CONSULTAR_PLATOS\n");
-
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametro recibido: %s\n", payload->stream);
-				
-				respuesta = "Mensaje de respuesta a CONSULTAR_PLATOS";
-				enviarPaquete(socket, RESTAURANTE, RTA_CONSULTAR_PLATOS, respuesta);
+			case CREAR_PEDIDO:;
+				int newIdPedido = 77;
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, newIdPedido);
 				break;
-			case CREAR_PEDIDO:
-				printf("Operacion recibida: CREAR_PEDIDO\n");
-
-				printf("No se recibieron parametros\n");
-				
-				respuesta = "Mensaje de respuesta a CREAR_PEDIDO";
-				enviarPaquete(socket, RESTAURANTE, RTA_CREAR_PEDIDO, respuesta);
+			case ANIADIR_PLATO:; // TODO
 				break;
-			case ANIADIR_PLATO:
-				printf("Operacion recibida: ANIADIR_PLATO\n");
-
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametros recibidos:\n");
-				mostrarListaStrings(payload->stream);
-
-				respuesta = "Mensaje de respuesta a ANIADIR_PLATO";
-				enviarPaquete(socket, RESTAURANTE, RTA_ANIADIR_PLATO, respuesta);
+			case CONFIRMAR_PEDIDO:;
+				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				logRequestPedido(reqConf);
+				free(reqConf);
+				// TODO: t_result
+				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
-			case CONFIRMAR_PEDIDO:
-				printf("Operacion recibida: CONFIRMAR_PEDIDO\n");
-
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametro recibido: %s\n", payload->stream);
-				
-				respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
-				enviarPaquete(socket, RESTAURANTE, RTA_CONFIRMAR_PEDIDO, respuesta);
-				break;
-			case CONSULTAR_PEDIDO:
-				printf("Operacion recibida: CONSULTAR_PEDIDO\n");
-
-				payload = recibirPayloadPaquete(header, socket);
-				printf("Parametro recibido: %s\n", payload->stream);
-				
-				respuesta = "Mensaje de respuesta a CONSULTAR_PEDIDO";
-				enviarPaquete(socket, RESTAURANTE, RTA_CONSULTAR_PEDIDO, respuesta);
+			case CONSULTAR_PEDIDO: // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
 				break;
 			default:
-				printf("Operacion desconocida. No quieras meter la pata!!!\n");
+				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
 				break;
 		}
+		free(header);
 	}
 
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
 	inicializarProceso(RESTAURANTE);
 	socketServidor = iniciarServidor();
 	conexionSindicato = conectarseA(SINDICATO);
 	nombreRestaurante = obtenerNombreRestaurante();
 
-	// Obtener metadata del restaurante consultando a Sindicato
+	/* Obtener MD del Restaurante */
+
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
-
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	t_buffer *payload = recibirPayloadPaquete(header, conexionSindicato);
+	t_posicion *pos = recibirPayloadPaquete(header, conexionSindicato);
+	logMetadata(pos);
+	free(pos);
 
-	t_posicion *pr = payload->stream;
-	printf("Me llegó size: %d, posX %d, posY %d\n", payload->size, pr->posX, pr->posY);
+	/* Prueba de GUARDAR_PEDIDO */
 
-	// Prueba de GUARDAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+	t_req_pedido *reqGuardarPedido = malloc(sizeof(t_req_pedido));
+	reqGuardarPedido->restaurante = nombreRestaurante;
+	reqGuardarPedido->idPedido = 777;
 
-	t_req_pedido *pedido = malloc(sizeof(t_req_pedido));
-	pedido->restaurante = nombreRestaurante;
-	pedido->idPedido = 777;
-
-	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, pedido);
+	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, reqGuardarPedido);
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultGuardarPedido = payload->stream;
+	free(reqGuardarPedido);
+
+	char *resultGuardarPedido = recibirPayloadPaquete(header, conexionSindicato);
+	printf("%s\n", resultGuardarPedido);
 	log_info(logger, "%s", resultGuardarPedido);
 
-	// Prueba de CONSULTAR_PLATOS (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+	/* Prueba de CONSULTAR_PLATOS */
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
-
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	t_list *platos = payload->stream;
+	t_list *platos = recibirPayloadPaquete(header, conexionSindicato);
 	mostrarListaStrings(platos);
+	free(platos);
 
-	// Prueba de GUARDAR_PLATO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+	/* Prueba de GUARDAR_PLATO */
 
 	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
 	reqPlato->restaurante = nombreRestaurante;
@@ -131,25 +101,28 @@ int main(int argc, char* argv[]) {
 	reqPlato->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
-
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultGuardarPlato = payload->stream;
+	free(reqPlato);
+
+	char *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
+	printf("%s\n", resultGuardarPlato);
 	log_info(logger, "%s", resultGuardarPlato);
 
-	// Prueba de CONFIRMAR_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+	/* Prueba de CONFIRMAR_PEDIDO */
 
 	t_req_pedido *pedidoConf = malloc(sizeof(t_req_pedido));
 	pedidoConf->restaurante = nombreRestaurante;
 	pedidoConf->idPedido = 777;
 
-	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedido);
+	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedidoConf);
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	char *resultConfPedido = payload->stream;
+	free(pedidoConf);
+
+	char *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
+	printf("%s\n", resultConfPedido);
 	log_info(logger, "%s", resultConfPedido);
 
-	// Prueba de OBTENER_PEDIDO (después va a ir en una función aparte que se desencadene por algún hilo de conexión)
+	/* Prueba de OBTENER_PEDIDO */
 
 	t_req_pedido *pedidoObt = malloc(sizeof(t_req_pedido));
 	pedidoObt->restaurante = nombreRestaurante;
@@ -157,10 +130,11 @@ int main(int argc, char* argv[]) {
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);
 	header = recibirHeaderPaquete(conexionSindicato);
-	payload = recibirPayloadPaquete(header, conexionSindicato);
-	t_pedido *pedidoCompleto = payload->stream;
-	log_info(logger, "Estado del pedido %s, Precio total: $%d", getStringEstadoPedido(pedidoCompleto->estado), pedidoCompleto->precioTotal);
+	free(pedidoObt);
+
+	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexionSindicato);
 	mostrarListaPlatos(pedidoCompleto->platos);
+	free(pedidoCompleto);
 
 	// Creación de las distintas colas de planificación
 		//TODO
@@ -175,8 +149,9 @@ int main(int argc, char* argv[]) {
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-
-			log_info(logger, "Nuevo hilo para atender a Cliente con el socket %d", fd);
+			logNewClientConnection(fd);
+		} else {
+			pthread_kill(threadConexiones, SIGTERM);
 		}
 	}
 	

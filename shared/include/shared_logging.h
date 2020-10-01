@@ -11,5 +11,6 @@ void logHeader(m_code codigoOperacion, p_code procesoOrigen);
 void logMessageSent(m_code codigoOperacion);
 void logMetadataRequest(char *nombreRestaurante);
 void logNewClientConnection(int socket);
+void logConsultaPlatos(char *restaurante);
 
 #endif

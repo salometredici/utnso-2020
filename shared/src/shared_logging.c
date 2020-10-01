@@ -3,7 +3,7 @@
 /* Formatted logs */
 
 void logInitializedProcess() {
-	printf("Proceso \033[1;34m%s\033[0m iniciado...\n", getStringKeyValue(process, PROCNKEYS));
+	printf("\033[1mProceso \033[0m\033[1;34m%s\033[0m\033[1m iniciado...\033[0m\n", getStringKeyValue(process, PROCNKEYS));
 	log_info(logger, "Proceso %s iniciado...", getStringKeyValue(process, PROCNKEYS));
 }
 
@@ -75,4 +75,9 @@ void logRequestPlato(t_req_plato *plato) {
 	printf("\tPlato: [\033[1m%s\033[0m]\n", plato->plato);
 	printf("\tCantidad plato: $\033[1m%d\033[0m\n", plato->cantidadPlato);
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
+}
+
+void logConsultaPlatos(char *restaurante) {
+	printf("\tRestaurante: \033[0;35m%s\033[0m\n", restaurante);
+	log_info(logger, "\tRestaurante %s", restaurante);
 }

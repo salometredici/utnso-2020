@@ -73,7 +73,7 @@ void logRequestPlato(t_req_plato *plato) {
 	printf("\tRestaurante: \033[0;35m%s\033[0m\n", plato->restaurante);
 	printf("\tPedido: \033[1m%d\033[0m\n", plato->idPedido);
 	printf("\tPlato: [\033[1m%s\033[0m]\n", plato->plato);
-	printf("\tCantidad plato: $\033[1m%d\033[0m\n", plato->cantidadPlato);
+	printf("\tCantidad plato: \033[1m%d\033[0m\n", plato->cantidadPlato);
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
 }
 

@@ -23,7 +23,7 @@ void *atenderConexiones(void *conexionNueva)
 				logRequestPedido(reqGuardarPedido);
 				free(reqGuardarPedido);
 				// TODO: t_result
-				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok";
+				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rtaGuardarPedido);
 				break;
 			case GUARDAR_PLATO:;
@@ -31,7 +31,7 @@ void *atenderConexiones(void *conexionNueva)
 				logRequestPlato(reqGuardarPlato);
 				free(reqGuardarPlato);
 				// TODO: t_result
-				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok";
+				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok\n";
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rtaGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
@@ -39,7 +39,7 @@ void *atenderConexiones(void *conexionNueva)
 				logRequestPedido(reqConf);
 				free(reqConf);
 				// TODO: t_result
-				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
@@ -67,7 +67,7 @@ void *atenderConexiones(void *conexionNueva)
 				logRequestPedido(reqFin);
 				free(reqFin);
 				// TODO: t_result
-				char *rtaFinalizarPedido = "[FINALIZAR_PEDIDO] Ok";
+				char *rtaFinalizarPedido = "[FINALIZAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, rtaFinalizarPedido);
 				break;
 			default:

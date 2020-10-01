@@ -121,7 +121,7 @@ void *atenderConexiones(void *conexionNueva)
 				// 2. Verificar cuál fue el último pedido y crear un nuevo archivo Pedido y ContPedidos++, de ser el 1ero, crear el archivo Pedido1
 				// 3. Responder el mensaje con Ok/fail
 				
-				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok";
+				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, rtaGuardarPedido);				
 				break;
 			case GUARDAR_PLATO:;
@@ -136,7 +136,7 @@ void *atenderConexiones(void *conexionNueva)
 				// 4. Verificar si Pl existe en el archivo. CantActual + CantEnviada - Si no existe agregar Pl a lista de Pls y anexar Cant + aumentar precio total del Pedido
 				// 5. Responder el mensaje con Ok/fail
 				
-				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok";
+				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok\n";
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, rtaGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
@@ -151,7 +151,7 @@ void *atenderConexiones(void *conexionNueva)
 				// 4. Cambiar el estado del Pedido de "Pendiente" a "Confirmado" - Truncar el archivo de ser necesario
 				// 5. Responder el mensaje con Ok/fail
 
-				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
 			case OBTENER_PEDIDO:;

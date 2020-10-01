@@ -39,7 +39,7 @@ void *atenderConexiones(void *conexionNueva)
 				logRequestPedido(reqConf);
 				free(reqConf);
 				// TODO: t_result
-				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
 				break;
 			case CONSULTAR_PEDIDO: // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	free(reqGuardarPedido);
 
 	char *resultGuardarPedido = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s", resultGuardarPedido);
+	printf("%s\n", resultGuardarPedido);
 	log_info(logger, "%s", resultGuardarPedido);
 
 	/* Prueba de CONSULTAR_PLATOS */
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 	free(reqPlato);
 
 	char *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s", resultGuardarPlato);
+	printf("%s\n", resultGuardarPlato);
 	log_info(logger, "%s", resultGuardarPlato);
 
 	/* Prueba de CONFIRMAR_PEDIDO */
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	free(pedidoConf);
 
 	char *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s", resultConfPedido);
+	printf("%s\n", resultConfPedido);
 	log_info(logger, "%s", resultConfPedido);
 
 	/* Prueba de OBTENER_PEDIDO */

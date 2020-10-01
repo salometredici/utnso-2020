@@ -11,4 +11,4 @@
 | 1558389 | Diana    | Mamani           | 3073  | dianamamanillan@gmail.com    |
 | 1554062 | Ignacio  | Vallejos         | 3073  | nacho.vallejos17@outlook.com |
 
-Dentro de la carpeta `/elDeatNoteOficial` hay archivos .sh  que permiten correr los procesos más rapidamente. Para hacerlo se deberán copiar los mismos al root de la VM (`/home/utnso`). De no aparecer como ejecutables se debera correr el siguiente comando por consola: `chmod +x nombreDelArchivo.sh`, por cada archivo que lo necesite.
+Dentro de la carpeta `/elDeathNoteOficial` hay archivos .sh  que permiten correr los procesos más rapidamente. Para hacerlo se deberán copiar los mismos al root de la VM (`/home/utnso`). De no aparecer como ejecutables se debera correr el siguiente comando por consola: `chmod +x nombreDelArchivo.sh`, por cada archivo que lo necesite.

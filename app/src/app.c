@@ -53,7 +53,7 @@ void *atenderConexiones(void *conexionNueva)
 				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok";
 				enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
-			case CONSULTAR_PEDIDO: // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
+			case CONSULTAR_PEDIDO:; // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
 				break;			
         	default:
             	printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

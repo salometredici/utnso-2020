@@ -31,13 +31,13 @@ void seleccionarRestaurante(char *nombreCliente, char *nombreRestaurante);
 void obtenerRestaurante(char *nombreRestaurante);
 void consultarPlatos(int conexion, char *nombreRestaurante);
 void crearPedido(int conexion); 
-void guardarPedido(int conexion, char *nombreRestaurante, char *idPedido);
-void aniadirPlato(int conexion, char *nombrePlato, char* idPedido);
-void guardarPlato(int conexion, char *nombreRestaurante, char *idPedido, char *nombreComida, char *cantidadPlatos);
-void confirmarPedido(int conexion, char *idPedido, char *nombreRestaurante); 
-void platoListo(int conexion, char *nombreRestaurante, char *idPedido, char *nombreComida);
-void consultarPedido(int conexion, char *idPedido);
-void obtenerPedido(int conexion, char *nombreRestaurante, char *idPedido);
+void guardarPedido(int conexion, char *nombreRestaurante, int idPedido);
+void aniadirPlato(int conexion, char *nombrePlato, int idPedido);
+void guardarPlato(int conexion, char *nombreRestaurante, int idPedido, char *nombreComida, int cantidadPlatos);
+void confirmarPedido(int conexion, int idPedido, char *nombreRestaurante); 
+void platoListo(int conexion, char *nombreRestaurante, int idPedido, char *nombreComida);
+void consultarPedido(int conexion, int idPedido);
+void obtenerPedido(int conexion, char *nombreRestaurante, int idPedido);
 
 //Listas 
  t_list *listaRestaurantes;

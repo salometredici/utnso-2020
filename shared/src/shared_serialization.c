@@ -183,7 +183,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 
 void srlzInt(int valor){
 	void *magic = malloc(sizeof(int));
-	memcpy(magic, valor, sizeof(int));
+	memcpy(magic, &valor, sizeof(int));
 	return magic;
 }
 

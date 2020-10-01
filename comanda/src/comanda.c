@@ -6,75 +6,72 @@ void *atenderConexiones(void *conexionNueva)
     int socketCliente = t_data->socketThread;
     free(t_data);
 	
-	while(1) {
-        t_header *data = recibirHeaderPaquete(socketCliente);
+	while (1) {
 
-		if (data->procesoOrigen == ERROR || data->codigoOperacion == ERROR) {
+        t_header *header = recibirHeaderPaquete(socketCliente);
+
+		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
 			logClientDisconnection(socketCliente);
 			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
 
-		switch (data->codigoOperacion) {
-			case OBTENER_RESTAURANTE:;
-				t_posicion *posicion = recibirPayloadPaquete(data, socketCliente);
-                log_info(logger, "Me llego: %d %s\n", posicion->posX, posicion->posY);
-			break;
-
-			// Mensajes desde CLIENTE
+		switch (header->codigoOperacion) {
 			case GUARDAR_PEDIDO:;
-				t_req_pedido *request = recibirPayloadPaquete(data, socketCliente);
-				logRequestPedido(request);
-
-				respuesta = "Mensaje de respuesta a GUARDAR_PEDIDO";
-				//devuelve ok/fail
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, respuesta);
+				t_req_pedido *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
+				logRequestPedido(reqGuardarPedido);
+				free(reqGuardarPedido);
+				// TODO: t_result
+				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok";
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rtaGuardarPedido);
 				break;
 			case GUARDAR_PLATO:;
-				t_req_plato *plato = recibirPayloadPaquete(data, socketCliente);
-				logRequestPlato(plato);
-
-				respuesta = "Mensaje de respuesta a GUARDAR_PLATO";
-				//devuelve ok/fail
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, respuesta);
+				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
+				logRequestPlato(reqGuardarPlato);
+				free(reqGuardarPlato);
+				// TODO: t_result
+				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok";
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rtaGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_req_pedido *requestPedido = recibirPayloadPaquete(data, socketCliente);
-				logRequestPedido(requestPedido);
-				
-				respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
-				//devuelve ok/fail
-				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, respuesta);
+				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				logRequestPedido(reqConf);
+				free(reqConf);
+				// TODO: t_result
+				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
-			case PLATO_LISTO:
-				// Esperando chequedo del plato
-				//payload = recibirPayloadPaquete(data, socketCliente);
-
-				//respuesta = "Mensaje de respuesta a PLATO_LISTO";
-				//enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, respuesta);
+			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;
 			case OBTENER_PEDIDO:;
-				char *nombreRestaurante = recibirPayloadPaquete(data, socketCliente);
-				logMetadataRequest(nombreRestaurante);
+				t_req_pedido *reqObt = recibirPayloadPaquete(header, socketCliente);
+				logRequestPedido(reqObt);
+				free(reqObt);
 
-				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
-				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
+				t_pedido *pedido = malloc(sizeof(t_pedido)); t_list *platos = list_create();
+				t_plato *milanesa = malloc(sizeof(t_plato)); t_plato *empanadas = malloc(sizeof(t_plato)); t_plato *ensalada = malloc(sizeof(t_plato));
 
-				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
-				
+				milanesa->plato = "Milanesa"; milanesa->precio = 200; milanesa->cantidadPedida = 2; milanesa->cantidadLista = 1;
+				empanadas->plato = "Empanadas"; empanadas->precio = 880; empanadas->cantidadPedida = 12; empanadas->cantidadLista = 6;
+				ensalada->plato = "Ensalada"; ensalada->precio = 120; ensalada->cantidadPedida = 1; ensalada->cantidadLista = 0;
+				list_add(platos, milanesa); list_add(platos, empanadas); list_add(platos, ensalada);
+
+				pedido->estado = PENDIENTE; pedido->platos = platos; pedido->precioTotal = calcularPrecioTotal(platos);
+
+				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
+				free(pedido); free(milanesa); free(empanadas); free(ensalada);
 				break;
-
 			case FINALIZAR_PEDIDO:;
-				t_req_pedido *requestF = recibirPayloadPaquete(data, socketCliente);
-				logRequestPedido(requestF);
-				
-				respuesta = "Mensaje de respuesta a FINALIZAR_PEDIDO";
-				//devuelve ok/fail
-				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, respuesta);
+				t_req_pedido *reqFin = recibirPayloadPaquete(header, socketCliente);
+				logRequestPedido(reqFin);
+				free(reqFin);
+				// TODO: t_result
+				char *rtaFinalizarPedido = "[FINALIZAR_PEDIDO] Ok";
+				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, rtaFinalizarPedido);
 				break;
 			default:
-				printf("Operacion desconocida. No quieras meter la pata!!!\n");
+				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
 				break;
 		}
 	}
@@ -83,13 +80,11 @@ void *atenderConexiones(void *conexionNueva)
     return 0;
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char **argv) {
 	inicializarProceso(COMANDA);
-
     socketServidor = iniciarServidor();
 
     int fd;
-
     while(1) {
         fd = aceptarCliente(socketServidor);
         if (fd != -1) {

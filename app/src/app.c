@@ -3,78 +3,64 @@
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
-    int info = t_data->socketThread;
+    int socketCliente = t_data->socketThread;
     free(t_data);
 
-	// Acá va la lógica de envío/recepción de paquetes
 	while (1) {
-		t_buffer *payload;
-    	t_header *data = recibirHeaderPaquete(info);
 
-    	if (data->procesoOrigen == ERROR) {
-        	close(socket);
-        	printf("El cliente %d se desconectó. Terminando su hilo...\n", info);
-        	pthread_exit(EXIT_SUCCESS);
-        	return EXIT_FAILURE;
-    	}
+    	t_header *header = recibirHeaderPaquete(socketCliente);
 
-    	switch (data->codigoOperacion) {
-        	case CONSULTAR_RESTAURANTES: // Sin parámetros
-				printf("ME LLEGO CONSULTAR_RESTAURANTES \n");
+		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
+			logClientDisconnection(socketCliente);
+			liberarConexion(socket);
+    		pthread_exit(EXIT_SUCCESS);
+			return EXIT_FAILURE;
+		}	
+
+    	switch (header->codigoOperacion) {
+        	case CONSULTAR_RESTAURANTES:;
             	restaurantes = list_create();
-            	list_add(restaurantes,"Mc Donalds");
+            	list_add(restaurantes,"McDonalds");
             	list_add(restaurantes,"Burguer King");
             	list_add(restaurantes,"Mostaza");
             	list_add(restaurantes,"Wendys");
-
-            	enviarPaquete(info, APP, RTA_CONSULTAR_RESTAURANTES, restaurantes);
+            	enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, restaurantes);
         		break;
-			case SELECCIONAR_RESTAURANTE:
-				printf("ME LLEGO SELECCIONAR RESTAURANTE \n");
-				// TODO
+			case SELECCIONAR_RESTAURANTE:; // TODO: Recibe cliente (¿un id o un t_cliente?) y restaurante, retorna Ok/fail
 				break;
 			case CONSULTAR_PLATOS:;
-				char *restPlatos = recibirPayloadPaquete(data, info);
-
-				printf("Restaurante: %s\n", restPlatos);
-				t_list *platosRest = list_create(); // Va a retornar una lista de todos los platos que puede preparar el restaurante, como enum o como string?
+				char *restConsulta = recibirPayloadPaquete(header, socketCliente); free(restConsulta);
+				t_list *platosRest = list_create();
 				list_add(platosRest, "Milanesas");
 				list_add(platosRest, "Lasagna");
 				list_add(platosRest, "Asado");
-
-				enviarPaquete(info, APP, RTA_CONSULTAR_PLATOS, platosRest);
+				enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PLATOS, platosRest);
+				free(platosRest);
 				break;	
-			case CREAR_PEDIDO:
-				enviarPaquete(info, APP, RTA_CREAR_PEDIDO, 77);
+			case CREAR_PEDIDO:;
+				int newIdPedido = 88;
+				enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, newIdPedido);
 				break;	
-			case ANIADIR_PLATO:
-				printf("ME LLEGO ANIADIR PLATO\n");
+			case ANIADIR_PLATO:; // TODO: Generalizar t_req_pedido
 				break;	
-			case PLATO_LISTO:
-				// TODO
+			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;	
 			case CONFIRMAR_PEDIDO:;
-				t_req_pedido *request = recibirPayloadPaquete(data, info);
-				logRequestPedido(request);
-				
-				char *respuesta = "Mensaje de respuesta a CONFIRMAR_PEDIDO";
-				//devuelve ok/fail
-				enviarPaquete(info, COMANDA, RTA_CONFIRMAR_PEDIDO, respuesta);
-				break;			
-
+				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				logRequestPedido(reqConf);
+				free(reqConf);
+				// TODO: t_result
+				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+				enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
-			case CONSULTAR_PEDIDO:
-				printf("ME LLEVO CONSULTAR PEDIDO\n");
-				break;	
-				
-			
+			case CONSULTAR_PEDIDO: // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
+				break;			
         	default:
-            	printf("Operacion desconocida. No quieras meter la pata\n");
+            	printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
             	break;
- 	   }
+ 	   	}
+		free(header);
 	}	
-
-	// Esto sí tiene que estar para finalizar el hilo por ahora cuando le llegue la cadena vacía
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
@@ -120,6 +106,7 @@ void cargarConfiguracionApp() {
 	*/
 	free(appConfig);
 }
+
 void inicializarEstructurasYListas() {
 	
 	listaPedidos = list_create(); // aca se van a ir colocando los PCB
@@ -168,7 +155,7 @@ void planificarSJF() {
 
 int main(int argc, char* argv[])
 {
-	inicializarProceso(APP); // crea el log y el config de APP
+	inicializarProceso(APP);
 	
 	cargarConfiguracionApp();
 	
@@ -177,7 +164,6 @@ int main(int argc, char* argv[])
 	planificar(); // seguramente habra que tener un hilo para esto. Despues ver donde va esta funcion
 
 	socketServidor = iniciarServidor();
-
     conexionComanda = conectarseA(COMANDA);
 
 	int fd;
@@ -190,11 +176,12 @@ int main(int argc, char* argv[])
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
 			logNewClientConnection(fd);
+		} else {
+			pthread_kill(threadConexiones, SIGTERM);
 		}
 	}
 	
 	liberarConexion(socketServidor);
     finalizarProceso();
-    printf("Proceso finalizado");
     return EXIT_SUCCESS;
 }

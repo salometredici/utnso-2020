@@ -70,5 +70,4 @@ void planificarFIFO();
 void planificarHRRN();
 void planificarSJF();
 
-
 #endif

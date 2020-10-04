@@ -228,8 +228,18 @@ void guardarPedido(int conexion, char *nombreRestaurante, int idPedido) {
 }
 
 void aniadirPlato(int conexion, char *nombrePlato, int idPedido) { 
-	// TODO: Generalizar t_request
-	//enviarPaquete(conexion, CLIENTE, ANIADIR_PLATO, params);
+	t_request *reqAniadir = malloc(sizeof(t_request));
+	reqAniadir->nombre = nombrePlato;
+	reqAniadir->idPedido = idPedido;
+
+	enviarPaquete(conexion, CLIENTE, ANIADIR_PLATO, reqAniadir);
+	t_header *header = recibirHeaderPaquete(conexion);
+	free(reqAniadir);
+
+	char *resultAniadir = recibirPayloadPaquete(header, conexion);
+	printf("%s\n", resultAniadir);
+	log_info(logger, "%s", resultAniadir);
+	free(header);
 }
 
 void guardarPlato(int conexion, char *nombreRestaurante, int idPedido, char *nombrePlato, int cantidadPlato) {
@@ -244,7 +254,7 @@ void guardarPlato(int conexion, char *nombreRestaurante, int idPedido, char *nom
 	free(reqPlato);
 
 	char *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
-	printf("%s", resultGuardarPlato);
+	printf("%s\n", resultGuardarPlato);
 	log_info(logger, "%s", resultGuardarPlato);
 	free(header);
 }

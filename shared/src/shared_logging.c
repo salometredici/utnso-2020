@@ -60,17 +60,52 @@ void logNewClientConnection(int socket) {
 	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
 }
 
-void logRequestPedido(t_request *pedido) {
-	printf("Datos del request del pedido\n");
-	printf("\tRestaurante: \033[0;35m%s\033[0m\n", pedido->nombre);
-	printf("\tPedido: \033[1m%d\033[0m\n", pedido->idPedido);
-	log_info(logger, "Datos del request del pedido");
-	log_info(logger, "Restaurante: %s, Pedido: %d", pedido->nombre, pedido->idPedido);
+/* t_request */
+
+void logReqRestaurante(t_request *reqRestaurante) {
+	printf("Datos del request:\n");
+	if (!string_is_empty(reqRestaurante->nombre)) {
+		printf("\tRestaurante: \033[1;35m%s\033[0m\n", reqRestaurante->nombre);
+	}
+	printf("\tPedido: \033[1m%d\033[0m\n", reqRestaurante->idPedido);
+	log_info(logger, "Datos del request:");
+	if (!string_is_empty(reqRestaurante->nombre)) {
+		log_info(logger, "Restaurante: %s, Pedido: %d", reqRestaurante->nombre, reqRestaurante->idPedido);
+	} else {
+		log_info(logger, "Pedido: %d", reqRestaurante->idPedido);
+	}
 }
 
+void logReqPlato(t_request *reqPlato) {
+	printf("Datos del request:\n");
+	printf("\tPlato: \033[1m[%s]\033[0m\n", reqPlato->nombre);
+	printf("\tPedido: \033[1m%d\033[0m\n", reqPlato->idPedido);
+	log_info(logger, "Datos del request:");
+	log_info(logger, "Plato: %s, Pedido: %d", reqPlato->nombre, reqPlato->idPedido);
+}
+
+void logRequest(t_request *request, m_code codigoOperacion) {
+	switch (codigoOperacion) {
+		case GUARDAR_PEDIDO:
+		case OBTENER_PEDIDO:
+		case TERMINAR_PEDIDO:
+		case CONFIRMAR_PEDIDO: // En este caso sólo si se envía a comanda o a sindicato tendrá nombreRestaurante
+		case FINALIZAR_PEDIDO:
+			logReqRestaurante(request);
+			break;
+		case ANIADIR_PLATO:
+			logReqPlato(request);
+			break;
+		default:
+			break;
+	}
+}
+
+/* t_req_plato */
+
 void logRequestPlato(t_req_plato *plato) {
-	printf("Datos del request del plato\n");
-	printf("\tRestaurante: \033[0;35m%s\033[0m\n", plato->restaurante);
+	printf("Datos del request del plato:\n");
+	printf("\tRestaurante: \033[1;35m%s\033[0m\n", plato->restaurante);
 	printf("\tPedido: \033[1m%d\033[0m\n", plato->idPedido);
 	printf("\tPlato: [\033[1m%s\033[0m]\n", plato->plato);
 	printf("\tCantidad plato: \033[1m%d\033[0m\n", plato->cantidadPlato);

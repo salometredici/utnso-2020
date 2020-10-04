@@ -32,11 +32,17 @@ void *atenderConexiones(void *conexionNueva)
 				int newIdPedido = 77;
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, newIdPedido);
 				break;
-			case ANIADIR_PLATO:; // TODO
+			case ANIADIR_PLATO:;
+				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
+				logRequest(reqAniadir, header->codigoOperacion);
+				free(reqAniadir);
+				// TODO: t_result
+				char *rtaAniadirPlato = "[ANIADIR_PLATO] Ok\n";
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_ANIADIR_PLATO, rtaAniadirPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqConf);
+				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
 				// TODO: t_result
 				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";

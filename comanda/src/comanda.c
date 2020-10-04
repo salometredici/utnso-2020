@@ -20,7 +20,7 @@ void *atenderConexiones(void *conexionNueva)
 		switch (header->codigoOperacion) {
 			case GUARDAR_PEDIDO:;
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqGuardarPedido);
+				logRequest(reqGuardarPedido, header->codigoOperacion);
 				free(reqGuardarPedido);
 				// TODO: t_result
 				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok\n";
@@ -36,7 +36,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqConf);
+				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
 				// TODO: t_result
 				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
@@ -46,7 +46,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqObt);
+				logRequest(reqObt, header->codigoOperacion);
 				free(reqObt);
 
 				t_pedido *pedido = malloc(sizeof(t_pedido)); t_list *platos = list_create();
@@ -64,7 +64,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case FINALIZAR_PEDIDO:;
 				t_request *reqFin = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqFin);
+				logRequest(reqFin, header->codigoOperacion);
 				free(reqFin);
 				// TODO: t_result
 				char *rtaFinalizarPedido = "[FINALIZAR_PEDIDO] Ok\n";

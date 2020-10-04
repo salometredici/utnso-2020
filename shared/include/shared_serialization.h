@@ -39,18 +39,19 @@ void *recibirPayloadPaquete(t_header *header, int socket);
 void *serializar(m_code codigoOperacion, void *stream);
 void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion);
 void serializarPayload(void *buffer, m_code codigoOperacion, void *stream);
-void *srlzString(char *mensaje); 
-void *srlzListaStrings(t_list *listaStrings);
-void *srlzReqPedido(t_request *request);
-void *srlzReqPlato(t_req_plato *request);
+void *srlzInt(int valor);
+void *srlzString(char *mensaje);
 void *srlzPedido(t_pedido *pedido);
+void *srlzRequest(t_request *request);
+void *srlzReqPlato(t_req_plato *request);
+void *srlzListaStrings(t_list *listaStrings);
 void *srlzRtaObtenerRestaurante(t_posicion *posicion);
 
 // Deserializar
 
 char *dsrlzString(void *buffer, int sizeString);
 t_list *dsrlzListaStrings(void *buffer, int sizeLista);
-t_request *dsrlzReqPedido(void *buffer);
+t_request *dsrlzRequest(void *buffer);
 t_req_plato *dsrlzReqPlato(void *buffer);
 t_pedido *dsrlzPedido(void *buffer, int size);
 t_posicion *dsrlzRtaObtenerRestaurante(void *buffer);

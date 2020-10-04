@@ -60,12 +60,12 @@ void logNewClientConnection(int socket) {
 	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
 }
 
-void logRequestPedido(t_req_pedido *pedido) {
+void logRequestPedido(t_request *pedido) {
 	printf("Datos del request del pedido\n");
-	printf("\tRestaurante: \033[0;35m%s\033[0m\n", pedido->restaurante);
-	printf("\tPedido: \033[0;35m%d\033[0m\n", pedido->idPedido);
+	printf("\tRestaurante: \033[0;35m%s\033[0m\n", pedido->nombre);
+	printf("\tPedido: \033[1m%d\033[0m\n", pedido->idPedido);
 	log_info(logger, "Datos del request del pedido");
-	log_info(logger, "Restaurante: %s, Pedido: %d", pedido->restaurante, pedido->idPedido);
+	log_info(logger, "Restaurante: %s, Pedido: %d", pedido->nombre, pedido->idPedido);
 }
 
 void logRequestPlato(t_req_plato *plato) {

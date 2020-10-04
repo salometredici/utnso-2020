@@ -141,14 +141,19 @@ int obtenerLogLevel();
 // Structs
 
 typedef struct {
+	bool hasError;
+	char *result;
+} t_result;
+
+typedef struct {
     int posX;
 	int posY;
 } t_posicion;
 
 typedef struct {
-    char *restaurante;
+    char *nombre;
     int idPedido;
-} t_req_pedido;
+} t_request;
 
 typedef struct {
 	char *restaurante;

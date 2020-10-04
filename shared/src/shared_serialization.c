@@ -24,8 +24,8 @@ int getBytesListaStrings(t_list *listaStrings) {
 }
 
 // Size de dos ints (uno para idPedido y otro para el size de nombreRestaurante) más la longitud de nombreRestaurante en sí
-int getBytesReqPedido(t_req_pedido *request) {
-    return sizeof(int) * 2 + getBytesString(request->restaurante);
+int getBytesReqPedido(t_request *request) {
+    return sizeof(int) * 2 + getBytesString(request->nombre);
 }
 
 // Size de cuatro ints (idPedido, cantPlato, size de nombreRestaurante y size del plato) más la longitud de nombreRestaurante y la longitud del plato
@@ -64,7 +64,7 @@ int getBytesEjemplo() { // Ejemplo para una estructura custom que sólo se compo
 int getPayloadSize(m_code codigoOperacion, void *stream) {
 	int payloadSize = 0;
 	switch(codigoOperacion) {
-        // Envío de t_req_pedido
+        // Envío de t_request
 		case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
@@ -214,12 +214,12 @@ void *srlzListaStrings(t_list *listaStrings) {
 	return magic;
 }
 
-// Método para serializar un t_req_pedido
-void *srlzReqPedido(t_req_pedido *request) {
+// Método para serializar un t_request
+void *srlzReqPedido(t_request *request) {
     int desplazamiento = 0;
     int size = getBytesReqPedido(request);
-    int longitudPalabra = getBytesString(request->restaurante);
-	char *palabra = request->restaurante;
+    int longitudPalabra = getBytesString(request->nombre);
+	char *palabra = request->nombre;
 
     void *magic = malloc(size);
     memcpy(magic, &longitudPalabra, sizeof(int));
@@ -372,7 +372,7 @@ t_list *dsrlzListaStrings(void *buffer, int sizeLista) {
 	return valores;
 }
 
-t_req_pedido *dsrlzReqPedido(void *buffer) {
+t_request *dsrlzReqPedido(void *buffer) {
 	int longitudPalabra;
 	int desplazamiento = 0;
 	
@@ -380,13 +380,13 @@ t_req_pedido *dsrlzReqPedido(void *buffer) {
 	desplazamiento += sizeof(int);
 
 	char *restaurante = malloc(longitudPalabra);
-	t_req_pedido *request = malloc(sizeof(t_req_pedido));
+	t_request *request = malloc(sizeof(t_request));
 
 	memcpy(restaurante, buffer + desplazamiento, longitudPalabra);
 	desplazamiento += longitudPalabra;
 	memcpy(&request->idPedido, buffer + desplazamiento, sizeof(int));
 
-	request->restaurante = restaurante;
+	request->nombre = restaurante;
 	return request;
 }
 

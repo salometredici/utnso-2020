@@ -41,12 +41,12 @@ void *atenderConexiones(void *conexionNueva)
 				int newIdPedido = 88;
 				enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, newIdPedido);
 				break;	
-			case ANIADIR_PLATO:; // TODO: Generalizar t_req_pedido
+			case ANIADIR_PLATO:; // TODO: Generalizar t_request
 				break;	
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;	
 			case CONFIRMAR_PEDIDO:;
-				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqConf);
 				free(reqConf);
 				// TODO: t_result

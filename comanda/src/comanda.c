@@ -19,7 +19,7 @@ void *atenderConexiones(void *conexionNueva)
 
 		switch (header->codigoOperacion) {
 			case GUARDAR_PEDIDO:;
-				t_req_pedido *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqGuardarPedido);
 				free(reqGuardarPedido);
 				// TODO: t_result
@@ -35,7 +35,7 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rtaGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqConf);
 				free(reqConf);
 				// TODO: t_result
@@ -45,7 +45,7 @@ void *atenderConexiones(void *conexionNueva)
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;
 			case OBTENER_PEDIDO:;
-				t_req_pedido *reqObt = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqObt);
 				free(reqObt);
 
@@ -63,7 +63,7 @@ void *atenderConexiones(void *conexionNueva)
 				free(pedido); free(milanesa); free(empanadas); free(ensalada);
 				break;
 			case FINALIZAR_PEDIDO:;
-				t_req_pedido *reqFin = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqFin = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqFin);
 				free(reqFin);
 				// TODO: t_result

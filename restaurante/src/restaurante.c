@@ -35,7 +35,7 @@ void *atenderConexiones(void *conexionNueva)
 			case ANIADIR_PLATO:; // TODO
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqConf);
 				free(reqConf);
 				// TODO: t_result
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
 
 	/* Prueba de GUARDAR_PEDIDO */
 
-	t_req_pedido *reqGuardarPedido = malloc(sizeof(t_req_pedido));
-	reqGuardarPedido->restaurante = nombreRestaurante;
+	t_request *reqGuardarPedido = malloc(sizeof(t_request));
+	reqGuardarPedido->nombre = nombreRestaurante;
 	reqGuardarPedido->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, reqGuardarPedido);
@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
 
 	/* Prueba de CONFIRMAR_PEDIDO */
 
-	t_req_pedido *pedidoConf = malloc(sizeof(t_req_pedido));
-	pedidoConf->restaurante = nombreRestaurante;
+	t_request *pedidoConf = malloc(sizeof(t_request));
+	pedidoConf->nombre = nombreRestaurante;
 	pedidoConf->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedidoConf);
@@ -124,8 +124,8 @@ int main(int argc, char *argv[])
 
 	/* Prueba de OBTENER_PEDIDO */
 
-	t_req_pedido *pedidoObt = malloc(sizeof(t_req_pedido));
-	pedidoObt->restaurante = nombreRestaurante;
+	t_request *pedidoObt = malloc(sizeof(t_request));
+	pedidoObt->nombre = nombreRestaurante;
 	pedidoObt->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);

@@ -112,7 +112,7 @@ void *atenderConexiones(void *conexionNueva)
 				free(platosRest);
 				break;
 			case GUARDAR_PEDIDO:;
-				t_req_pedido *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqGuardarPedido);
 				free(reqGuardarPedido);
 
@@ -140,7 +140,7 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, rtaGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_req_pedido *reqConf = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqConf);
 				free(reqConf);
 
@@ -155,7 +155,7 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
 			case OBTENER_PEDIDO:;
-				t_req_pedido *reqObt = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
 				logRequestPedido(reqObt);
 				free(reqObt);
 

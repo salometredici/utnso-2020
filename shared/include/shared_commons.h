@@ -151,9 +151,9 @@ typedef struct {
 } t_posicion;
 
 typedef struct {
-    char *restaurante;
+    char *nombre;
     int idPedido;
-} t_req_pedido;
+} t_request;
 
 typedef struct {
 	char *restaurante;

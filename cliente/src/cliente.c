@@ -213,8 +213,8 @@ void crearPedido(int conexion) {
 }
 
 void guardarPedido(int conexion, char *nombreRestaurante, int idPedido) {
-	t_req_pedido *reqGuardarPedido = malloc(sizeof(t_req_pedido));
-	reqGuardarPedido->restaurante = nombreRestaurante;
+	t_request *reqGuardarPedido = malloc(sizeof(t_request));
+	reqGuardarPedido->nombre = nombreRestaurante;
 	reqGuardarPedido->idPedido = idPedido;
 
 	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, reqGuardarPedido);
@@ -228,7 +228,7 @@ void guardarPedido(int conexion, char *nombreRestaurante, int idPedido) {
 }
 
 void aniadirPlato(int conexion, char *nombrePlato, int idPedido) { 
-	// TODO: Generalizar t_req_pedido
+	// TODO: Generalizar t_request
 	//enviarPaquete(conexion, CLIENTE, ANIADIR_PLATO, params);
 }
 
@@ -250,9 +250,9 @@ void guardarPlato(int conexion, char *nombreRestaurante, int idPedido, char *nom
 }
 
 void confirmarPedido(int conexion, int idPedido, char *nombreRestaurante) {
-	t_req_pedido *pedidoConf = malloc(sizeof(t_req_pedido));
+	t_request *pedidoConf = malloc(sizeof(t_request));
 	pedidoConf->idPedido = idPedido;
-	pedidoConf->restaurante = nombreRestaurante;
+	pedidoConf->nombre = nombreRestaurante;
 
 	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, pedidoConf);
 	t_header *header = recibirHeaderPaquete(conexion);
@@ -275,8 +275,8 @@ void consultarPedido(int conexion, int idPedido) {
 }
 
 void obtenerPedido(int conexion, char *nombreRestaurante, int idPedido) {
-	t_req_pedido *pedidoObt = malloc(sizeof(t_req_pedido));
-	pedidoObt->restaurante = nombreRestaurante;
+	t_request *pedidoObt = malloc(sizeof(t_request));
+	pedidoObt->nombre = nombreRestaurante;
 	pedidoObt->idPedido = idPedido;
 
 	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, pedidoObt);

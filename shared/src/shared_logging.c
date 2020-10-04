@@ -63,7 +63,7 @@ void logNewClientConnection(int socket) {
 void logRequestPedido(t_req_pedido *pedido) {
 	printf("Datos del request del pedido\n");
 	printf("\tRestaurante: \033[0;35m%s\033[0m\n", pedido->restaurante);
-	printf("\tPedido: \033[0;35m%d\033[0m\n", pedido->idPedido);
+	printf("\tPedido: \033[1m%d\033[0m\n", pedido->idPedido);
 	log_info(logger, "Datos del request del pedido");
 	log_info(logger, "Restaurante: %s, Pedido: %d", pedido->restaurante, pedido->idPedido);
 }

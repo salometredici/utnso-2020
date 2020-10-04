@@ -23,10 +23,11 @@ void *threadLecturaConsola(void *args) {
 			opcion = clientOptionToKey(modulo);
 			if (mensaje) { comando = commandToString(mensaje); }
 			logConsoleInput(comandoLeido);
-
+			
 			switch (opcion) {
 				case OPTION_APP:
 					printf("Se ha seleccionado el módulo APP (^-^*)ノ\n");
+					comando = validateCommand(opcion, comando, parametros);
 					switch (comando) {
 						case CONSULTAR_RESTAURANTES:
 							consultarRestaurantes();
@@ -54,12 +55,13 @@ void *threadLecturaConsola(void *args) {
 							break;
 						case ERROR:
 						default:
-							printf("El mensaje ingresado no es válido para el módulo APP (・ε・`*)...!\n");
+							showInvalidCommandMsg(APP);
 							break;
 					}
 					break;
 				case OPTION_COMANDA:
 					printf("Se ha seleccionado el módulo COMANDA (ㆆᴗㆆ)\n");
+					comando = validateCommand(opcion, comando, parametros);
 					switch(comando) {
 						case GUARDAR_PEDIDO:
 							guardarPedido(conexionComanda, parametro1, atoi(parametro2));
@@ -78,12 +80,13 @@ void *threadLecturaConsola(void *args) {
 							break;
 						case ERROR:
 						default:
-							printf("El mensaje ingresado no es válido para el módulo COMANDA (・ε・`*)...!\n");
+							showInvalidCommandMsg(COMANDA);
 							break;
 					}
 					break;
 				case OPTION_RESTAURANTE:
 					printf("Se ha seleccionado el módulo RESTAURANTE ᕕ(◉Д◉ )ᕗ\n");
+					comando = validateCommand(opcion, comando, parametros);
 					switch(comando) {
 						case CONSULTAR_PLATOS:
 							consultarPlatos(conexionRestaurante, "");
@@ -102,12 +105,13 @@ void *threadLecturaConsola(void *args) {
 							break;
 						case ERROR:
 						default:
-							printf("El mensaje ingresado no es válido para el módulo RESTAURANTE (・ε・`*)...!\n");
+							showInvalidCommandMsg(RESTAURANTE);
 							break;
 					}
 					break;
 				case OPTION_SINDICATO:
 					printf("Se ha seleccionado el módulo SINDICATO (σ≧∀≦)σ\n");
+					comando = validateCommand(opcion, comando, parametros);
 					switch(comando) {
 						case OBTENER_RESTAURANTE:
 							obtenerRestaurante(parametro1);
@@ -132,7 +136,7 @@ void *threadLecturaConsola(void *args) {
 							break;		
 						case ERROR:
 						default:
-							printf("El mensaje ingresado no es válido para el módulo SINDICATO (・ε・`*)...!\n");
+							showInvalidCommandMsg(SINDICATO);
 							break;
 					}
 					break;
@@ -147,7 +151,7 @@ void *threadLecturaConsola(void *args) {
 					break;
 				case ERROR:
 				default:
-					printf("Comando no válido. Escriba 'AIUDA' para ver el formato aceptado つ´Д`)つ\n");
+					showInvalidMsg();
 					break;
 			}
 
@@ -173,7 +177,9 @@ void consultarRestaurantes() {
 	free(header);
 }
 
-void seleccionarRestaurante(char *nombreCliente, char *nombreRestaurante) {
+void seleccionarRestaurante(int socketCliente, char *nombreRestaurante) {
+	printf("recibi cliente: %d\n", socketCliente);
+	printf("recibi rest: %s\n", nombreRestaurante);
  	// TODO: Recibe cliente (¿un id o un t_cliente?) y restaurante, retorna Ok/fail
 	//enviarPaquete(conexionApp, CLIENTE, SELECCIONAR_RESTAURANTE, NULL);
 }
@@ -281,64 +287,6 @@ void obtenerPedido(int conexion, char *nombreRestaurante, int idPedido) {
 	mostrarListaPlatos(pedidoCompleto->platos);
 	free(pedidoCompleto);
 	free(header);
-}
-
-void mostrarComandosValidos(char *modulo) {
-	void mensajesValidos() {
-		printf("Ejemplo: AIUDA\n");
-		printf("Ejemplo: CLEAR\n");
-		printf("Ejemplo: BAI\n");
-		printf("Para obtener los comandos válidos por módulo, ingresar: AIUDA [MODULO]\n");
-	}
-
-    printf("-------------------Comandos Válidos-------------------\n");
-
-	if (modulo) {
-		int proceso = clientOptionToKey(modulo);
-		printf("Formato: [MODULO] [MENSAJE] [PARAMETROS] ~~旦_(･o･;)\n");
-		switch (proceso) {
-			case OPTION_APP:
-				printf("APP CONSULTAR_RESTAURANTES\n");
-				printf("APP SELECCIONAR_RESTAURANTE [NOMBRE_CLIENTE] [NOMBRE_RESTAURANTE]\n");
-				printf("APP CONSULTAR_PLATOS [NOMBRE_RESTAURANTE]\n");
-				printf("APP CREAR_PEDIDO\n");
-				printf("APP ANIADIR_PLATO [NOMBRE_PLATO] [ID_PEDIDO]\n");
-				printf("APP CONFIRMAR_PEDIDO [ID_PEDIDO]\n");
-				printf("APP PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_COMIDA]\n");
-				printf("APP CONSULTAR_PEDIDO [ID_PEDIDO]\n");
-				break;
-			case OPTION_COMANDA:
-				printf("COMANDA GUARDAR_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]\n");
-				printf("COMANDA GUARDAR_PLATO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_COMIDA] [CANTIDAD]\n");
-				printf("COMANDA CONFIRMAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]\n");
-				printf("COMANDA PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_COMIDA]\n");
-				printf("COMANDA OBTENER_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]\n");
-				break;
-			case OPTION_RESTAURANTE:
-				printf("RESTAURANTE CONSULTAR_PLATOS [NOMBRE_RESTAURANTE]\n");
-				printf("RESTAURANTE CREAR_PEDIDO\n");
-				printf("RESTAURANTE ANIADIR_PLATO [NOMBRE_PLATO] [ID_PEDIDO]\n");
-				printf("RESTAURANTE CONFIRMAR PEDIDO [ID_PEDIDO] \n");
-				printf("RESTAURANTE CONSULTAR_PEDIDO [ID_PEDIDO]\n");
-				break;
-			case OPTION_SINDICATO:
-				printf("SINDICATO OBTENER_RESTAURANTE [NOMBRE_RESTAURANTE]\n");
-				printf("SINDICATO CONSULTAR_PLATOS [NOMBRE_RESTAURANTE]\n");
-				printf("SINDICATO GUARDAR_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]\n");
-				printf("SINDICATO GUARDAR_PLATO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_COMIDA] [CANTIDAD]\n");
-				printf("SINDICATO CONFIRMAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]\n");
-				printf("SINDICATO PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_COMIDA]\n");
-				printf("SINDICATO OBTENER_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]\n");
-				break;
-			default:
-				mensajesValidos();
-				break;
-		}
-	} else {
-		mensajesValidos();                           
-	}
-	
-	printf("------------------------------------------------------\n");
 }
 
 void liberarConexiones() {

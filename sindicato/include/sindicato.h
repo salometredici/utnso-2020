@@ -1,11 +1,13 @@
 #ifndef SINDICATO_H
 #define SINDICATO_H
 
+#include <stdio.h>
 #include <commons/string.h>
 #include <readline/readline.h>
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
+#include "../include/sindicato_init.h"
 #include "tests.h"
 
 int socketServidor;

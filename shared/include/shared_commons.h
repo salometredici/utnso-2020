@@ -10,9 +10,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/string.h>
+#include <readline/readline.h>
 #include <commons/collections/list.h>
 
 #define BASE_PATH "/home/utnso/tp-2020-2c-death-code/"

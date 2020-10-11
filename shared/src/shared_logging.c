@@ -31,6 +31,13 @@ void logClientDisconnection(int socketCliente) {
 	log_info(logger, "El cliente %d se desconectó. Finalizando el hilo...（・∩・)", socketCliente);
 }
 
+void logNewClientConnection(int socket) {
+	printf("\033[1;32mNuevo hilo para atender al cliente \033[0m\033[1;34m%d\033[0m\033[1;32m\033[0m\n", socket);
+	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
+}
+
+/* Serialization logs */
+
 void logMetadata(t_posicion *posicion) {
 	printf("\tUbicación del restaurante: posX: %d, posY: %d\n", posicion->posX, posicion->posY);
 	log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
@@ -53,11 +60,6 @@ void logMessageSent(m_code codigoOperacion) {
 void logMetadataRequest(char *nombreRestaurante) {
 	printf("\tMetadata requested by \033[0;35m%s\033[0m\n", nombreRestaurante);
 	log_info(logger, "Metadada requested by %s", nombreRestaurante);
-}
-
-void logNewClientConnection(int socket) {
-	printf("\033[1;32mNuevo hilo para atender al cliente \033[0m\033[1;34m%d\033[0m\033[1;32m\033[0m\n", socket);
-	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
 }
 
 /* t_request */
@@ -113,6 +115,6 @@ void logRequestPlato(t_req_plato *plato) {
 }
 
 void logConsultaPlatos(char *restaurante) {
-	printf("\tRestaurante: \033[0;35m%s\033[0m\n", restaurante);
+	printf("\tRestaurante: \033[1;35m%s\033[0m\n", restaurante);
 	log_info(logger, "\tRestaurante %s", restaurante);
 }

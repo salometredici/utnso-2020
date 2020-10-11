@@ -189,7 +189,6 @@ void *atenderConexiones(void *conexionNueva)
 		}
 		free(header);
 	}
-
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
@@ -198,6 +197,8 @@ int main(int argc, char **argv)
 {
     inicializarProceso(SINDICATO);
 	socketServidor = iniciarServidor();
+
+	init();
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);

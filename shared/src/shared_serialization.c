@@ -84,6 +84,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Envío de int
 		case RTA_CREAR_PEDIDO:
+		case RTA_OBTENER_PROCESO:
 			payloadSize += sizeof(int);
 			break;
 		// Envío de un sólo string
@@ -110,6 +111,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
 		case CREAR_PEDIDO:
+		case OBTENER_PROCESO:
 		case CONSULTAR_RESTAURANTES:
 		default:
 			break;
@@ -150,6 +152,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
 		case RTA_CREAR_PEDIDO:
+		case RTA_OBTENER_PROCESO:
 			buffer = srlzInt(stream);
 			break;
 		case RTA_PLATO_LISTO:
@@ -515,6 +518,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 
 	switch (header->codigoOperacion) {
 		case RTA_CREAR_PEDIDO:
+		case RTA_OBTENER_PROCESO:
 			buffer = dsrlzInt(buffer);
 			break;
 		case RTA_PLATO_LISTO:

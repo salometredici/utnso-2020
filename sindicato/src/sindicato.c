@@ -85,6 +85,9 @@ void *atenderConexiones(void *conexionNueva)
 		}	
 
 		switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PROCESO, SINDICATO);
+				break;
 			case OBTENER_RESTAURANTE:;
 				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
 				logMetadataRequest(nombreRestaurante);

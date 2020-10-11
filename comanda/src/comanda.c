@@ -18,6 +18,9 @@ void *atenderConexiones(void *conexionNueva)
 		}
 
 		switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);
+				break;
 			case GUARDAR_PEDIDO:;
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqGuardarPedido, header->codigoOperacion);

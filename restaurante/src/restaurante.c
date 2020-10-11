@@ -18,6 +18,9 @@ void *atenderConexiones(void *conexionNueva)
 		}
 
 		switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_OBTENER_PROCESO, RESTAURANTE);
+				break;
 			case CONSULTAR_PLATOS:;
 				char *restConsulta = recibirPayloadPaquete(header, socketCliente);
 				logConsultaPlatos(restConsulta);

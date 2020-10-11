@@ -3,6 +3,7 @@
 /* Inicialización */
 
 void inicializarProceso(p_code proceso) {
+	createDirectory(LOGS_PATH);
 	char *log_path = "";
 	char *program;
 	char *config_path;
@@ -100,8 +101,8 @@ int conectarseA(p_code proceso) {
 			puerto = config_get_int_value(config, "PUERTO_APP");
 			break;
 		case CLIENTE:
-			ip = config_get_string_value(config, "IP_CLIENTE");
-			puerto = config_get_int_value(config, "PUERTO_CLIENTE");
+			ip = config_get_string_value(config, "IP");
+			puerto = config_get_int_value(config, "PUERTO");
 			break;
 		case COMANDA:
 			ip = config_get_string_value(config, "IP_COMANDA");

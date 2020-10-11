@@ -18,6 +18,9 @@ void *atenderConexiones(void *conexionNueva)
 		}	
 
     	switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, APP, RTA_OBTENER_PROCESO, APP);
+				break;
         	case CONSULTAR_RESTAURANTES:;
             	restaurantes = list_create();
             	list_add(restaurantes,"McDonalds");

@@ -8,13 +8,23 @@ void logInitializedProcess() {
 }
 
 void logConnectionAttempt(p_code process, char *ip, int puerto) {
-	printf("Intentando conectarse a \033[1;34m%s\033[0m en IP: %s, PUERTO: %d...\n", getStringKeyValue(process, PROCNKEYS), ip, puerto);
-	log_info(logger, "Intentando conectarse a %s en IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+	if (process != CLIENTE) {
+		printf("Intentando conectarse a \033[1;34m%s\033[0m en IP: %s, PUERTO: %d...\n", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+		log_info(logger, "Intentando conectarse a %s en IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+	} else {
+		printf("Intentando conectarse a IP: %s, PUERTO: %d...\n", ip, puerto);
+		log_info(logger, "Intentando conectarse a IP: %s, PUERTO: %d...", ip, puerto);
+	}
 }
 
 void logConnectionSuccess(p_code process, int puerto) {
-	printf("\033[1;32mConexión creada con \033[0m\033[1;34m%s\033[0m\033[1;32m en el puerto %d\033[0m\n", getStringKeyValue(process, PROCNKEYS), puerto);
-	log_info(logger, "Conexión creada con %s en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
+	if (process != CLIENTE) {
+		printf("\033[1;32mConexión creada con \033[0m\033[1;34m%s\033[0m\033[1;32m en el puerto %d\033[0m\n", getStringKeyValue(process, PROCNKEYS), puerto);
+		log_info(logger, "Conexión creada con %s en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
+	} else {
+		printf("\033[1;32mConexión creada con el puerto %d\033[0m\n", puerto);
+		log_info(logger, "Conexión creada con el puerto %d", puerto);
+	}
 }
 
 void logAwaitingConnections(int puerto) {

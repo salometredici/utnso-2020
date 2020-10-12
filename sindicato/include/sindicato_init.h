@@ -1,6 +1,7 @@
 #ifndef SINDICATO_INIT_H
 #define SINDICATO_INIT_H
 
+#include <commons/bitarray.h>
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
@@ -15,6 +16,11 @@
 
 char *puntoMontaje;
 char *dirInicial;
+char *blocksPath;
+char *filesPath;
+
 t_config *metadata;
+
+t_bitarray *bitMap;
 
 #endif

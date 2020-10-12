@@ -1,5 +1,37 @@
 #include "../include/shared_commons.h"
 
+// Inicialización
+
+int dirExists(char *directory) {
+	struct stat dirStat;
+	if (stat(directory, &dirStat) < 0) {
+		return ERROR;
+	}
+	return EXIT_SUCCESS;
+}
+
+createDirectory(char *directory) {
+	if (dirExists(directory) == ERROR) {
+		recursiveCreateDir(directory);
+	}
+}
+
+void recursiveCreateDir(char *path) {
+	int i = 0;
+	char **dirs = string_split(path, "/");
+	char initialDir[string_length(dirs[i]) + 1];
+	strcpy(initialDir, "/");
+	char *route = initialDir;
+	do {
+		strcat(initialDir, dirs[i]); strcat(route, "/");
+		if (mkdir(route, 0777) && errno != EEXIST) {
+			log_debug(logger, "El directorio %s ya existe", route);
+		}
+		i++;
+	} while (dirs[i] != NULL);
+}
+
+
 // Utils
 
 void limpiarPantalla() {
@@ -41,6 +73,14 @@ int commandToString(char *key) {
 }
 
 /* Config */
+
+char *obtenerLogFileName() {
+	return config_get_string_value(config, "ARCHIVO_LOG");
+}
+
+char *obtenerCliente() {
+	return config_get_string_value(config, "ID_CLIENTE");
+}
 
 int obtenerPuertoEscucha() {
 	return config_get_int_value(config, "PUERTO_ESCUCHA");

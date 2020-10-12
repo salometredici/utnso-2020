@@ -12,10 +12,8 @@
 #include "../include/client_console.h"
 #include "tests.h"
 
-int conexionApp;
-int conexionComanda;
-int conexionRestaurante;
-int conexionSindicato;
+int conexion;
+
 
 t_list *params;
 
@@ -25,15 +23,15 @@ pthread_t threadConsola;
 void consultarRestaurantes();
 void seleccionarRestaurante(int socketCliente, char *nombreRestaurante);
 void obtenerRestaurante(char *nombreRestaurante);
-void consultarPlatos(int conexion, char *nombreRestaurante);
-void crearPedido(int conexion); 
-void guardarPedido(int conexion, char *nombreRestaurante, int idPedido);
-void aniadirPlato(int conexion, char *nombrePlato, int idPedido);
-void guardarPlato(int conexion, char *nombreRestaurante, int idPedido, char *nombreComida, int cantidadPlatos);
-void confirmarPedido(int conexion, int idPedido, char *nombreRestaurante); 
-void platoListo(int conexion, char *nombreRestaurante, int idPedido, char *nombreComida);
-void consultarPedido(int conexion, int idPedido);
-void obtenerPedido(int conexion, char *nombreRestaurante, int idPedido);
+void consultarPlatos(char *nombreRestaurante);
+void crearPedido();
+void guardarPedido(char *nombreRestaurante, int idPedido);
+void aniadirPlato(char *nombrePlato, int idPedido);
+void guardarPlato(char *nombreRestaurante, int idPedido, char *nombreComida, int cantidadPlatos);
+void confirmarPedido(int idPedido, char *nombreRestaurante); 
+void platoListo(char *nombreRestaurante, int idPedido, char *nombreComida);
+void consultarPedido(int idPedido);
+void obtenerPedido(char *nombreRestaurante, int idPedido);
 
 //Listas 
  t_list *listaRestaurantes;

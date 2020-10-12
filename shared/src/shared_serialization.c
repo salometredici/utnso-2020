@@ -65,6 +65,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 	int payloadSize = 0;
 	switch(codigoOperacion) {
         // Envío de t_request
+		case ANIADIR_PLATO:
 		case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
@@ -83,6 +84,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Envío de int
 		case RTA_CREAR_PEDIDO:
+		case RTA_OBTENER_PROCESO:
 			payloadSize += sizeof(int);
 			break;
 		// Envío de un sólo string
@@ -103,13 +105,13 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Envío de una lista de strings
         case PLATO_LISTO:
-		case ANIADIR_PLATO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payloadSize += getBytesListaStrings(stream);
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
 		case CREAR_PEDIDO:
+		case OBTENER_PROCESO:
 		case CONSULTAR_RESTAURANTES:
 		default:
 			break;
@@ -137,10 +139,11 @@ void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion
 void *serializar(m_code codigoOperacion, void *stream) {
 	void *buffer;
 	switch(codigoOperacion) {
+		case ANIADIR_PLATO:
         case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
-            buffer = srlzReqPedido(stream);
+            buffer = srlzRequest(stream);
             break;
 		case GUARDAR_PLATO:
 			buffer = srlzReqPlato(stream);
@@ -149,6 +152,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
 			break;
 		case RTA_CREAR_PEDIDO:
+		case RTA_OBTENER_PROCESO:
 			buffer = srlzInt(stream);
 			break;
 		case RTA_PLATO_LISTO:
@@ -169,7 +173,6 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			buffer = srlzPedido(stream);
 			break;
 		case PLATO_LISTO:
-		case ANIADIR_PLATO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = srlzListaStrings(stream);
@@ -181,7 +184,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 	return buffer;
 }
 
-void srlzInt(int valor){
+void *srlzInt(int valor){
 	void *magic = malloc(sizeof(int));
 	memcpy(magic, &valor, sizeof(int));
 	return magic;
@@ -215,7 +218,7 @@ void *srlzListaStrings(t_list *listaStrings) {
 }
 
 // Método para serializar un t_request
-void *srlzReqPedido(t_request *request) {
+void *srlzRequest(t_request *request) {
     int desplazamiento = 0;
     int size = getBytesReqPedido(request);
     int longitudPalabra = getBytesString(request->nombre);
@@ -372,7 +375,7 @@ t_list *dsrlzListaStrings(void *buffer, int sizeLista) {
 	return valores;
 }
 
-t_request *dsrlzReqPedido(void *buffer) {
+t_request *dsrlzRequest(void *buffer) {
 	int longitudPalabra;
 	int desplazamiento = 0;
 	
@@ -515,6 +518,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 
 	switch (header->codigoOperacion) {
 		case RTA_CREAR_PEDIDO:
+		case RTA_OBTENER_PROCESO:
 			buffer = dsrlzInt(buffer);
 			break;
 		case RTA_PLATO_LISTO:
@@ -534,16 +538,16 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 		case RTA_OBTENER_PEDIDO:
 			buffer = dsrlzPedido(buffer, size);
 			break;
+		case ANIADIR_PLATO:
         case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
 		case CONFIRMAR_PEDIDO:
-            buffer = dsrlzReqPedido(buffer);
+            buffer = dsrlzRequest(buffer);
             break;
 		case GUARDAR_PLATO:
 			buffer = dsrlzReqPlato(buffer);
 			break;
 		case PLATO_LISTO:
-		case ANIADIR_PLATO:
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = dsrlzListaStrings(buffer, size);

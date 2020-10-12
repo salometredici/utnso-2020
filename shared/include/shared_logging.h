@@ -1,6 +1,7 @@
 #ifndef SHARED_LOGGING_H
 #define SHARED_LOGGING_H
 
+#include <stdio.h>
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
 
@@ -11,6 +12,7 @@ void logHeader(m_code codigoOperacion, p_code procesoOrigen);
 void logMessageSent(m_code codigoOperacion);
 void logMetadataRequest(char *nombreRestaurante);
 void logNewClientConnection(int socket);
+void logRequest(t_request *request, m_code codigoOperacion);
 void logConsultaPlatos(char *restaurante);
 
 #endif

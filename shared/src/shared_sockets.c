@@ -2,23 +2,63 @@
 
 /* Inicialización */
 
+char *getLogPath(p_code process) {
+	char *fileName = "";
+	int fullPathLength = 0;
+
+	if (process == CLIENTE) {
+		fileName = obtenerCliente();
+		fullPathLength = strlen(LOGS_PATH) + strlen(fileName) + strlen(".log") + 1;
+	} else {
+		char *file = obtenerLogFileName();
+		if (!string_starts_with(file, "/home")) {
+			int fLength = strlen("/home") + strlen(file) + 1;
+			char *f = malloc(fLength);
+			strcpy(f, "/home");
+			strcat(f, file);
+			fullPathLength = fLength;
+			fileName = f;
+		} else {
+			fileName = obtenerLogFileName();
+			fullPathLength = strlen(fileName) + 1;
+		}
+	}
+
+	char fullPath[fullPathLength];
+	if (process == CLIENTE) {
+		strcpy(fullPath, LOGS_PATH); strcat(fullPath, fileName); strcat(fullPath, ".log");
+	} else {
+		strcpy(fullPath, fileName);
+	}
+
+	char *logPath = malloc(fullPathLength);
+	for (int i = 0; i < fullPathLength; i++) {
+		logPath[i] = fullPath[i];
+	}
+	return logPath;
+}
+
+void crearLoggerProceso(char *log_path, char *program) {
+	bool activeConsole = obtenerActiveConsole();
+	int logLevel = obtenerLogLevel();
+	logger = log_create(log_path, program, activeConsole, logLevel);
+}
+
 void inicializarProceso(p_code proceso) {
+	createDirectory(LOGS_PATH);
 	char *log_path = "";
 	char *program;
 	char *config_path;
 	switch (proceso) {
 		case APP:
-			log_path = "app.log";
 			program = "app";
 			config_path = "app.config";
 			break;
 		case CLIENTE:
-			log_path = "cliente.log";
 			program = "cliente";
 			config_path = "cliente.config";
 			break;
 		case COMANDA:
-			log_path = "comanda.log";
 			program = "comanda";
 			config_path = "comanda.config";
 			break;
@@ -27,46 +67,22 @@ void inicializarProceso(p_code proceso) {
 			config_path = "restaurante.config";
 			break;
 		case SINDICATO:
-			log_path = "sindicato.log";
+			log_path = "/home/utnso/logs/sindicato.log";
 			program = "sindicato";
 			config_path = "sindicato.config";
 			break;
 	}
 	process = proceso;
 	config = config_create(config_path);
-	if (proceso == RESTAURANTE) {
-		log_path = crearLogRestaurante();
-		char file[strlen(log_path)];
-		strcpy(file,log_path);
-		crearLoggerProceso(file, program);
+
+	if (proceso != SINDICATO) {
+		log_path = getLogPath(proceso);
+		crearLoggerProceso(log_path, program);
 	} else {
 		crearLoggerProceso(log_path, program);
 	}
+
 	logInitializedProcess();
-}
-
-char *crearLogRestaurante() {
-	char *restaurante = obtenerNombreRestaurante();
-	int filenameLength = strlen(restaurante) + 4;
-	char fullPathArray[filenameLength];
-	strcpy(fullPathArray,restaurante);
-	strcat(fullPathArray, ".log");
-	char *file = malloc(filenameLength);
-	file = fullPathArray;
-
-	/* Comentado hasta que nos den una manera de usar log_create enviando una ruta completa y no un nombre de file */
-	//int fullPathLength = strlen(path) + strlen(LOGS_PATH);
-	//char fullPathArray[fullPathLength];
-	//strcpy(fullPathArray, LOGS_PATH);
-	//char *fullPath = strcat(fullPathArray, path);
-
-	return file;
-}
-
-void crearLoggerProceso(char *log_path, char *program) {
-	bool activeConsole = obtenerActiveConsole();
-	int logLevel = obtenerLogLevel();
-	logger = log_create(log_path, program, activeConsole, logLevel);
 }
 
 void finalizarProceso() {
@@ -100,8 +116,8 @@ int conectarseA(p_code proceso) {
 			puerto = config_get_int_value(config, "PUERTO_APP");
 			break;
 		case CLIENTE:
-			ip = config_get_string_value(config, "IP_CLIENTE");
-			puerto = config_get_int_value(config, "PUERTO_CLIENTE");
+			ip = config_get_string_value(config, "IP");
+			puerto = config_get_int_value(config, "PUERTO");
 			break;
 		case COMANDA:
 			ip = config_get_string_value(config, "IP_COMANDA");

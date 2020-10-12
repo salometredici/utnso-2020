@@ -10,9 +10,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/string.h>
+#include <readline/readline.h>
 #include <commons/collections/list.h>
 
 #define BASE_PATH "/home/utnso/tp-2020-2c-death-code/"
@@ -46,6 +50,7 @@ typedef enum {
 	FINALIZAR_PEDIDO = 112,
 	TERMINAR_PEDIDO = 113,
 	OBTENER_RECETA = 114,
+	OBTENER_PROCESO = 115,
     // Respuestas
     RTA_CONSULTAR_RESTAURANTES = 200,
 	RTA_SELECCIONAR_RESTAURANTE = 201,
@@ -62,6 +67,7 @@ typedef enum {
 	RTA_FINALIZAR_PEDIDO = 212,
 	RTA_TERMINAR_PEDIDO = 213,
 	RTA_OBTENER_RECETA = 214,
+	RTA_OBTENER_PROCESO = 215
 } m_code;
 
 // Commons
@@ -109,6 +115,7 @@ static t_keys diccionarioComandos[] = {
     { "FINALIZAR_PEDIDO", FINALIZAR_PEDIDO },
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
     { "OBTENER_RECETA", OBTENER_RECETA },
+	{ "OBTENER_PROCESO", OBTENER_PROCESO },
     { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE },
     { "RTA_CONSULTAR_RESTAURANTES", RTA_CONSULTAR_RESTAURANTES },
 	{ "RTA_SELECCIONAR_RESTAURANTE", RTA_SELECCIONAR_RESTAURANTE },
@@ -123,7 +130,8 @@ static t_keys diccionarioComandos[] = {
 	{ "RTA_OBTENER_PEDIDO", RTA_OBTENER_PEDIDO },
 	{ "RTA_FINALIZAR_PEDIDO", RTA_FINALIZAR_PEDIDO },
 	{ "RTA_TERMINAR_PEDIDO", RTA_TERMINAR_PEDIDO },
-	{ "RTA_OBTENER_RECETA", RTA_OBTENER_RECETA }
+	{ "RTA_OBTENER_RECETA", RTA_OBTENER_RECETA },
+	{ "RTA_OBTENER_PROCESO", RTA_OBTENER_PROCESO }
 };
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
@@ -135,6 +143,8 @@ int commandToString(char *key);
 
 int obtenerPuertoEscucha();
 char *obtenerNombreRestaurante();
+char *obtenerCliente();
+char *obtenerLogFileName();
 bool obtenerActiveConsole();
 int obtenerLogLevel();
 

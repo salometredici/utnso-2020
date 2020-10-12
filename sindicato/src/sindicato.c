@@ -85,6 +85,9 @@ void *atenderConexiones(void *conexionNueva)
 		}	
 
 		switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PROCESO, SINDICATO);
+				break;
 			case OBTENER_RESTAURANTE:;
 				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
 				logMetadataRequest(nombreRestaurante);
@@ -113,7 +116,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case GUARDAR_PEDIDO:;
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqGuardarPedido);
+				logRequest(reqGuardarPedido, header->codigoOperacion);
 				free(reqGuardarPedido);
 
 				// TODO:
@@ -141,7 +144,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqConf);
+				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
 
 				// TODO:
@@ -156,7 +159,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqObt);
+				logRequest(reqObt, header->codigoOperacion);
 				free(reqObt);
 
 				// TODO:
@@ -189,7 +192,6 @@ void *atenderConexiones(void *conexionNueva)
 		}
 		free(header);
 	}
-
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
@@ -198,6 +200,8 @@ int main(int argc, char **argv)
 {
     inicializarProceso(SINDICATO);
 	socketServidor = iniciarServidor();
+
+	init();
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);

@@ -18,6 +18,9 @@ void *atenderConexiones(void *conexionNueva)
 		}	
 
     	switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, APP, RTA_OBTENER_PROCESO, APP);
+				break;
         	case CONSULTAR_RESTAURANTES:;
             	restaurantes = list_create();
             	list_add(restaurantes,"McDonalds");
@@ -41,16 +44,22 @@ void *atenderConexiones(void *conexionNueva)
 				int newIdPedido = 88;
 				enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, newIdPedido);
 				break;	
-			case ANIADIR_PLATO:; // TODO: Generalizar t_request
+			case ANIADIR_PLATO:;
+				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
+				logRequest(reqAniadir, header->codigoOperacion);
+				free(reqAniadir);
+				// TODO: t_result
+				char *rtaAniadirPlato = "[ANIADIR_PLATO] Ok\n";
+				enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, rtaAniadirPlato);
 				break;	
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;	
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequestPedido(reqConf);
+				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
 				// TODO: t_result
-				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok";
+				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
 				enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
 				break;
 			case CONSULTAR_PEDIDO:; // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido

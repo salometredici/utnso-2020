@@ -74,6 +74,14 @@ int commandToString(char *key) {
 
 /* Config */
 
+char *obtenerLogFileName() {
+	return config_get_string_value(config, "ARCHIVO_LOG");
+}
+
+char *obtenerCliente() {
+	return config_get_string_value(config, "ID_CLIENTE");
+}
+
 int obtenerPuertoEscucha() {
 	return config_get_int_value(config, "PUERTO_ESCUCHA");
 }

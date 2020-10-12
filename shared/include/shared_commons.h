@@ -143,6 +143,8 @@ int commandToString(char *key);
 
 int obtenerPuertoEscucha();
 char *obtenerNombreRestaurante();
+char *obtenerCliente();
+char *obtenerLogFileName();
 bool obtenerActiveConsole();
 int obtenerLogLevel();
 

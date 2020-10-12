@@ -1,6 +1,7 @@
 #ifndef SHARED_LOGGING_H
 #define SHARED_LOGGING_H
 
+#include <stdio.h>
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
 

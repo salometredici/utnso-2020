@@ -20,6 +20,29 @@ char *crearLogRestaurante() {
 	return file;
 }
 
+char *getLogPath(p_code process) {
+	char *fileName = "";
+	int fullPathLegth = 0;
+
+	if (process == CLIENTE) {
+		fileName = obtenerCliente();
+		fullPathLegth = strlen(LOGS_PATH) + strlen(fileName) + strlen(".log") + 1;
+	}
+
+	char fullPath[fullPathLegth];
+	if (process == CLIENTE) {
+		strcpy(fullPath, LOGS_PATH); strcat(fullPath, fileName); strcat(fullPath, ".log");
+	} else {
+
+	}
+
+	char *logPath = malloc(fullPathLegth);
+	for (int i = 0; i < fullPathLegth; i++) {
+		logPath[i] = fullPath[i];
+	}
+	return logPath;
+}
+
 void crearLoggerProceso(char *log_path, char *program) {
 	bool activeConsole = obtenerActiveConsole();
 	int logLevel = obtenerLogLevel();
@@ -38,7 +61,6 @@ void inicializarProceso(p_code proceso) {
 			config_path = "app.config";
 			break;
 		case CLIENTE:
-			log_path = "cliente.log";
 			program = "cliente";
 			config_path = "cliente.config";
 			break;
@@ -52,21 +74,25 @@ void inicializarProceso(p_code proceso) {
 			config_path = "restaurante.config";
 			break;
 		case SINDICATO:
-			log_path = "sindicato.log";
+			log_path = "/home/utnso/logs/sindicato.log";
 			program = "sindicato";
 			config_path = "sindicato.config";
 			break;
 	}
 	process = proceso;
 	config = config_create(config_path);
-	if (proceso == RESTAURANTE) {
-		log_path = crearLogRestaurante();
-		char file[strlen(log_path)];
-		strcpy(file,log_path);
-		crearLoggerProceso(file, program);
-	} else {
+	if (proceso == CLIENTE) {
+		log_path = getLogPath(CLIENTE);
 		crearLoggerProceso(log_path, program);
 	}
+	// if (proceso == RESTAURANTE) {
+	// 	log_path = crearLogRestaurante();
+	// 	char file[strlen(log_path)];
+	// 	strcpy(file,log_path);
+	// 	crearLoggerProceso(file, program);
+	// } else {
+	// 	crearLoggerProceso(log_path, program);
+	// }
 	logInitializedProcess();
 }
 

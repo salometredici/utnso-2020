@@ -2,24 +2,6 @@
 
 /* Inicialización */
 
-char *crearLogRestaurante() {
-	char *restaurante = obtenerNombreRestaurante();
-	int filenameLength = strlen(restaurante) + 4;
-	char fullPathArray[filenameLength];
-	strcpy(fullPathArray,restaurante);
-	strcat(fullPathArray, ".log");
-	char *file = malloc(filenameLength);
-	file = fullPathArray;
-
-	/* Comentado hasta que nos den una manera de usar log_create enviando una ruta completa y no un nombre de file */
-	//int fullPathLength = strlen(path) + strlen(LOGS_PATH);
-	//char fullPathArray[fullPathLength];
-	//strcpy(fullPathArray, LOGS_PATH);
-	//char *fullPath = strcat(fullPathArray, path);
-
-	return file;
-}
-
 char *getLogPath(p_code process) {
 	char *fileName = "";
 	int fullPathLegth = 0;

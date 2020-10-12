@@ -4,21 +4,19 @@ char *obtenerPuntoMontaje() {
 	return config_get_string_value(config, "PUNTO_MONTAJE");
 }
 
-void initBaseDirs() {
+void obtenerBasePath() {
 	// Obtener la ruta del punto de montaje sin el dir /afip
 	char *ultimoDir = strrchr(puntoMontaje, '/');
 	int basePathLength = strlen(puntoMontaje) - strlen(ultimoDir);
-	char *basePath = malloc(basePathLength + 1); strncpy(basePath, puntoMontaje, basePathLength);
-	// Crear dir Blocks
-	char *dirBlocks = malloc(basePathLength + strlen(BLOCKS_PATH) + 1);
-	strcpy(dirBlocks, basePath);
-	strcat(dirBlocks, BLOCKS_PATH);
-	createDirectory(dirBlocks);
-	// Crear dir Files
-	char *dirFiles = malloc(basePathLength + strlen(FILES_PATH) + 1);
-	strcpy(dirFiles, basePath);
-	strcat(dirFiles, FILES_PATH);
-	createDirectory(dirFiles);
+	dirInicial = malloc(basePathLength + 1);
+	strncpy(dirInicial, puntoMontaje, basePathLength);
+}
+
+void initBaseDir(char *dir) {
+	char *newDir = malloc(strlen(dirInicial) + strlen(dir) + 1);
+	strcpy(newDir, dirInicial);
+	strcat(newDir, dir);
+	createDirectory(newDir);
 }
 
 void initBitMap() {
@@ -30,8 +28,10 @@ void initBitMap() {
 void init() {
 	puntoMontaje = obtenerPuntoMontaje();
 	createDirectory(puntoMontaje);
+	obtenerBasePath();
+	initBaseDir(BLOCKS_PATH);
+	initBaseDir(FILES_PATH);
 	initBitMap();
-	initBaseDirs();
 	createDirectory(RECETAS_PATH);
 	createDirectory(RESTAURANTES_PATH);
 }

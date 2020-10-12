@@ -59,7 +59,6 @@ void inicializarProceso(p_code proceso) {
 	char *config_path;
 	switch (proceso) {
 		case APP:
-			log_path = "app.log";
 			program = "app";
 			config_path = "app.config";
 			break;
@@ -68,7 +67,6 @@ void inicializarProceso(p_code proceso) {
 			config_path = "cliente.config";
 			break;
 		case COMANDA:
-			log_path = "comanda.log";
 			program = "comanda";
 			config_path = "comanda.config";
 			break;
@@ -84,20 +82,14 @@ void inicializarProceso(p_code proceso) {
 	}
 	process = proceso;
 	config = config_create(config_path);
-	if (proceso == CLIENTE || proceso == RESTAURANTE) {
+
+	if (proceso != SINDICATO) {
 		log_path = getLogPath(proceso);
 		crearLoggerProceso(log_path, program);
 	} else {
 		crearLoggerProceso(log_path, program);
 	}
-	// if (proceso == RESTAURANTE) {
-	// 	log_path = crearLogRestaurante();
-	// 	char file[strlen(log_path)];
-	// 	strcpy(file,log_path);
-	// 	crearLoggerProceso(file, program);
-	// } else {
-	// 	crearLoggerProceso(log_path, program);
-	// }
+
 	logInitializedProcess();
 }
 

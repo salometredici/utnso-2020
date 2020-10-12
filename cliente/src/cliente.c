@@ -5,8 +5,9 @@ void *threadLecturaConsola(void *args) {
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
 
 	char **parametros;
-	char *modulo = "", *mensaje = "", *parametro1 = "", *parametro2 = "", *parametro3 = "", *parametro4 = "";
+	char *mensaje = "", *parametro1 = "", *parametro2 = "", *parametro3 = "", *parametro4 = "";
 	int opcion, comando;
+
   	char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
@@ -16,17 +17,18 @@ void *threadLecturaConsola(void *args) {
         	string_to_upper(comandoLeido);
         	string_trim(&comandoLeido);
 			parametros = string_split(comandoLeido, " ");
-			modulo = parametros[0];
-			mensaje = parametros[1];
-			parametro1 = parametros[2]; parametro2 = parametros[3]; parametro3 = parametros[4];	parametro4 = parametros[5];
+			opcion = clientOptionToKey(getStringKeyValue(procesoConectado, PROCNKEYS));
+			mensaje = parametros[0];
+			parametro1 = parametros[1]; parametro2 = parametros[2]; parametro3 = parametros[3];	parametro4 = parametros[4];
 
-			opcion = clientOptionToKey(modulo);
-			if (mensaje) { comando = commandToString(mensaje); }
+			comando = commandToString(mensaje);
+			if (comando == ERROR) {
+				opcion = clientOptionToKey(mensaje);
+			}
 			logConsoleInput(comandoLeido);
 			
 			switch (opcion) {
 				case OPTION_APP:
-					printf("Se ha seleccionado el módulo APP (^-^*)ノ\n");
 					comando = validateCommand(opcion, comando, parametros);
 					switch (comando) {
 						case CONSULTAR_RESTAURANTES:
@@ -60,7 +62,6 @@ void *threadLecturaConsola(void *args) {
 					}
 					break;
 				case OPTION_COMANDA:
-					printf("Se ha seleccionado el módulo COMANDA (ㆆᴗㆆ)\n");
 					comando = validateCommand(opcion, comando, parametros);
 					switch(comando) {
 						case GUARDAR_PEDIDO:
@@ -85,7 +86,6 @@ void *threadLecturaConsola(void *args) {
 					}
 					break;
 				case OPTION_RESTAURANTE:
-					printf("Se ha seleccionado el módulo RESTAURANTE ᕕ(◉Д◉ )ᕗ\n");
 					comando = validateCommand(opcion, comando, parametros);
 					switch(comando) {
 						case CONSULTAR_PLATOS:
@@ -110,7 +110,6 @@ void *threadLecturaConsola(void *args) {
 					}
 					break;
 				case OPTION_SINDICATO:
-					printf("Se ha seleccionado el módulo SINDICATO (σ≧∀≦)σ\n");
 					comando = validateCommand(opcion, comando, parametros);
 					switch(comando) {
 						case OBTENER_RESTAURANTE:
@@ -141,7 +140,7 @@ void *threadLecturaConsola(void *args) {
 					}
 					break;
 				case OPTION_AIUDA:
-					mostrarComandosValidos(mensaje);					
+					mostrarComandosValidos(parametro1);					
 					break;
 				case OPTION_BAI:
 					printf("adiosss (๑♡3♡๑)!\n");
@@ -155,7 +154,6 @@ void *threadLecturaConsola(void *args) {
 					break;
 			}
 
-			free(modulo);
 			free(mensaje);
 			free(parametros);
 			free(comandoLeido);

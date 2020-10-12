@@ -4,25 +4,35 @@
 
 char *getLogPath(p_code process) {
 	char *fileName = "";
-	int fullPathLegth = 0;
+	int fullPathLength = 0;
 
 	if (process == CLIENTE) {
 		fileName = obtenerCliente();
-		fullPathLegth = strlen(LOGS_PATH) + strlen(fileName) + strlen(".log") + 1;
+		fullPathLength = strlen(LOGS_PATH) + strlen(fileName) + strlen(".log") + 1;
 	} else {
-		fileName = obtenerLogFileName();
-		fullPathLegth = strlen(fileName) + 1;
+		char *file = obtenerLogFileName();
+		if (!string_starts_with(file, "/home")) {
+			int fLength = strlen("/home") + strlen(file) + 1;
+			char *f = malloc(fLength);
+			strcpy(f, "/home");
+			strcat(f, file);
+			fullPathLength = fLength;
+			fileName = f;
+		} else {
+			fileName = obtenerLogFileName();
+			fullPathLength = strlen(fileName) + 1;
+		}
 	}
 
-	char fullPath[fullPathLegth];
+	char fullPath[fullPathLength];
 	if (process == CLIENTE) {
 		strcpy(fullPath, LOGS_PATH); strcat(fullPath, fileName); strcat(fullPath, ".log");
 	} else {
 		strcpy(fullPath, fileName);
 	}
 
-	char *logPath = malloc(fullPathLegth);
-	for (int i = 0; i < fullPathLegth; i++) {
+	char *logPath = malloc(fullPathLength);
+	for (int i = 0; i < fullPathLength; i++) {
 		logPath[i] = fullPath[i];
 	}
 	return logPath;

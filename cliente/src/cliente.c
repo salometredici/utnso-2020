@@ -299,10 +299,6 @@ void obtenerPedido(char *nombreRestaurante, int idPedido) {
 	free(header);
 }
 
-void cerrarConexion() {
-	liberarConexion(conexion);
-}
-
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
     conexion = conectarseA(CLIENTE);
@@ -319,7 +315,7 @@ int main(int argc, char* argv[]) {
 		//TODO: Lógica del Cliente
 	}
 
-	cerrarConexion();
+	liberarConexion(conexion);
     finalizarProceso();
     return EXIT_SUCCESS;
 }

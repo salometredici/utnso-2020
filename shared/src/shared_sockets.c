@@ -2,6 +2,30 @@
 
 /* Inicialización */
 
+char *crearLogRestaurante() {
+	char *restaurante = obtenerNombreRestaurante();
+	int filenameLength = strlen(restaurante) + 4;
+	char fullPathArray[filenameLength];
+	strcpy(fullPathArray,restaurante);
+	strcat(fullPathArray, ".log");
+	char *file = malloc(filenameLength);
+	file = fullPathArray;
+
+	/* Comentado hasta que nos den una manera de usar log_create enviando una ruta completa y no un nombre de file */
+	//int fullPathLength = strlen(path) + strlen(LOGS_PATH);
+	//char fullPathArray[fullPathLength];
+	//strcpy(fullPathArray, LOGS_PATH);
+	//char *fullPath = strcat(fullPathArray, path);
+
+	return file;
+}
+
+void crearLoggerProceso(char *log_path, char *program) {
+	bool activeConsole = obtenerActiveConsole();
+	int logLevel = obtenerLogLevel();
+	logger = log_create(log_path, program, activeConsole, logLevel);
+}
+
 void inicializarProceso(p_code proceso) {
 	createDirectory(LOGS_PATH);
 	char *log_path = "";
@@ -44,30 +68,6 @@ void inicializarProceso(p_code proceso) {
 		crearLoggerProceso(log_path, program);
 	}
 	logInitializedProcess();
-}
-
-char *crearLogRestaurante() {
-	char *restaurante = obtenerNombreRestaurante();
-	int filenameLength = strlen(restaurante) + 4;
-	char fullPathArray[filenameLength];
-	strcpy(fullPathArray,restaurante);
-	strcat(fullPathArray, ".log");
-	char *file = malloc(filenameLength);
-	file = fullPathArray;
-
-	/* Comentado hasta que nos den una manera de usar log_create enviando una ruta completa y no un nombre de file */
-	//int fullPathLength = strlen(path) + strlen(LOGS_PATH);
-	//char fullPathArray[fullPathLength];
-	//strcpy(fullPathArray, LOGS_PATH);
-	//char *fullPath = strcat(fullPathArray, path);
-
-	return file;
-}
-
-void crearLoggerProceso(char *log_path, char *program) {
-	bool activeConsole = obtenerActiveConsole();
-	int logLevel = obtenerLogLevel();
-	logger = log_create(log_path, program, activeConsole, logLevel);
 }
 
 void finalizarProceso() {

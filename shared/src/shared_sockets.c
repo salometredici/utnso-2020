@@ -27,13 +27,16 @@ char *getLogPath(p_code process) {
 	if (process == CLIENTE) {
 		fileName = obtenerCliente();
 		fullPathLegth = strlen(LOGS_PATH) + strlen(fileName) + strlen(".log") + 1;
+	} else {
+		fileName = obtenerLogFileName();
+		fullPathLegth = strlen(fileName) + 1;
 	}
 
 	char fullPath[fullPathLegth];
 	if (process == CLIENTE) {
 		strcpy(fullPath, LOGS_PATH); strcat(fullPath, fileName); strcat(fullPath, ".log");
 	} else {
-
+		strcpy(fullPath, fileName);
 	}
 
 	char *logPath = malloc(fullPathLegth);
@@ -81,8 +84,10 @@ void inicializarProceso(p_code proceso) {
 	}
 	process = proceso;
 	config = config_create(config_path);
-	if (proceso == CLIENTE) {
-		log_path = getLogPath(CLIENTE);
+	if (proceso == CLIENTE || proceso == RESTAURANTE) {
+		log_path = getLogPath(proceso);
+		crearLoggerProceso(log_path, program);
+	} else {
 		crearLoggerProceso(log_path, program);
 	}
 	// if (proceso == RESTAURANTE) {

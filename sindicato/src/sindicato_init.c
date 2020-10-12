@@ -21,16 +21,15 @@ void obtenerBasePath() {
 }
 
 void setBaseDirs() {
-	blocksPath = malloc(strlen(dirInicial) + strlen(BLOCKS_PATH) + 1);
-	filesPath = malloc(strlen(dirInicial) + strlen(FILES_PATH) + 1);
-	strcpy(blocksPath, dirInicial);	strcpy(filesPath, dirInicial);
-	strcat(blocksPath, BLOCKS_PATH); strcat(filesPath, FILES_PATH);
+	blocksPath = string_new();
+	filesPath = string_new();
+	string_append_with_format(&blocksPath, "%s%s", dirInicial, BLOCKS_PATH);
+	string_append_with_format(&filesPath, "%s%s", dirInicial, FILES_PATH);
 }
 
 void initFromBaseDir(char *dir) {
-	char *newDir = malloc(strlen(dirInicial) + strlen(dir) + 1);
-	strcpy(newDir, dirInicial);
-	strcat(newDir, dir);
+	char *newDir = string_new();
+	string_append_with_format(&newDir, "%s%s", dirInicial, dir);
 	createDirectory(newDir);
 }
 
@@ -48,28 +47,16 @@ void initDirectories() {
 }
 
 void initMetadata() {
-	char *metadataPath = malloc(strlen(puntoMontaje) + strlen(METADATA_PATH) + 1);
-	strcpy(metadataPath, puntoMontaje);
-	strcat(metadataPath, METADATA_PATH);
+	char *metadataPath = string_new();
+	string_append_with_format(&metadataPath, "%s%s", puntoMontaje, METADATA_PATH);
 	metadata = config_create(metadataPath);
 }
 
 void initBlocks() {
-
 	int blocksNumber = getBlocksNumber();
-	int blocksSize = getBlocksSize();
-	int blocksPathLength = strlen(blocksPath);
-
 	for (int i = 0; i< blocksNumber; i++) {
-		// Obtenemos el nombre del archivo #i
-		char *fileName;
-		int res = asprintf(&fileName, "/%d.AFIP", i+1);
-
-		char *fullPath = malloc(blocksPathLength + strlen(fileName) + 1);
-		strcpy(fullPath, blocksPath);
-		strcat(fullPath, fileName);
-		free(fileName);
-
+		char *fullPath = string_new();
+		string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
 		FILE *fp = fopen(fullPath, "w");
 		fclose(fp);
 	}

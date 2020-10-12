@@ -38,8 +38,20 @@ void limpiarPantalla() {
 	system("clear");
 }
 
+// Devuelve el p_code correspondiente a un int
+p_code intToPCode(int key) {
+	for (int i = 0; i < PROCNKEYS; i++) {
+		t_keys sym = diccionarioProcesos[i];
+		if (key == sym.valor) {
+			return sym.valor;
+		}
+	}
+	return ERROR;
+}
+
+
 // Devuelve el valor en string del proceso/comando
-char* getStringKeyValue(int key, int option) {
+char *getStringKeyValue(int key, int option) {
 	t_keys *diccionario; int size;
 	switch (option) {
 		case PROCNKEYS:

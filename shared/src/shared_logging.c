@@ -27,6 +27,11 @@ void logConnectionSuccess(p_code process, int puerto) {
 	}
 }
 
+void logConnectionCliente(p_code process) {
+	printf("Conectado al proceso \033[1;34m%s\033[0m\n", getStringKeyValue(process, PROCNKEYS));
+	log_info("Conectado al proceso %s", getStringKeyValue(process, PROCNKEYS));
+}
+
 void logAwaitingConnections(int puerto) {
 	printf("\033[1;34m%s\033[0m\033[1;32m escuchando conexiones en el puerto %d\033[0m\n", getStringKeyValue(process, PROCNKEYS), puerto);
 	log_info(logger, "%s escuchando conexiones en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);

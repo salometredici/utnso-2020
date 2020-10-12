@@ -13,7 +13,7 @@
 #include "tests.h"
 
 int conexion;
-
+p_code procesoConectado;
 
 t_list *params;
 

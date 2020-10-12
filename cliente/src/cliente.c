@@ -299,13 +299,18 @@ void obtenerPedido(char *nombreRestaurante, int idPedido) {
 	free(header);
 }
 
+void obtenerNombreServidor() {
+	enviarPaquete(conexion, CLIENTE, OBTENER_PROCESO, NULL);
+	t_header *rtaProceso = recibirHeaderPaquete(conexion);
+	procesoConectado = intToPCode(recibirPayloadPaquete(rtaProceso, conexion));
+	logConnectionCliente(procesoConectado);
+	free(rtaProceso);
+}
+
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
     conexion = conectarseA(CLIENTE);
-	enviarPaquete(conexion, CLIENTE, OBTENER_PROCESO, NULL);
-	t_header *rtaConexion = recibirHeaderPaquete(conexion);
-	int proceso = recibirPayloadPaquete(rtaConexion, conexion);
-	printf("me conecte a %s\n", getStringKeyValue(proceso, PROCNKEYS));
+	obtenerNombreServidor();
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);

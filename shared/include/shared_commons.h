@@ -138,6 +138,7 @@ static t_keys diccionarioComandos[] = {
 
 char *getStringKeyValue(int key, int option);
 int commandToString(char *key);
+p_code intToPCode(int key);
 
 // Config
 

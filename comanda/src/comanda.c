@@ -25,25 +25,31 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqGuardarPedido, header->codigoOperacion);
 				free(reqGuardarPedido);
-				// TODO: t_result
-				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rtaGuardarPedido);
+				t_result *rGP = malloc(sizeof(t_result));
+				rGP->msg = "[GUARDAR_PEDIDO] Ok";
+				rGP->hasError = false;
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rGP);
+				free(rGP);
 				break;
 			case GUARDAR_PLATO:;
 				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
 				logRequestPlato(reqGuardarPlato);
 				free(reqGuardarPlato);
-				// TODO: t_result
-				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok\n";
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rtaGuardarPlato);
+				t_result *rGPlato = malloc(sizeof(t_result));
+				rGPlato->msg = "[GUARDAR_PLATO] Ok";
+				rGPlato->hasError = false;
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rGPlato);
+				free(rGPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
-				// TODO: t_result
-				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
+				t_result *rCP = malloc(sizeof(t_result));
+				rCP->msg = "[CONFIRMAR_PEDIDO] Ok";
+				rCP->hasError = false;
+				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, rCP);
+				free(rCP);
 				break;
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;
@@ -69,9 +75,11 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqFin = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqFin, header->codigoOperacion);
 				free(reqFin);
-				// TODO: t_result
-				char *rtaFinalizarPedido = "[FINALIZAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, rtaFinalizarPedido);
+				t_result *rFP = malloc(sizeof(t_result));
+				rFP->msg = "[FINALIZAR_PEDIDO] Ok";
+				rFP->hasError = false;
+				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, rFP);
+				free(rFP);
 				break;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

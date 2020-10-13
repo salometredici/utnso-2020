@@ -219,9 +219,11 @@ void guardarPedido(char *nombreRestaurante, int idPedido) {
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(reqGuardarPedido);
 
-	char *resultGuardarPedido = recibirPayloadPaquete(header, conexion);
-	printf("%s", resultGuardarPedido);
+	t_result *resultGuardarPedido = recibirPayloadPaquete(header, conexion);
+	printf("%s\n", resultGuardarPedido->msg);
+	printf("Tuvo error: %s\n", resultGuardarPedido->hasError ? "true" : "false");
 	log_info(logger, "%s", resultGuardarPedido);
+	free(resultGuardarPedido);
 	free(header);
 }
 
@@ -234,9 +236,11 @@ void aniadirPlato(char *nombrePlato, int idPedido) {
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(reqAniadir);
 
-	char *resultAniadir = recibirPayloadPaquete(header, conexion);
-	printf("%s\n", resultAniadir);
+	t_result *resultAniadir = recibirPayloadPaquete(header, conexion);
+	printf("%s\n", resultAniadir->msg);
+	printf("Tuvo error: %s\n", resultAniadir->hasError ? "true" : "false");
 	log_info(logger, "%s", resultAniadir);
+	free(resultAniadir);
 	free(header);
 }
 
@@ -251,9 +255,11 @@ void guardarPlato(char *nombreRestaurante, int idPedido, char *nombrePlato, int 
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(reqPlato);
 
-	char *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
-	printf("%s\n", resultGuardarPlato);
+	t_result *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
+	printf("%s\n", resultGuardarPlato->msg);
+	printf("Tuvo error: %s\n", resultGuardarPlato->hasError ? "true" : "false");
 	log_info(logger, "%s", resultGuardarPlato);
+	free(resultGuardarPlato);
 	free(header);
 }
 
@@ -266,9 +272,11 @@ void confirmarPedido(int idPedido, char *nombreRestaurante) {
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(pedidoConf);
 
-	char *resultConfPedido = recibirPayloadPaquete(header, conexion);
-	printf("%s", resultConfPedido);
+	t_result *resultConfPedido = recibirPayloadPaquete(header, conexion);
+	printf("%s\n", resultConfPedido->msg);
+	printf("Tuvo error: %s\n", resultConfPedido->hasError ? "true" : "false");
 	log_info(logger, "%s", resultConfPedido);
+	free(resultConfPedido);
 	free(header);
 }
 

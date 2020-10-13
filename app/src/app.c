@@ -48,9 +48,11 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqAniadir, header->codigoOperacion);
 				free(reqAniadir);
-				// TODO: t_result
-				char *rtaAniadirPlato = "[ANIADIR_PLATO] Ok\n";
-				enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, rtaAniadirPlato);
+				t_result *rAP = malloc(sizeof(t_result));
+				rAP->msg = "[ANIADIR_PLATO] Ok\n";
+				rAP->hasError = false;
+				enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, rAP);
+				free(rAP);
 				break;	
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;	
@@ -58,9 +60,11 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
-				// TODO: t_result
-				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
+				t_result *rCP = malloc(sizeof(t_result));
+				rCP->msg = "[CONFIRMAR_PEDIDO] Ok\n";
+				rCP->hasError = false;
+				enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rCP);
+				free(rCP);
 				break;
 			case CONSULTAR_PEDIDO:; // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
 				break;			

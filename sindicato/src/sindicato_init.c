@@ -4,15 +4,11 @@ char *getPuntoMontaje() {
 	return config_get_string_value(config, "PUNTO_MONTAJE");
 }
 
-int getBlocksNumber() {
-	return config_get_int_value(metadata, "BLOCKS");
+int getPuertoEscucha() {
+	return config_get_int_value(config, "PUERTO_ESCUCHA");
 }
 
-int getBlocksSize() {
-	return config_get_int_value(metadata, "BLOCK_SIZE");
-}
-
-void obtenerBasePath() {
+void setBasePath() {
 	// Obtener la ruta del punto de montaje sin el dir /afip
 	char *ultimoDir = strrchr(puntoMontaje, '/');
 	int basePathLength = strlen(puntoMontaje) - strlen(ultimoDir);
@@ -20,6 +16,7 @@ void obtenerBasePath() {
 	strncpy(dirInicial, puntoMontaje, basePathLength);
 }
 
+// Setea blocksPath y filesPath
 void setBaseDirs() {
 	blocksPath = string_new();
 	filesPath = string_new();
@@ -27,34 +24,48 @@ void setBaseDirs() {
 	string_append_with_format(&filesPath, "%s%s", dirInicial, FILES_PATH);
 }
 
+// Setea blockSize y blocksQuantity
+void setMetadata(t_config *metadata) {
+	blockSize = config_get_int_value(metadata, "BLOCK_SIZE");
+	blocksQuantity = config_get_int_value(metadata, "BLOCKS");
+}
+
+// Crea un directorio a partir del dirInicial
 void initFromBaseDir(char *dir) {
 	char *newDir = string_new();
 	string_append_with_format(&newDir, "%s%s", dirInicial, dir);
 	createDirectory(newDir);
 }
 
-void initDirectories() {
-	// Seteamos las variables globales
+// Seteamos las variables globales
+void initVariables() {
+	puertoEscucha = getPuertoEscucha();
 	puntoMontaje = getPuntoMontaje();
 	createDirectory(puntoMontaje);
-	obtenerBasePath();
+	setBasePath();
 	setBaseDirs();
-	// Creamos las carpetas
+}
+
+// Creamos los directorios principales
+void initDirectories() {
 	initFromBaseDir(BLOCKS_PATH);
 	initFromBaseDir(FILES_PATH);
 	initFromBaseDir(RECETAS_PATH);
 	initFromBaseDir(RESTAURANTES_PATH);
 }
 
+// Obtiene los valores de Metadata.AFIP
 void initMetadata() {
 	char *metadataPath = string_new();
 	string_append_with_format(&metadataPath, "%s%s", puntoMontaje, METADATA_PATH);
-	metadata = config_create(metadataPath);
+	t_config *metadata = config_create(metadataPath);
+	setMetadata(metadata);
+	config_destroy(metadata);
 }
 
+// Crea la cantidad BLOCKS de bloques #.AFIP
 void initBlocks() {
-	int blocksNumber = getBlocksNumber();
-	for (int i = 0; i< blocksNumber; i++) {
+	for (int i = 0; i < blocksQuantity; i++) {
 		char *fullPath = string_new();
 		string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
 		FILE *fp = fopen(fullPath, "w");
@@ -63,13 +74,22 @@ void initBlocks() {
 }
 
 void initBitMap() {
-	char *bitMapPath = malloc(strlen(puntoMontaje) + strlen(BITMAP_PATH) + 1);
-	strcpy(bitMapPath, puntoMontaje); strcat(bitMapPath, BITMAP_PATH);
-	FILE *fp = fopen(bitMapPath, "wb+");
-	fclose(fp);
+	int bitmapSize = blocksQuantity * blockSize; // Tamaño del bitmap en bytes
+	char *bitmapPath = string_new();
+	string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
+
+	if (!fdExists(bitmapPath)) {
+		FILE *fp = fopen(bitmapPath, "wb+"); // Y si no existe logueamos algo? 
+		ftruncate(fp, bitmapSize);
+		char *bitmap = mmap(NULL, bitmapSize, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
+		bitarray = bitarray_create_with_mode(bitmap, blocksQuantity/8, LSB_FIRST); // Falta revisar que sea siempre múltiplo de 8
+		fclose(fp);
+	}
+
 }
 
 void init() {
+	initVariables();
 	initDirectories();
 	initMetadata();
 	initBlocks();

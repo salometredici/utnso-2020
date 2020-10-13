@@ -124,8 +124,11 @@ void *atenderConexiones(void *conexionNueva)
 				// 2. Verificar cuál fue el último pedido y crear un nuevo archivo Pedido y ContPedidos++, de ser el 1ero, crear el archivo Pedido1
 				// 3. Responder el mensaje con Ok/fail
 				
-				char *rtaGuardarPedido = "[GUARDAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, rtaGuardarPedido);				
+				t_result *resGP = malloc(sizeof(t_result));
+				resGP->msg = "[GUARDAR_PEDIDO] OK";
+				resGP->hasError = false;
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, resGP);
+				free(resGP);		
 				break;
 			case GUARDAR_PLATO:;
 				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
@@ -139,8 +142,11 @@ void *atenderConexiones(void *conexionNueva)
 				// 4. Verificar si Pl existe en el archivo. CantActual + CantEnviada - Si no existe agregar Pl a lista de Pls y anexar Cant + aumentar precio total del Pedido
 				// 5. Responder el mensaje con Ok/fail
 				
-				char *rtaGuardarPlato = "[GUARDAR_PLATO] Ok\n";
-				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, rtaGuardarPlato);
+				t_result *resGPlato = malloc(sizeof(t_result));
+				resGPlato->msg = "[GUARDAR_PLATO] OK";
+				resGPlato->hasError = false;
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, resGPlato);
+				free(resGPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
@@ -154,8 +160,10 @@ void *atenderConexiones(void *conexionNueva)
 				// 4. Cambiar el estado del Pedido de "Pendiente" a "Confirmado" - Truncar el archivo de ser necesario
 				// 5. Responder el mensaje con Ok/fail
 
-				char *rtaConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, rtaConfPedido);
+				t_result *resCP = malloc(sizeof(t_result));
+				resCP->msg = "[CONFIRMAR_PEDIDO] OK";
+				resCP->hasError = false;
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);

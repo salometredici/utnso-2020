@@ -39,17 +39,22 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqAniadir, header->codigoOperacion);
 				free(reqAniadir);
-				// TODO: t_result
-				char *rtaAniadirPlato = "[ANIADIR_PLATO] Ok\n";
-				enviarPaquete(socketCliente, RESTAURANTE, RTA_ANIADIR_PLATO, rtaAniadirPlato);
+
+				t_result *resAP = malloc(sizeof(t_result));
+				resAP->hasError = false;
+				resAP->msg = "[ANIADIR_PLATO] OK";
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_ANIADIR_PLATO, resAP);
+				free(resAP);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
-				// TODO: t_result
-				char *msjConfPedido = "[CONFIRMAR_PEDIDO] Ok\n";
-				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, msjConfPedido);
+				t_result *resCP = malloc(sizeof(t_result));
+				resCP->hasError = false;
+				resCP->msg = "[CONFIRMAR_PEDIDO] OK";
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
+				free(resCP);
 				break;
 			case CONSULTAR_PEDIDO: // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
 				break;
@@ -89,9 +94,10 @@ int main(int argc, char *argv[])
 	header = recibirHeaderPaquete(conexionSindicato);
 	free(reqGuardarPedido);
 
-	char *resultGuardarPedido = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s\n", resultGuardarPedido);
-	log_info(logger, "%s", resultGuardarPedido);
+	t_result *resultGuardarPedido = recibirPayloadPaquete(header, conexionSindicato);
+	printf("%s\n", resultGuardarPedido->msg);
+	printf("Tuvo error: %s\n", resultGuardarPedido->hasError ? "true" : "false");
+	log_info(logger, "%s", resultGuardarPedido->msg);
 
 	/* Prueba de CONSULTAR_PLATOS */
 
@@ -113,8 +119,9 @@ int main(int argc, char *argv[])
 	header = recibirHeaderPaquete(conexionSindicato);
 	free(reqPlato);
 
-	char *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s\n", resultGuardarPlato);
+	t_result *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
+	printf("%s\n", resultGuardarPlato->msg);
+	printf("Tuvo error: %s\n", resultGuardarPlato->hasError ? "true" : "false");
 	log_info(logger, "%s", resultGuardarPlato);
 
 	/* Prueba de CONFIRMAR_PEDIDO */
@@ -127,8 +134,9 @@ int main(int argc, char *argv[])
 	header = recibirHeaderPaquete(conexionSindicato);
 	free(pedidoConf);
 
-	char *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s\n", resultConfPedido);
+	t_result *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
+	printf("%s\n", resultConfPedido->msg);
+	printf("Tuvo error: %s\n", resultConfPedido->hasError ? "true" : "false");
 	log_info(logger, "%s", resultConfPedido);
 
 	/* Prueba de OBTENER_PEDIDO */

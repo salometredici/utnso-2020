@@ -153,7 +153,7 @@ int obtenerLogLevel();
 
 typedef struct {
 	bool hasError;
-	char *result;
+	char *msg;
 } t_result;
 
 typedef struct {

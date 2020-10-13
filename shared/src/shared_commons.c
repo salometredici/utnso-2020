@@ -2,16 +2,16 @@
 
 // Inicialización
 
-int dirExists(char *directory) {
+bool fdExists(char *fd) {
 	struct stat dirStat;
-	if (stat(directory, &dirStat) < 0) {
-		return ERROR;
+	if (stat(fd, &dirStat) < 0) {
+		return false;
 	}
-	return EXIT_SUCCESS;
+	return true;
 }
 
-createDirectory(char *directory) {
-	if (dirExists(directory) == ERROR) {
+void createDirectory(char *directory) {
+	if (!fdExists(directory)) {
 		recursiveCreateDir(directory);
 	}
 }

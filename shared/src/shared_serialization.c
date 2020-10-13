@@ -24,7 +24,7 @@ int getBytesListaStrings(t_list *listaStrings) {
 }
 
 // Size de dos ints (uno para idPedido y otro para el size de nombreRestaurante) más la longitud de nombreRestaurante en sí
-int getBytesReqPedido(t_request *request) {
+int getBytesReq(t_request *request) {
     return sizeof(int) * 2 + getBytesString(request->nombre);
 }
 
@@ -55,6 +55,11 @@ int getBytesPedido(t_pedido *pedido) {
 	return sizeof(int) * 2 + getBytesListaPlatos(pedido->platos);
 }
 
+// Size de un bool, de un string y un int que representa el size del string
+int getBytesTResult(t_result *result) {
+	return sizeof(bool) + getBytesString(result->msg) + sizeof(int);
+}
+
 int getBytesEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
 	return sizeof(t_posicion);
 }
@@ -68,8 +73,10 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case ANIADIR_PLATO:
 		case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
+		case TERMINAR_PEDIDO:
 		case CONFIRMAR_PEDIDO:
-            payloadSize += getBytesReqPedido(stream);
+		case FINALIZAR_PEDIDO:
+            payloadSize += getBytesReq(stream); // Cambiarle el nombre a la función ?
             break;
 		// Envío de t_req_plato
 		case GUARDAR_PLATO:
@@ -88,26 +95,37 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			payloadSize += sizeof(int);
 			break;
 		// Envío de un sólo string
-		case OBTENER_RESTAURANTE:
+		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
-		case CONSULTAR_PEDIDO:
+		case CONSULTAR_PEDIDO: // recibe id pedido
+		case OBTENER_RESTAURANTE:
+		case RTA_CONSULTAR_PEDIDO:
+			payloadSize += getBytesString(stream);
+			break;
+		// Envío de un t_result
 		case RTA_PLATO_LISTO:
 		case RTA_ANIADIR_PLATO:
 		case RTA_GUARDAR_PLATO:
 		case RTA_GUARDAR_PEDIDO:
+		case RTA_TERMINAR_PEDIDO:
 		case RTA_CONFIRMAR_PEDIDO:
-		case RTA_CONSULTAR_PEDIDO:
-			payloadSize += getBytesString(stream);
+		case RTA_FINALIZAR_PEDIDO:
+		case RTA_SELECCIONAR_RESTAURANTE:
+			payloadSize += getBytesTResult(stream);
 			break;
 		// Envío de t_posicion
 		case RTA_OBTENER_RESTAURANTE:
 			payloadSize += getBytesEjemplo();
 			break;
 		// Envío de una lista de strings
-        case PLATO_LISTO:
+        case PLATO_LISTO: // Envía restaurante, id pedido y comida
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payloadSize += getBytesListaStrings(stream);
+			break;
+		// Envío de una receta
+		case RTA_OBTENER_RECETA:
+			// TODO
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
 		case CREAR_PEDIDO:
@@ -220,7 +238,7 @@ void *srlzListaStrings(t_list *listaStrings) {
 // Método para serializar un t_request
 void *srlzRequest(t_request *request) {
     int desplazamiento = 0;
-    int size = getBytesReqPedido(request);
+    int size = getBytesReq(request);
     int longitudPalabra = getBytesString(request->nombre);
 	char *palabra = request->nombre;
 

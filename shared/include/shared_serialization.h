@@ -19,11 +19,12 @@ typedef struct {
 // GetBytes
 
 int getBytesHeader();
-int getBytesString(char *string);
-int getBytesListaStrings(t_list *listaStrings);
-int getBytesReqPedido(t_request *request);
-int getBytesReqPlato(t_req_plato *request);
 int getBytesEjemplo();
+int getBytesString(char *string);
+int getBytesTResult(t_result *result);
+int getBytesReq(t_request *request);
+int getBytesReqPlato(t_req_plato *request);
+int getBytesListaStrings(t_list *listaStrings);
 int getPayloadSize(m_code codigoOperacion, void *stream);
 int getTamanioTotalPaquete(m_code codigoOperacion, void *stream);
 
@@ -42,6 +43,7 @@ void serializarPayload(void *buffer, m_code codigoOperacion, void *stream);
 void *srlzInt(int valor);
 void *srlzString(char *mensaje);
 void *srlzPedido(t_pedido *pedido);
+void *srlzTResult(t_result *result);
 void *srlzRequest(t_request *request);
 void *srlzReqPlato(t_req_plato *request);
 void *srlzListaStrings(t_list *listaStrings);
@@ -54,6 +56,7 @@ t_list *dsrlzListaStrings(void *buffer, int sizeLista);
 t_request *dsrlzRequest(void *buffer);
 t_req_plato *dsrlzReqPlato(void *buffer);
 t_pedido *dsrlzPedido(void *buffer, int size);
+t_result *dsrlzTResult(void *buffer);
 t_posicion *dsrlzRtaObtenerRestaurante(void *buffer);
 
 #endif

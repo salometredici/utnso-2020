@@ -81,10 +81,13 @@ int getBytesListaRecetas(t_list *listaRecetas) {
 // size de lista de afinidades = bytes de cada palabra + un int que represente esos bytes
 // size de lista de platos = suma de cada size de t_md_receta
 int getBytesMd(md_restaurante *md) {
-	return sizeof(int) * 7 + getBytesListaStrings(md->afinidades); + getBytesListaRecetas(md->platos);
+	int bytesInts = sizeof(int) * 7;
+	int bytesListaRecetas = getBytesListaRecetas(md->platos);
+	int bytesListaAfinidades = getBytesListaStrings(md->afinidades);
+	return bytesInts + bytesListaRecetas + bytesListaAfinidades; 
 }
 
-int getBytesEjemplo() { // Ejemplo para una estructura custom que sólo se compone de dos ints (nada variable como un char*)
+int getBytesTPosicion() {
 	return sizeof(t_posicion);
 }
 
@@ -100,7 +103,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case TERMINAR_PEDIDO:
 		case CONFIRMAR_PEDIDO:
 		case FINALIZAR_PEDIDO:
-            payloadSize += getBytesReq(stream); // Cambiarle el nombre a la función ?
+            payloadSize += getBytesReq(stream);
             break;
 		// Envío de t_req_plato
 		case GUARDAR_PLATO:
@@ -137,9 +140,9 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case RTA_SELECCIONAR_RESTAURANTE:
 			payloadSize += getBytesTResult(stream);
 			break;
-		// Envío de t_posicion
+		// Envío de md_restaurante
 		case RTA_OBTENER_RESTAURANTE:
-			payloadSize += getBytesMd(stream);//getBytesEjemplo();
+			payloadSize += getBytesMd(stream);
 			break;
 		// Envío de una lista de strings
         case PLATO_LISTO: // Envía restaurante, id pedido y comida
@@ -217,7 +220,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			buffer = srlzTResult(stream);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
-			buffer = srlzMd(stream);//srlzRtaObtenerRestaurante(stream);
+			buffer = srlzMd(stream);
 			break;
 		case RTA_OBTENER_PEDIDO:
 			buffer = srlzPedido(stream);
@@ -248,7 +251,7 @@ void *srlzString(char *mensaje) {
 	return magic;
 }
 
-// Método para serializar un t_result
+// Función para serializar un t_result
 void *srlzTResult(t_result *result) {
 	int desplazamiento = 0;
 	char *msg = result->msg;
@@ -265,7 +268,7 @@ void *srlzTResult(t_result *result) {
 	return magic;
 }
 
-// Método para serializar una lista de strings
+// Función para serializar una lista de strings
 void *srlzListaStrings(t_list *listaStrings) {
 	int desplazamiento = 0;
 	int lengthLista = list_size(listaStrings);
@@ -284,7 +287,7 @@ void *srlzListaStrings(t_list *listaStrings) {
 	return magic;
 }
 
-// Método para serializar un t_request
+// Función para serializar un t_request
 void *srlzRequest(t_request *request) {
     int desplazamiento = 0;
     int size = getBytesReq(request);
@@ -301,7 +304,7 @@ void *srlzRequest(t_request *request) {
     return magic;
 }
 
-// Método para serializar un t_req_plato
+// Función para serializar un t_req_plato
 void *srlzReqPlato(t_req_plato *request) {
 	int desplazamiento = 0;
 	int size = getBytesReqPlato(request);
@@ -326,6 +329,7 @@ void *srlzReqPlato(t_req_plato *request) {
 	return magic;
 }
 
+// Función para serializar un t_pedido
 void *srlzPedido(t_pedido *pedido) {
 	int desplazamiento = 0;
 	t_list *listaPlatos = (t_list*) pedido->platos;
@@ -358,6 +362,7 @@ void *srlzPedido(t_pedido *pedido) {
 	return magic;
 }
 
+// Función para serializar un md_restaurante
 void *srlzMd(md_restaurante *md) {
 	int desplazamiento = 0;
 	t_list *recetas = (t_list*) md->platos;
@@ -415,11 +420,11 @@ void *srlzMd(md_restaurante *md) {
 	return magic;
 }
 
-void *srlzRtaObtenerRestaurante(t_posicion* posicion) { // Es un ejemplo
+void *srlzTPosicion(t_posicion* posicion) {
 	t_posicion* unaPosicion = (t_posicion*) posicion;
 	int desplazamiento = 0;
 
-	int size = getBytesEjemplo(); // Tamaño de la posición de un restaurante
+	int size = getBytesTPosicion();
 
 	void *magic = malloc(size);
 
@@ -442,7 +447,7 @@ void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 	}
 }
 
-/* Métodos de envío de header/payload */
+/* Funciones de envío de header/payload */
 
 void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, void *stream) {
 	int tamanioTotal = getTamanioTotalPaquete(codigoOperacion, stream);
@@ -474,14 +479,14 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 
 /* Deserialización */
 
-// Método para deserializar un único string
+// Función para deserializar un único string
 char *dsrlzString(void *buffer, int sizeString) {
 	char *cadena = malloc(sizeString);
 	memcpy(cadena, buffer, sizeString);
 	return cadena;
 }
 
-// Método para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
+// Función para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
 t_list *dsrlzListaStrings(void *buffer, int sizeLista) {
 	int longitudPalabra;
 	int desplazamiento = 0;
@@ -634,6 +639,7 @@ md_restaurante *dsrlzMd(void *buffer, int size) {
 		recetaActual->plato = plato;
 		memcpy(&recetaActual->precio, buffer + desplazamiento, sizeof(int)); // Precio de la receta
 		desplazamiento += sizeof(int);
+		// Agregamos la receta a la lista
 		list_add(platos, recetaActual);
 	}
 
@@ -642,7 +648,7 @@ md_restaurante *dsrlzMd(void *buffer, int size) {
 	return md;
 }
 
-t_posicion *dsrlzRtaObtenerRestaurante(void *buffer) { // Por ahora
+t_posicion *dsrlzTPosicion(void *buffer) {
 	t_posicion *posicion = malloc(sizeof(t_posicion));
 	int desplazamiento = 0;
 
@@ -677,7 +683,7 @@ int dsrlzInt(void *buffer) {
 	return valor;
 }
 
-/* Métodos de recepción de paquetes */
+/* Funciones de recepción de paquetes */
 
 t_header *recibirHeaderPaquete(int socket) {
 	int proceso, mensaje;
@@ -742,7 +748,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			buffer = dsrlzTResult(buffer);
 			break;
 		case RTA_OBTENER_RESTAURANTE:
-			buffer = dsrlzMd(buffer, size);//dsrlzRtaObtenerRestaurante(buffer);			
+			buffer = dsrlzMd(buffer, size);			
 			break;
 		case RTA_OBTENER_PEDIDO:
 			buffer = dsrlzPedido(buffer, size);

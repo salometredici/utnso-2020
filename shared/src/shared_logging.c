@@ -57,9 +57,9 @@ void logListaRecetas(t_list *listaRecetas) {
 	int cantidadRecetas = list_size(listaRecetas);
 	for (int i = 0; i < cantidadRecetas; i++) {
 		t_md_receta *recetaActual = list_get(listaRecetas, i);
-		printf("Receta [%d]:\n", i);
-		printf("\tPlato: [%s]\n", recetaActual->plato);
-		printf("\tPrecio: $%d\n", recetaActual->precio);
+		printf("\t\033[1m[Receta #%d]\033[0m\n");
+		printf("\tPlato: \033[1m[%s]\033[0m\n", recetaActual->plato);
+		printf("\tPrecio: \033[1m$%d\033[0m\n", recetaActual->precio);
 		log_info(logger, "Receta [%d] - Plato: [%s], Precio: $%d", i, recetaActual->plato, recetaActual->precio);
 		free(recetaActual);
 	}
@@ -68,18 +68,21 @@ void logListaRecetas(t_list *listaRecetas) {
 void logMetadata(md_restaurante *md) {//(t_posicion *posicion) {
 	// printf("\tUbicación del restaurante: posX: %d, posY: %d\n", posicion->posX, posicion->posY);
 	// log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
-	printf("Metadata del restaurante:\n");
-	printf("\tCantidad de cocineros: %d\n", md->cantidadCocineros);
-	printf("\tCantidad de hornos: %d\n", md->cantidadHornos);
-	printf("\tCantidad de pedidos: %d\n", md->cantidadPedidos);
-	printf("\tPosición del restaurante: [%d,%d]\n", md->posX, md->posY);
-	logListaRecetas(md->platos);
-	mostrarListaStrings(md->afinidades);
+	printf("\033[1m[Metadata del restaurante]:\033[0m\n");
 	log_info(logger, "Metadata del restaurante:");
+	printf("\tCantidad de cocineros: \033[1m%d\033[0m\n", md->cantidadCocineros);
+	printf("\tCantidad de hornos: \033[1m%d\033[0m\n", md->cantidadHornos);
+	printf("\tCantidad de pedidos: \033[1m%d\033[0m\n", md->cantidadPedidos);
+	printf("\tPosición del restaurante: \033[1m[%d,%d]\033[0m\n", md->posX, md->posY);
 	log_info(logger, "\tCantidad de cocineros: %d", md->cantidadCocineros);
 	log_info(logger, "\tCantidad de hornos: %d", md->cantidadHornos);
 	log_info(logger, "\tCantidad de pedidos: %d", md->cantidadPedidos);
 	log_info(logger, "\tPosición del restaurante: [%d,%d]", md->posX, md->posY);
+	printf("\t\033[1mAfinidades:\033[0m\n");
+	log_info(logger, "\tAfinidades:");
+	mostrarListaStrings(md->afinidades);
+	printf("\t\033[1mRecetas:\033[1m\n");
+	logListaRecetas(md->platos);
 }
 
 void logHeader(m_code codigoOperacion, p_code procesoOrigen) {

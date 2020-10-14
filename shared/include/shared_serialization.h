@@ -25,7 +25,7 @@ int getBytesTResult(t_result *result);
 int getBytesReq(t_request *request);
 int getBytesReqPlato(t_req_plato *request);
 int getBytesListaStrings(t_list *listaStrings);
-int getBytesEjemplo();
+int getBytesTPosicion();
 int getBytesMd();
 int getPayloadSize(m_code codigoOperacion, void *stream);
 int getTamanioTotalPaquete(m_code codigoOperacion, void *stream);
@@ -50,7 +50,7 @@ void *srlzTResult(t_result *result);
 void *srlzRequest(t_request *request);
 void *srlzReqPlato(t_req_plato *request);
 void *srlzListaStrings(t_list *listaStrings);
-void *srlzRtaObtenerRestaurante(t_posicion *posicion);
+void *srlzTPosicion(t_posicion *posicion);
 
 // Deserializar
 
@@ -61,6 +61,6 @@ t_request *dsrlzRequest(void *buffer);
 t_req_plato *dsrlzReqPlato(void *buffer);
 t_pedido *dsrlzPedido(void *buffer, int size);
 t_result *dsrlzTResult(void *buffer);
-t_posicion *dsrlzRtaObtenerRestaurante(void *buffer);
+t_posicion *dsrlzTPosicion(void *buffer);
 
 #endif

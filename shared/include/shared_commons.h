@@ -143,7 +143,6 @@ p_code intToPCode(int key);
 // Config
 
 int obtenerPuertoEscucha();
-char *obtenerNombreRestaurante();
 char *obtenerCliente();
 char *obtenerLogFileName();
 bool obtenerActiveConsole();
@@ -191,6 +190,21 @@ typedef struct { // Ir actualizando con erratas del TP! No debería tener el id 
 	t_list *platos;
 	int precioTotal; // Quizás después corresponda un float o double
 } t_pedido;
+
+typedef struct {
+	char *plato;
+	int precio;
+} t_md_receta;
+
+typedef struct { // cantidad de cocineros y sus afinidades, posicino del restaurante, recetas con sus precios y cantidad de hornos, cantidad de pedidos
+	int posX;
+	int posY;
+	int cantidadHornos;
+	int cantidadPedidos;
+	int cantidadCocineros;
+	t_list *platos; // lista de t_md_receta
+	t_list *afinidades; // lista de strings
+} md_restaurante;
 
 void limpiarPantalla();
 

@@ -1,5 +1,8 @@
 #include "../include/restaurante.h"
 
+
+
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
@@ -73,16 +76,14 @@ int main(int argc, char *argv[])
 {
 	inicializarProceso(RESTAURANTE);
 	socketServidor = iniciarServidor();
-	conexionSindicato = conectarseA(SINDICATO);
-	nombreRestaurante = obtenerNombreRestaurante();
+	initRestaurante();
 
-	/* Obtener MD del Restaurante */
 
-	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
-	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	t_posicion *pos = recibirPayloadPaquete(header, conexionSindicato);
-	logMetadata(pos);
-	free(pos);
+
+
+
+
+
 
 	/* Prueba de GUARDAR_PEDIDO */
 
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
 	reqGuardarPedido->idPedido = 777;
 
 	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, reqGuardarPedido);
-	header = recibirHeaderPaquete(conexionSindicato);
+	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	free(reqGuardarPedido);
 
 	t_result *resultGuardarPedido = recibirPayloadPaquete(header, conexionSindicato);
@@ -152,9 +153,6 @@ int main(int argc, char *argv[])
 	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexionSindicato);
 	mostrarListaPlatos(pedidoCompleto->platos);
 	free(pedidoCompleto);
-
-	// Creación de las distintas colas de planificación
-		//TODO
 
 	// Inicio del bucle que va a generar los diferentes hilos de conexión
 	int fd;

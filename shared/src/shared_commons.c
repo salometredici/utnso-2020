@@ -98,10 +98,6 @@ int obtenerPuertoEscucha() {
 	return config_get_int_value(config, "PUERTO_ESCUCHA");
 }
 
-char* obtenerNombreRestaurante() {
-	return config_get_string_value(config, "NOMBRE_RESTAURANTE");
-}
-
 bool obtenerActiveConsole() { 
 	return config_get_int_value(config, "ACTIVE_CONSOLE");
 }

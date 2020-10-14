@@ -185,9 +185,9 @@ void seleccionarRestaurante(int socketCliente, char *nombreRestaurante) {
 void obtenerRestaurante(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
-	t_posicion *pos = recibirPayloadPaquete(header, conexion);
-	logMetadata(pos);
-	free(pos);
+	md_restaurante *md = recibirPayloadPaquete(header, conexion);
+	logMetadata(md);
+	free(md);
 	free(header);
 }
 

@@ -53,9 +53,33 @@ void logNewClientConnection(int socket) {
 
 /* Serialization logs */
 
-void logMetadata(t_posicion *posicion) {
-	printf("\tUbicación del restaurante: posX: %d, posY: %d\n", posicion->posX, posicion->posY);
-	log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+void logListaRecetas(t_list *listaRecetas) {
+	int cantidadRecetas = list_size(listaRecetas);
+	for (int i = 0; i < cantidadRecetas; i++) {
+		t_md_receta *recetaActual = list_get(listaRecetas, i);
+		printf("Receta [%d]:\n", i);
+		printf("\tPlato: [%s]\n", recetaActual->plato);
+		printf("\tPrecio: $%d\n", recetaActual->precio);
+		log_info(logger, "Receta [%d] - Plato: [%s], Precio: $%d", i, recetaActual->plato, recetaActual->precio);
+		free(recetaActual);
+	}
+}
+
+void logMetadata(md_restaurante *md) {//(t_posicion *posicion) {
+	// printf("\tUbicación del restaurante: posX: %d, posY: %d\n", posicion->posX, posicion->posY);
+	// log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+	printf("Metadata del restaurante:\n");
+	printf("\tCantidad de cocineros: %d\n", md->cantidadCocineros);
+	printf("\tCantidad de hornos: %d\n", md->cantidadHornos);
+	printf("\tCantidad de pedidos: %d\n", md->cantidadPedidos);
+	printf("\tPosición del restaurante: [%d,%d]\n", md->posX, md->posY);
+	logListaRecetas(md->platos);
+	mostrarListaStrings(md->afinidades);
+	log_info(logger, "Metadata del restaurante:");
+	log_info(logger, "\tCantidad de cocineros: %d", md->cantidadCocineros);
+	log_info(logger, "\tCantidad de hornos: %d", md->cantidadHornos);
+	log_info(logger, "\tCantidad de pedidos: %d", md->cantidadPedidos);
+	log_info(logger, "\tPosición del restaurante: [%d,%d]", md->posX, md->posY);
 }
 
 void logHeader(m_code codigoOperacion, p_code procesoOrigen) {

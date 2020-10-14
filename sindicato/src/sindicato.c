@@ -92,10 +92,26 @@ void *atenderConexiones(void *conexionNueva)
 				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
 				logMetadataRequest(nombreRestaurante);
 
-				t_posicion *posicionRestaurante = malloc(sizeof(t_posicion));
-				posicionRestaurante->posX = 25; posicionRestaurante->posY = 45; // Ejemplo de envío de una rta con un struct t_posicion
+				md_restaurante *md = malloc(sizeof(md_restaurante));
 
-				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, posicionRestaurante);
+				t_list *afinidades = list_create();
+				list_add(afinidades, "Milanesas");
+				md->afinidades = afinidades;
+
+				t_list *platosMd = list_create();
+				t_md_receta *r1 = malloc(sizeof(t_md_receta)); t_md_receta *r2 = malloc(sizeof(t_md_receta));
+				r1->plato = "Milanesas"; r1->precio = 150;
+				r2->plato = "Pizza"; r2->precio = 220;
+				list_add(platosMd, r1); list_add(platosMd, r2);
+				md->platos = platosMd;
+
+				md->posX = 5; md->posY = 7;
+				md->cantidadCocineros = 3; md->cantidadHornos = 2; md->cantidadPedidos = 1;
+
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, md);
+				free(r1); free(r2); free(platosMd);
+				free(afinidades);
+				free(md);
 				break;
 			case CONSULTAR_PLATOS:;
 				char *restConsulta = recibirPayloadPaquete(header, socketCliente);

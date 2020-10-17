@@ -65,9 +65,9 @@ void logListaRecetas(t_list *listaRecetas) {
 	}
 }
 
-void logMetadata(md_restaurante *md) {//(t_posicion *posicion) {
-	// printf("\tUbicación del restaurante: posX: %d, posY: %d\n", posicion->posX, posicion->posY);
-	// log_info(logger, "Ubicación del restaurante: posX: %d, posY: %d", posicion->posX, posicion->posY);
+/* md_restaurante */
+
+void logMetadata(md_restaurante *md) {
 	printf("\033[1m[Metadata del restaurante]:\033[0m\n");
 	log_info(logger, "Metadata del restaurante:");
 	printf("\tCantidad de cocineros: \033[1m%d\033[0m\n", md->cantidadCocineros);

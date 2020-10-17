@@ -18,6 +18,7 @@
 #include <commons/string.h>
 #include <readline/readline.h>
 #include <commons/collections/list.h>
+#include <commons/collections/queue.h>
 
 #define BASE_PATH "/home/utnso/tp-2020-2c-death-code/"
 #define LOGS_PATH "/home/utnso/logs/"

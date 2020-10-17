@@ -9,6 +9,8 @@ void *atenderConexiones(void *conexionNueva)
     int socketCliente = t_data->socketThread;
     free(t_data);
 
+	int socketSindicato = ERROR;
+
 	while (1) {
 
 		t_header *header = recibirHeaderPaquete(socketCliente);
@@ -19,6 +21,8 @@ void *atenderConexiones(void *conexionNueva)
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
+
+		socketSindicato = conectarseA(SINDICATO);
 
 		switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
@@ -68,6 +72,7 @@ void *atenderConexiones(void *conexionNueva)
 		free(header);
 	}
 
+	liberarConexion(socketSindicato); // si no es error, lo liberamo'
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }

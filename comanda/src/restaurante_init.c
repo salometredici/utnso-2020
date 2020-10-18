@@ -1,9 +1,9 @@
-#include "init.h"
+#include "../include/comanda_init.h"
 
 void initVariables()
 {
     MEMORY_SIZE =  config_get_int_value(config, "TAMANIO_MEMORIA");
-    SWAP_SIZE = config_get_int_values(config, "TAMANIO_SWAP");
+    SWAP_SIZE = config_get_int_value(config, "TAMANIO_SWAP");
     ALGORITMO_REEMPLAZO = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
 

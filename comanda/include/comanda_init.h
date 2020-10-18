@@ -1,13 +1,9 @@
 #ifndef INIT_H
 #define INIT_H
 
-#include <commons/collections/list.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <commons/string.h>
-#include <commons/bitarray.h>
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
+#include "../../shared/include/shared_serialization.h"
 
 #define PAGE_SIZE 24 // por enunciado 
 

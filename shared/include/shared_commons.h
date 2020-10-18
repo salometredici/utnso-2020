@@ -141,6 +141,8 @@ char *getStringKeyValue(int key, int option);
 int commandToString(char *key);
 p_code intToPCode(int key);
 
+bool stringFound(char *expected, char *actual);
+
 // Config
 
 int obtenerPuertoEscucha();

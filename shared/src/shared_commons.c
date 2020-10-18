@@ -38,6 +38,11 @@ void limpiarPantalla() {
 	system("clear");
 }
 
+bool stringFound(char *expected, char *string) {
+	char* actual = string;
+	return string_equals_ignore_case(expected, actual);
+}
+
 // Devuelve el p_code correspondiente a un int
 p_code intToPCode(int key) {
 	for (int i = 0; i < PROCNKEYS; i++) {

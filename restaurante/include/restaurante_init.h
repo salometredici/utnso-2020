@@ -16,21 +16,25 @@ int cantidadHornos; // i/o
 int cantidadPedidos; // necesita semaforo, se va a usar para generar id de pedidos nuevos
 int cantidadCocineros; // define multiprocesamiento, Y AFINIDADES!
 t_list *recetasDisponibles;
-t_list *afinidadesDisponibles;
+t_list *afinidadesMd;
 t_posicion *posicion;
 
-// Planificación
+
+int QAfinidadesUnicas;
+t_list *afinidadesUnicas;
 
 t_list *queuesCocineros;
-
 typedef struct {
-    int idCocinero;
     char *afinidad;
-    t_queue *queueReady;
-    t_queue *queueExec;
-    t_queue *queueBloq;
-    t_queue *queueFinished;
+    int instanciasTotales;
+    t_queue *qR;
+    t_queue *qE;
+    t_queue *qB;
+    t_queue *qF;
 } t_queue_obj;
+
+
+// Planificación
 
 t_list *queuesIO;
 

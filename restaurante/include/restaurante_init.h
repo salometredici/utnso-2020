@@ -19,7 +19,6 @@ t_list *recetasDisponibles;
 t_list *afinidadesMd;
 t_posicion *posicion;
 
-
 int QAfinidadesUnicas;
 t_list *afinidadesUnicas;
 

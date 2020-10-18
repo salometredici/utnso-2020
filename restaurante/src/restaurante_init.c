@@ -38,6 +38,7 @@ void inicializarListaCocineros()
 	afinidadesUnicas = list_create();
 	int QAfinidadesMd = list_size(afinidadesMd);
 
+	// Primero agregamos las afinidades sin repetidos de las obtenidas de Sindicato
 	for (int i = 0; i < QAfinidadesMd; i++) {
 		char *afinidadActual = list_get(afinidadesMd, i);
 
@@ -51,31 +52,22 @@ void inicializarListaCocineros()
 		
 		if (list_is_empty(filtradas)) {
 			list_add(afinidadesUnicas, afinidadActual);
-			int ocurrenciasAA = list_count_satisfying(afinidadesMd, &stringFound); //
 		}
 	}
 
+	// Si la cantidad de afinidades obtenidas de Sindicato era menor a la cantidad de cocineros, debemos agregar la afinidad General
 	if (QAfinidadesMd < cantidadCocineros) {
-		int afMdUnicas = list_size(afinidadesUnicas);
-		int o = cantidadCocineros - QAfinidadesMd; //afMdUnicas;
 		list_add(afinidadesUnicas, "General");
 	}
-		
-	int we = list_size(afinidadesUnicas);
-	printf("afinidades unicas: %d\n", we);
-	
-	for (int i = 0; i < we; i++) {
-		printf("afinidad %d: %s\n", i, list_get(afinidadesUnicas, i));
-	}
 
-	// Una vez que tenemos la lista de afinidades únicas creamos su t_queue_obj
+	// Una vez que tenemos la lista de afinidades únicas creamos los t_queue_obj correspondientes a cada una
 
 	QAfinidadesUnicas = list_size(afinidadesUnicas);
 
 	for (int i = 0; i < QAfinidadesUnicas; i++) {
 		t_queue_obj *cpuActual = malloc(sizeof(t_queue_obj));
-		char *afinidadActual = list_get(afinidadesUnicas, i);//afinidadesDisponibles, i);
-		cpuActual->afinidad = afinidadActual;//afinidadActual != NULL ? afinidadActual : "General" ;
+		char *afinidadActual = list_get(afinidadesUnicas, i);
+		cpuActual->afinidad = afinidadActual;
 
 		bool stringFound(void *actual) {
 			char *stringActual = actual;
@@ -88,26 +80,19 @@ void inicializarListaCocineros()
 			cpuActual->instanciasTotales = cantidadCocineros - QAfinidadesMd;
 		}
 		
-		t_queue *qR = queue_create();
-		t_queue *qE = queue_create();
-		t_queue *qB = queue_create();
-		t_queue *qF = queue_create();
-
-		cpuActual->qR = qR;
-		cpuActual->qE = qE;
-		cpuActual->qB = qB;
-		cpuActual->qF = qF;
+		t_queue *qR = queue_create(); cpuActual->qR = qR;
+		t_queue *qE = queue_create(); cpuActual->qE = qE;
+		t_queue *qB = queue_create(); cpuActual->qB = qB;
+		t_queue *qF = queue_create(); cpuActual->qF = qF;
 
 		list_add(queuesCocineros, cpuActual);
 	}
 
-	for (int i = 0; i < list_size(queuesCocineros); i++) {
-		t_queue_obj *cpuActual = list_get(queuesCocineros, i);
-		printf("%d: afinidad: %s, instancias: %d, qR: %d, qE: %d, qB: %d, qF: %d\n", i, cpuActual->afinidad, cpuActual->instanciasTotales, &cpuActual->qR, &cpuActual->qE, &cpuActual->qB, &cpuActual->qF);
-	}
-
-	
-
+	//  Agregarlo a logging
+	// for (int i = 0; i < list_size(queuesCocineros); i++) {
+	// 	t_queue_obj *cpuActual = list_get(queuesCocineros, i);
+	// 	printf("%d: afinidad: %s, instancias: %d, qR: %d, qE: %d, qB: %d, qF: %d\n", i, cpuActual->afinidad, cpuActual->instanciasTotales, &cpuActual->qR, &cpuActual->qE, &cpuActual->qB, &cpuActual->qF);
+	// }
 }
 
 void inicializarQueuesIO()

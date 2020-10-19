@@ -95,11 +95,10 @@ void *atenderConexiones(void *conexionNueva)
 int main(int argc, char **argv) {
 	inicializarProceso(COMANDA);
     socketServidor = iniciarServidor();
-
-	initStructures();
+	initComanda();
 	
     int fd;
-    while(1) {
+    while (1) {
         fd = aceptarCliente(socketServidor);
         if (fd != -1) {
 			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));

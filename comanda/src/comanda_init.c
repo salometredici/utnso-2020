@@ -1,14 +1,12 @@
 #include "../include/comanda_init.h"
 
-void initVariables()
-{
-    MEMORY_SIZE =  config_get_int_value(config, "TAMANIO_MEMORIA");
+void initVariables() {
     SWAP_SIZE = config_get_int_value(config, "TAMANIO_SWAP");
+    MEMORY_SIZE = config_get_int_value(config, "TAMANIO_MEMORIA");
     ALGORITMO_REEMPLAZO = config_get_string_value(config, "ALGORITMO_REEMPLAZO");
 }
 
-void initTables()
-{
+void initTables() {
     memory = list_create();
 	restaurantes = list_create();
 }
@@ -16,10 +14,9 @@ void initTables()
 void imprimirEstructura()
 {
 	int size = list_size(memory);
-
 	for(int i = 0; i < size; i++)
 	{
-		printf("Id Frame %d", i);
+		printf("Id Frame %d\n", i);
 		log_info(logger, "Nro de Frame %d", i);
 	}
 	
@@ -43,20 +40,19 @@ void initMemoriaPrincipal()
 	int i;
 	for(int i = 0; i < frames; i++)
 	{
-		frame* t_frame = malloc(sizeof(frame));
-		t_frame->cantidad = 0;
-		t_frame->cantidadLista = 0;
-		t_frame->comidas = NULL;
+		t_frame* frame = malloc(sizeof(t_frame));
+		frame->cantidad = 0;
+		frame->cantidadLista = 0;
+		frame->comidas = NULL;
 
-		list_add(memory, t_frame);
+		list_add(memory, frame);
 	}
 
 	imprimirEstructura();
 
 }
 
-void initStructures()
-{
+void initComanda() {
     initVariables();
     initTables();
     initMemoriaPrincipal();

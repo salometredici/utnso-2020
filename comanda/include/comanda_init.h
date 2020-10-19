@@ -1,42 +1,42 @@
-#ifndef INIT_H
-#define INIT_H
+#ifndef COMANDA_INIT_H
+#define COMANDA_INIT_H
 
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
+#include "tests.h"
 
 #define PAGE_SIZE 32 // por enunciado 
 
-t_list * memory;
-t_list * maps;
+t_list *memory;
+t_list *maps;
 t_list *restaurantes;
 
-void ** MEMORY;
+void **MEMORY;
 int MEMORY_SIZE;
 int SWAP_SIZE;
-char* ALGORITMO_REEMPLAZO;
+char *ALGORITMO_REEMPLAZO;
 
 typedef struct{
     uint32_t cantidad;
     uint32_t cantidadLista;
     char *comidas;
-}frame;
+} t_frame;
 
 typedef struct{
-    char* name;
+    char *name;
     uint32_t idsegment;
-    void* pages;
-}segment;
+    void *pages;
+} t_segment;
 
 typedef struct{
     int frameNumber;
     int plato;
-}page;
+} t_page;
 
 void initStructures();
 void initVariables();
 void initTables();
 void imprimirEstructura();
-
 
 #endif

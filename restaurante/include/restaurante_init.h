@@ -10,20 +10,31 @@ int socketServidor;
 int conexionSindicato;
 char *nombreRestaurante;
 
-// Valores obtenidos de md
+pthread_t threadConexiones;
+char *respuesta;
 
-int cantidadHornos; // i/o
+int quantum;
+char *algoritmoPlanificacion;
+
+/* Metadata */
+
+int cantidadHornos;
 int cantidadPedidos; // necesita semaforo, se va a usar para generar id de pedidos nuevos
-int cantidadCocineros; // define multiprocesamiento, Y AFINIDADES!
+int cantidadCocineros;
 t_list *recetasDisponibles;
 t_list *afinidadesMd;
 t_posicion *posicion;
 
+// Otros datos
 
+int QAfinidadesMd;
 int QAfinidadesUnicas;
 t_list *afinidadesUnicas;
 
+/* Queues cocineros/afinidades (CPUs únicas) */
+
 t_list *queuesCocineros;
+
 typedef struct {
     char *afinidad;
     int instanciasTotales;
@@ -33,24 +44,13 @@ typedef struct {
     t_queue *qF;
 } t_queue_obj;
 
+void logInitQueuesRestaurante(t_list *queuesCocineros);
 
-// Planificación
+/* Queue I/O */
 
-t_list *queuesIO;
+t_queue *queueIO;
+int instanciasTotalesIO;
 
-typedef struct {
-    int idHorno;
-    // PCB ?
-    bool estaOcupado;
-    t_queue *queueIO;
-} t_queue_IO;
-
-int quantum;
-
-// Otros
-
-pthread_t threadConexiones;
-
-char* respuesta;
+void logInitQueueIORestaurante();
 
 #endif

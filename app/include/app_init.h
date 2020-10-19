@@ -23,6 +23,7 @@ char *algoritmoPlanificacion;
 
 /* Queues */
 
+t_queue *qN;
 t_queue *qR;
 t_queue *qE;
 t_queue *qB;

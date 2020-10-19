@@ -6,6 +6,8 @@ void *atenderConexiones(void *conexionNueva)
     int socketCliente = t_data->socketThread;
     free(t_data);
 
+	int socketComanda = ERROR;
+
 	while (1) {
 
     	t_header *header = recibirHeaderPaquete(socketCliente);
@@ -15,7 +17,9 @@ void *atenderConexiones(void *conexionNueva)
 			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
-		}	
+		}
+
+		socketComanda = conectarseA(COMANDA);
 
     	switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
@@ -81,15 +85,13 @@ void *atenderConexiones(void *conexionNueva)
 int main(int argc, char* argv[])
 {
 	inicializarProceso(APP);
-	initApp();
-
 	socketServidor = iniciarServidor();
-    conexionComanda = conectarseA(COMANDA);
+	initApp();
 
 	int fd;
 	while (1) {
 		fd = aceptarCliente(socketServidor);
-		if (fd != -1) {
+		if (fd != ERROR) {
 			// Creo un nuevo hilo para la conexión aceptada
 			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
 			t_data->socketThread = fd;

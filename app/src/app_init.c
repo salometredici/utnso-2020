@@ -88,14 +88,17 @@ char **getTiemposDescanso() {
 	return config_get_array_value(config, "TIEMPO_DE_DESCANSO");
 }
 
+char **getPlatosDefault() {
+	return config_get_array_value(config,"PLATOS_DEFAULT");
+}
+
 void inicializarRepartidores() {
 	int i = 0;
 	repartidores = list_create();
 	char **tiemposDescanso = getTiemposDescanso();
 	char **repartidoresConfig = getRepartidores();
 	char **frecuenciasDescanso = getFrecuenciasDescanso();
-
-	printf("Repartidores:\n");
+	log_info(logger, "Inicializando repartidores y queues...");
 
 	do {
 		t_repartidor *repartidorActual = malloc(sizeof(t_repartidor));
@@ -109,17 +112,20 @@ void inicializarRepartidores() {
 		repartidorActual->tiempoDescanso = atoi(tiemposDescanso[i]);
 		repartidorActual->freqDescanso = atoi(frecuenciasDescanso[i]);
 
-		printf("[Repartidor #%d] - PosX: %d, PosY %d, FreqDescanso: %d, TiempoDescanso: %d\n",
+		log_info(logger, "[Repartidor #%d]: PosX: %d, PosY %d, FreqDescanso: %d, TiempoDescanso: %d",
 				i,
 				repartidorActual->posRepartidor->posX,
 				repartidorActual->posRepartidor->posY,
 				repartidorActual->freqDescanso,
 				repartidorActual->tiempoDescanso);
-		// Agregar logger :shrek:
+		
 		list_add(repartidores, repartidorActual);
+		free(repartidorActual);
 		free(posRActual);
 		i++;
 	} while(repartidoresConfig[i] != NULL);
+
+	cantidadRepartidores = list_size(repartidores);
 }
 
 void inicializarPosResDefault() {
@@ -131,7 +137,7 @@ void inicializarPosResDefault() {
 
 void inicializarPlatosDefault() {
 	platosResDefault = list_create();
-	char **platosDefault = config_get_array_value(config,"PLATOS_DEFAULT");
+	char **platosDefault = getPlatosDefault();
 	int i = 0;
 	do {
 		list_add(platosResDefault, platosDefault[i]);
@@ -141,7 +147,7 @@ void inicializarPlatosDefault() {
 }
 
 void inicializarRestauranteDefault() {
-	log_info(logger, "Inicializando Restaurante Default...\n");
+	log_info(logger, "Inicializando Restaurante Default...");
 	inicializarPosResDefault();
 	inicializarPlatosDefault();
 }
@@ -154,11 +160,20 @@ void inicializarVariablesGlobales() {
 	gradoMultiprocesamiento = getGradoMultiprocesamiento();
 }
 
+void inicializarQueues() {
+	qN = queue_create();
+	qR = queue_create();
+	qE = queue_create();
+	qB = queue_create();
+	qF = queue_create();
+}
+
 void initApp() {
 	conexionComanda = conectarseA(COMANDA);
 	inicializarVariablesGlobales();
 	inicializarRestauranteDefault();
 	inicializarRepartidores();
+	inicializarQueues();
 
 
 	// 	cargarConfiguracionApp();

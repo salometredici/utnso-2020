@@ -53,4 +53,13 @@ int instanciasTotalesIO;
 
 void logInitQueueIORestaurante();
 
+/* Proceso */
+
+typedef struct {
+    int pid;
+    t_list *pasosReceta;
+    int pasoActual; //??
+    
+} t_proceso;
+
 #endif

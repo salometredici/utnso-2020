@@ -56,7 +56,28 @@ void *atenderConexiones(void *conexionNueva)
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
-				free(reqConf);
+				// free(reqConf);
+
+				// Sólo recibe el ID del pedido
+				// 1. Obtener el Pedido desde Sindicato
+
+				reqConf->restaurante = nombreRestaurante;
+				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf);
+				t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
+				t_pedido *pedidoConf = recibirPayloadPaquete(header, conexionSindicato);
+				mostrarListaPlatos(pedidoConf->platos);
+				free(hRConf);
+
+				// 2. Generar PCB de cada plato y dejarlo en el ciclo de planificación
+				// Obtener receta de Sindicato para saber trazabilidad al momento de ejecución
+				// El número de pedido se deberá guardar dentro del PCB
+
+				
+
+
+
+				// 3. Informar a quien lo invocó que su pedido fue confirmado
+
 				t_result *resCP = malloc(sizeof(t_result));
 				resCP->hasError = false;
 				resCP->msg = "[CONFIRMAR_PEDIDO] OK";

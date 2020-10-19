@@ -106,7 +106,7 @@ void *atenderConexiones(void *conexionNueva)
 				md->platos = platosMd;
 
 				md->posX = 5; md->posY = 7;
-				md->cantidadCocineros = 3; md->cantidadHornos = 2; md->cantidadPedidos = 1;
+				md->cantidadCocineros = 5; md->cantidadHornos = 2; md->cantidadPedidos = 1;
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, md);
 				free(r1); free(r2); free(platosMd);

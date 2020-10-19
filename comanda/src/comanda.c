@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
     socketServidor = iniciarServidor();
 
 	initStructures();
+	
     int fd;
     while(1) {
         fd = aceptarCliente(socketServidor);

@@ -16,8 +16,11 @@ void **MEMORY;
 int MEMORY_SIZE;
 int SWAP_SIZE;
 char *ALGORITMO_REEMPLAZO;
-int id_segment;
+int id_segment = 0;
 
+/*
+ * Estructura de lo que esta dentro de la memoria
+ */
 typedef struct{
     uint32_t cantidad;
     uint32_t cantidadLista;
@@ -26,19 +29,23 @@ typedef struct{
 
 typedef struct{
     char *name;
-    uint32_t idsegment;
-    int idpedido;
-    void *pages;
+    uint32_t idsegment; // necesario ??
+    t_list *pedidos;
 } t_segment;
 
+/*
+ * Estructura de lo una tabla de Paginas
+ */
 typedef struct{
-    int frameNumber;
-    int plato;
-} t_page;
+    char *nombre;
+    int id_pedido;
+    t_list *frames;
+}t_pedido;
 
-void initStructures();
-void initVariables();
-void initTables();
-void imprimirEstructura();
+void init_sructures();
+void init_variables();
+void init_tables();
+void print_structure();
+void add_restaurant(char *nombre);
 
 #endif

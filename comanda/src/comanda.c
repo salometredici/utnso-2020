@@ -1,13 +1,20 @@
 #include "../include/comanda.h"
 
-bool find_restaurante()
-{
-
-}
-
 void create_retaurante()
 {
 	
+}
+
+bool es_restaurante_buscado(void *restaurante)
+{
+	char *actual = restaurante;
+	return string_equals_ignore_case(actual, t_restaurante_buscado);
+}
+
+t_list* find_restaurante(char* restaurante)
+{
+	t_restaurante_buscado = restaurante;
+	return list_find(restaurantes, &es_restaurante_buscado);
 }
 
 void *atenderConexiones(void *conexionNueva)
@@ -36,11 +43,6 @@ void *atenderConexiones(void *conexionNueva)
 
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqGuardarPedido, header->codigoOperacion);
-
-				if(list_find(restaurantes, "Burger King"))
-				{
-
-				}
 
 				/*t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqGuardarPedido, header->codigoOperacion);
@@ -113,10 +115,32 @@ void *atenderConexiones(void *conexionNueva)
 }
 
 int main(int argc, char **argv) {
+	
 	inicializarProceso(COMANDA);
     socketServidor = iniciarServidor();
-	initComanda();
-	
+	init_comanda();
+
+	add_restaurant("Burger King");
+	add_restaurant("Macdonalds");
+
+	/*
+	*	Se obtiene data de App Llega el ID_PEDIDO y Restaurante
+	*	Se verifica si esta en la tabla restaurantes;
+	*/
+
+	char* restaurantellego= "Restaurante";
+	int id_pedido = 12453;
+
+	char *result = find_restaurante(restaurantellego);
+
+	if(string_is_empty(&result)){
+		log_info(logger, "No se encontro el restaurante, se agrega a la tabla");
+		add_restaurant(restaurantellego);
+	}
+	else {
+		log_info(logger, "Se encontro %s", result);		
+	}
+
     int fd;
     while (1) {
         fd = aceptarCliente(socketServidor);

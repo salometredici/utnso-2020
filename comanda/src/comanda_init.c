@@ -52,6 +52,16 @@ void initMemoriaPrincipal()
 
 }
 
+void addRestaurant(char *nombre)
+{
+	list_add(restaurantes, nombre);
+}
+
+t_segment* createSegement()
+{
+
+}
+
 void initComanda() {
     initVariables();
     initTables();

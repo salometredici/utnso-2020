@@ -1,5 +1,15 @@
 #include "../include/comanda.h"
 
+bool find_restaurante()
+{
+
+}
+
+void create_retaurante()
+{
+	
+}
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
@@ -22,6 +32,16 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);
 				break;
 			case GUARDAR_PEDIDO:;
+				//Primero fijarse si existe en la tabla de restaurantes
+
+				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
+				logRequest(reqGuardarPedido, header->codigoOperacion);
+
+				if(list_find(restaurantes, "Burger King"))
+				{
+
+				}
+
 				/*t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqGuardarPedido, header->codigoOperacion);
 				free(reqGuardarPedido);

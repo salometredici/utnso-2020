@@ -16,6 +16,7 @@ void **MEMORY;
 int MEMORY_SIZE;
 int SWAP_SIZE;
 char *ALGORITMO_REEMPLAZO;
+int id_segment;
 
 typedef struct{
     uint32_t cantidad;
@@ -26,6 +27,7 @@ typedef struct{
 typedef struct{
     char *name;
     uint32_t idsegment;
+    int idpedido;
     void *pages;
 } t_segment;
 

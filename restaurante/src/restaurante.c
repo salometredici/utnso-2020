@@ -29,12 +29,13 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_OBTENER_PROCESO, RESTAURANTE);
 				break;
 			case CONSULTAR_PLATOS:;
-				char *restConsulta = recibirPayloadPaquete(header, socketCliente);
-				logConsultaPlatos(restConsulta);
-				t_list *platosRest = list_create();
-				list_add(platosRest, "Milanesas");
-				list_add(platosRest, "Lasagna");
-				list_add(platosRest, "Asado");
+				char *restConsulta = recibirPayloadPaquete(header, socketCliente); free(restConsulta);
+				// Se consultan los platos de este restaurante a Sindicato
+				enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
+				t_header *hConsulta = recibirHeaderPaquete(conexionSindicato);
+				t_list *platosRest = recibirPayloadPaquete(hConsulta, conexionSindicato);
+				free(hConsulta);
+				// Se contesta con los platos obtenidos
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest);
 				free(platosRest);
 				break;

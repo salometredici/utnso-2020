@@ -7,11 +7,28 @@
 #include "tests.h"
 
 int conexionComanda;
+t_list *restaurantesConectados;
+
+/* Diccionario de algortimos */
+
+#define FIFO 1
+#define HRRN 2
+#define SJF 3
+
+static t_keys diccionarioAlgoritmos[] = {
+    { "FIFO", FIFO },
+    { "HRRN", HRRN },
+    { "SJF", SJF }
+};
+
+#define ALGORITMONKEYS (sizeof(diccionarioAlgoritmos)/sizeof(t_keys))
 
 /* Restaurante default */
 
-t_list *platosResDefault; // Lista de strings
+#define restauranteDefault "RestauranteDefault"
+t_list *platosResDefault; // Lista de strings, por ej.: ["Milanesa", "AsadoConFritas"]
 t_posicion *posResDefault;
+// Según el issue #1942, hay que agregar un precio default a todos los platos
 
 /* Planificación */
 
@@ -19,7 +36,8 @@ double alpha;
 int tiempoRetardoCpu;
 int estimacionInicial;
 int gradoMultiprocesamiento; // Cantidad de repartidores que pueden estar en Exec a la vez
-char *algoritmoPlanificacion;
+char *algoritmo;
+int algoritmoSeleccionado;
 
 /* Queues */
 
@@ -32,83 +50,38 @@ int cantidadRepartidores; // Grado de multiprogramación o cantidad de instancia
 
 /* Repartidores */
 
-t_list *repartidores;
+t_list *repartidoresDisponibles;
+t_list *repartidoresOcupados;
 
 typedef struct {
+	int idRepartidor;
 	int freqDescanso; // Cantidad de ciclos de CPU que puede ejecutar seguidos
 	int tiempoDescanso; // Cantidad de ciclos de CPU que debe descansar luego de ejecutar su frecuencia
 	t_posicion *posRepartidor;
-	// ?
 } t_repartidor;
 
+typedef struct {
+	int pid;
+	int qRecorrido;
+	int qDescansado;
+	char *restaurante;
+	t_list *instrucciones;
+	t_posicion *posCliente;
+	t_repartidor *repartidor;
+	t_posicion *posRestaurante;
+} t_pcb;
 
+typedef struct {
+	char *idCliente; // Si es cliente tiene CLIENTE_ID, si es un restaurante va a ser NOMBRE_RESTAURANTE
+	int socketCliente;
+	bool esRestaurante;
+	t_posicion *posCliente;
+	char *restauranteSeleccionado;
+	t_posicion *posRestaurante;
+} t_cliente;
 
-
-
-
-
-
-
-
-
-typedef struct appConfig {
-    int gradoMultiprocesamiento;
-    char* algoritmoPlanificacion;
-    float alpha;
-    int estimacionInicial;
-    char** posicionRepartidores; //Por Commons se reciben las listas de esta forma. Recordar despues recorrer el char** y pasarlo a formato t_list*
-    char** frecuenciaDescanso; //Por Commons se reciben las listas de esta forma. Recordar despues recorrer el char** y pasarlo a formato t_list*
-    char** tiempoDescanso; //Por Commons se reciben las listas de esta forma. Recordar despues recorrer el char** y pasarlo a formato t_list*
-	 //char* logFile;
-    char** platosDefault;
-    int posicionRestDefaultX;
-    int posicionRestDefaultY;
-} appConfig_t;
-
-appConfig_t* appConfig;
-
-typedef enum {
-	NEW,
-	READY,
-	BLOCK,
-	EXEC,
-	EXIT
-} Estado;
-
-typedef struct repartidor
-{
-	int id;
-	int posicionX;
-	int posicionY;
-    int frecuenciaDeDescanso;
-    int tiempoDeDescanso;
-	//t_pedido pedidoPCB; Falta armar la estructura del PCB
-	Estado estado;
-    float estimacionActual;
-	//float estimacionAnterior;
-	//int rafagaAnterior;
-	//int rafagaActual;
-
-} t_Repartidor;
-t_Repartidor repartidor;
-
-// LISTAS
-t_list *restaurantes;
-t_list *listaPedidos;
-t_list *listaRepartidores;
-t_list *NUEVOS;
-t_list *LISTOS;
-t_list *EJECUTANDO;
-t_list *BLOQUEADOS;
-t_list *FINALIZADOS;
-
-// Defincion de funciones de APP
-void cargarConfiguracionApp();
-void inicializarEstructurasYListas();
-void cargarPCByListas();
-void planificar();
-void planificarFIFO();
-void planificarHRRN();
-void planificarSJF();
+void planificarProximo(t_pcb *pcb, t_md *md);
+t_repartidor *getRepartidorMasCercano(t_md *md);
+double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
 
 #endif

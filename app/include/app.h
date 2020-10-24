@@ -8,6 +8,15 @@
 #include "tests.h"
 
 int socketServidor;
+
+t_list *clientesConectados;
+
 pthread_t threadConexiones;
+pthread_t threadPlanificacion;
+
+pthread_mutex_t mutexQN;
+pthread_mutex_t mutexQR;
+pthread_mutex_t mutexQE;
+pthread_mutex_t mutexQB;
 
 #endif

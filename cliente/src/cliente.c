@@ -17,7 +17,7 @@ void *threadLecturaConsola(void *args) {
         	string_to_upper(comandoLeido);
         	string_trim(&comandoLeido);
 			parametros = string_split(comandoLeido, " ");
-			opcion = clientOptionToKey(getStringKeyValue(procesoConectado, PROCNKEYS));
+			opcion = clientOptionToKey(getStringKeyValue(procesoServidor, PROCNKEYS));
 			mensaje = parametros[0];
 			parametro1 = parametros[1]; parametro2 = parametros[2]; parametro3 = parametros[3];	parametro4 = parametros[4];
 
@@ -35,7 +35,7 @@ void *threadLecturaConsola(void *args) {
 							consultarRestaurantes();
 							break;
 						case SELECCIONAR_RESTAURANTE:
-							seleccionarRestaurante(atoi(parametro1), parametro2);
+							seleccionarRestaurante(dataCliente->idCliente, parametro2);
 							break;
 						case CONSULTAR_PLATOS:
 							consultarPlatos("");
@@ -175,23 +175,28 @@ void consultarRestaurantes() {
 	free(header);
 }
 
-void seleccionarRestaurante(int socketCliente, char *nombreRestaurante) {
-	printf("recibi cliente: %d\n", socketCliente);
-	printf("recibi rest: %s\n", nombreRestaurante);
- 	// TODO: Recibe cliente (¿un id o un t_cliente?) y restaurante, retorna Ok/fail
-	//enviarPaquete(conexion, CLIENTE, SELECCIONAR_RESTAURANTE, NULL);
+void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
+	t_selecc_rest *seleccion = malloc(sizeof(t_selecc_rest));
+	seleccion->idCliente = idCliente;
+	seleccion->restauranteSeleccionado = nombreRestaurante;
+	enviarPaquete(conexion, CLIENTE, SELECCIONAR_RESTAURANTE, seleccion);
+	t_header *header = recibirHeaderPaquete(conexion);
+	t_result *result = recibirPayloadPaquete(header, conexion);
+	logTResult(result);
+	free(result);
+	free(header);
 }
 
 void obtenerRestaurante(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
-	md_restaurante *md = recibirPayloadPaquete(header, conexion);
+	t_md *md = recibirPayloadPaquete(header, conexion);
 	logMetadata(md);
 	free(md);
 	free(header);
 }
 
-void consultarPlatos(char *nombreRestaurante) {
+void consultarPlatos(char *nombreRestaurante) { // Es un string vacío
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_list *platos = recibirPayloadPaquete(header, conexion);
@@ -202,12 +207,11 @@ void consultarPlatos(char *nombreRestaurante) {
 
 void crearPedido() {
 	enviarPaquete(conexion, CLIENTE, CREAR_PEDIDO, NULL);
-
 	t_header *header = recibirHeaderPaquete(conexion);
     int idPedido = recibirPayloadPaquete(header, conexion);
-
-	//va a recibir un ID de pedido 
-	printf("Respuesta obtenida: %d\n", idPedido);
+	printf("Se ha creado el pedido #%d\n", idPedido);
+	log_info(logger, "Se ha creado el pedido #%d", idPedido);
+	free(header);
 }
 
 void guardarPedido(char *nombreRestaurante, int idPedido) {
@@ -219,11 +223,9 @@ void guardarPedido(char *nombreRestaurante, int idPedido) {
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(reqGuardarPedido);
 
-	t_result *resultGuardarPedido = recibirPayloadPaquete(header, conexion);
-	printf("%s\n", resultGuardarPedido->msg);
-	printf("Tuvo error: %s\n", resultGuardarPedido->hasError ? "true" : "false");
-	log_info(logger, "%s", resultGuardarPedido);
-	free(resultGuardarPedido);
+	t_result *resultGP = recibirPayloadPaquete(header, conexion);
+	logTResult(resultGP);
+	free(resultGP);
 	free(header);
 }
 
@@ -237,9 +239,7 @@ void aniadirPlato(char *nombrePlato, int idPedido) {
 	free(reqAniadir);
 
 	t_result *resultAniadir = recibirPayloadPaquete(header, conexion);
-	printf("%s\n", resultAniadir->msg);
-	printf("Tuvo error: %s\n", resultAniadir->hasError ? "true" : "false");
-	log_info(logger, "%s", resultAniadir);
+	logTResult(resultAniadir);
 	free(resultAniadir);
 	free(header);
 }
@@ -256,9 +256,7 @@ void guardarPlato(char *nombreRestaurante, int idPedido, char *nombrePlato, int 
 	free(reqPlato);
 
 	t_result *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
-	printf("%s\n", resultGuardarPlato->msg);
-	printf("Tuvo error: %s\n", resultGuardarPlato->hasError ? "true" : "false");
-	log_info(logger, "%s", resultGuardarPlato);
+	logTResult(resultGuardarPlato);
 	free(resultGuardarPlato);
 	free(header);
 }
@@ -266,28 +264,38 @@ void guardarPlato(char *nombreRestaurante, int idPedido, char *nombrePlato, int 
 void confirmarPedido(int idPedido, char *nombreRestaurante) {
 	t_request *pedidoConf = malloc(sizeof(t_request));
 	pedidoConf->idPedido = idPedido;
-	pedidoConf->nombre = nombreRestaurante;
+	pedidoConf->nombre = nombreRestaurante; // Va a ser un string vacío
 
 	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, pedidoConf);
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(pedidoConf);
 
 	t_result *resultConfPedido = recibirPayloadPaquete(header, conexion);
-	printf("%s\n", resultConfPedido->msg);
-	printf("Tuvo error: %s\n", resultConfPedido->hasError ? "true" : "false");
-	log_info(logger, "%s", resultConfPedido);
+	logTResult(resultConfPedido);
 	free(resultConfPedido);
 	free(header);
 }
 
 void platoListo(char *nombreRestaurante, int idPedido, char *plato) {
-	 // TODO: struct que recibe restaurante, idPedido y plato
-	//enviarPaquete(conexion, CLIENTE, PLATO_LISTO, params);
+	t_plato_listo *platoListo = malloc(sizeof(t_plato_listo));
+	platoListo->restaurante = nombreRestaurante;
+	platoListo->idPedido = idPedido;
+	platoListo->plato = plato;
+	enviarPaquete(conexion, CLIENTE, PLATO_LISTO, platoListo);
+	t_header *header = recibirHeaderPaquete(conexion);
+	t_result *resPL = recibirPayloadPaquete(header, conexion);
+	logTResult(resPL);
+	free(resPL);
+	free(header);
 }
 
 void consultarPedido(int idPedido) {
-	// TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
-	//enviarPaquete(conexion, CLIENTE, CONSULTAR_PEDIDO, idPedido);
+	enviarPaquete(conexion, CLIENTE, CONSULTAR_PEDIDO, idPedido);
+	t_header *header = recibirHeaderPaquete(conexion);
+	t_pedido *pedidoCons = recibirPayloadPaquete(header, conexion);
+	logConsultarPedido(pedidoCons, idPedido);
+	free(pedidoCons);
+	free(header);
 }
 
 void obtenerPedido(char *nombreRestaurante, int idPedido) {
@@ -300,7 +308,7 @@ void obtenerPedido(char *nombreRestaurante, int idPedido) {
 	free(pedidoObt);
 
 	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexion);
-	mostrarListaPlatos(pedidoCompleto->platos);
+	logObtenerPedido(pedidoCompleto, idPedido);
 	free(pedidoCompleto);
 	free(header);
 }
@@ -308,18 +316,34 @@ void obtenerPedido(char *nombreRestaurante, int idPedido) {
 void obtenerNombreServidor() {
 	enviarPaquete(conexion, CLIENTE, OBTENER_PROCESO, NULL);
 	t_header *rtaProceso = recibirHeaderPaquete(conexion);
-	procesoConectado = intToPCode(recibirPayloadPaquete(rtaProceso, conexion));
-	logConnectionCliente(procesoConectado);
+	procesoServidor = intToPCode(recibirPayloadPaquete(rtaProceso, conexion));
+	logConnectionCliente(procesoServidor);
 	free(rtaProceso);
+}
+
+void initVariablesGlobales() {
+	t_cliente *dataCliente = malloc(sizeof(t_cliente));
+	dataCliente->esRestaurante = false;
+	dataCliente->restauranteSeleccionado = string_empty();
+	dataCliente->idCliente = config_get_string_value(config, "ID_CLIENTE");
+	dataCliente->posCliente = malloc(sizeof(t_posicion));
+	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
+	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
+}
+
+void initCliente() {
+    conexion = conectarseA(CLIENTE);
+	obtenerNombreServidor();
+	initVariablesGlobales();
+	if (procesoServidor == APP) { enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente); }
 }
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
-    conexion = conectarseA(CLIENTE);
-	obtenerNombreServidor();
+	initCliente();
 
 	// Inicio del hilo de la consola y su lectura
-	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
+	pthread_create(&threadConsola, NULL, (void *)threadLecturaConsola, NULL);
     pthread_detach(threadConsola);
 
 	while (1) {

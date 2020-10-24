@@ -43,7 +43,7 @@ bool stringFound(char *expected, char *string) {
 	return string_equals_ignore_case(expected, actual);
 }
 
-// Devuelve el p_code correspondiente a un int
+// Devuelve el p_code correspondiente a un int 
 p_code intToPCode(int key) {
 	for (int i = 0; i < PROCNKEYS; i++) {
 		t_keys sym = diccionarioProcesos[i];
@@ -54,8 +54,7 @@ p_code intToPCode(int key) {
 	return ERROR;
 }
 
-
-// Devuelve el valor en string del proceso/comando
+// Devuelve el valor en string de un proceso/comando, el parámetro option corresponde al diccionario (PROCNKEYS o COMMANDNKEYS)
 char *getStringKeyValue(int key, int option) {
 	t_keys *diccionario; int size;
 	switch (option) {
@@ -77,7 +76,7 @@ char *getStringKeyValue(int key, int option) {
     return ERROR;
 }
 
-// Devuelve el valor correspondiente al enum del comando para utilizarlo en un switch o similar
+// Devuelve el número correspondiente a un comando para ser utilizado en un switch o comparación
 int commandToString(char *key) {
     t_keys *diccionario = diccionarioComandos;
     for (int i = 0; i < COMMANDNKEYS; i++) {

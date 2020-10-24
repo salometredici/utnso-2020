@@ -324,11 +324,12 @@ void obtenerNombreServidor() {
 void initVariablesGlobales() {
 	t_cliente *dataCliente = malloc(sizeof(t_cliente));
 	dataCliente->esRestaurante = false;
-	dataCliente->restauranteSeleccionado = string_empty();
+	dataCliente->restauranteSeleccionado = string_new();
 	dataCliente->idCliente = config_get_string_value(config, "ID_CLIENTE");
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
+	logInitDataCliente(dataCliente);
 }
 
 void initCliente() {

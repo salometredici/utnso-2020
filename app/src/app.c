@@ -31,8 +31,9 @@ void actualizarQR() {
 		t_pcb *nextInLine = queue_pop(qN); // Lo sacamos de la cola de NEW
 		pthread_mutex_unlock(&mutexQN);
 		
-		nextInLine->repartidor = getRepartidorMasCercano(nextInLine->posRestaurante); // Asignamos el repartidor al PCB del pedido
-		
+		nextInLine->repartidor = getRepartidorMasCercano(nextInLine->posRest); // Asignamos el repartidor al PCB del pedido
+		nextInLine->estado = ESPERANDO_EJECUCION;
+
 		pthread_mutex_lock(&mutexQR);
 		queue_push(qR, nextInLine); // Pasa a la cola de READY
 		pthread_mutex_unlock(&mutexQR);
@@ -49,6 +50,7 @@ void actualizarQE() {
 		;
 		if (debeDescansarRepartidor(current)) {
 			pthread_mutex_lock(&mutexQB);
+			current->estado = REPARTIDOR_DESCANSANDO;
 			queue_push(qB, current);
 			pthread_mutex_unlock(&mutexQB);
 		} else {
@@ -63,14 +65,15 @@ void actualizarQE() {
 		pthread_mutex_lock(&mutexQB);
 		t_pcb *current = queue_pop(qB);
 		pthread_mutex_unlock(&mutexQB);
-		if (repartidorDescansado(current)) {
+		if (repartidorDescansado(current) && current->estado != ESPERANDO_PLATO) {
 			pthread_mutex_lock(&mutexQR);
+			current->estado = ESPERANDO_EJECUCION;
 			queue_push(qR, current);
 			pthread_mutex_unlock(&mutexQR);
 		} else {
-			pthread_mutex_lock(&mutexQE);
-			queue_push(qE, current);
-			pthread_mutex_unlock(&mutexQE);
+			pthread_mutex_lock(&mutexQB);
+			queue_push(qB, current);
+			pthread_mutex_unlock(&mutexQB);
 		}
 	}
 	// 3. Reviso si puedo agregar más PCBs de QR a EXEC
@@ -80,22 +83,43 @@ void actualizarQE() {
 		t_pcb *current = queue_pop(qR);
 		pthread_mutex_unlock(&mutexQR);
 		pthread_mutex_lock(&mutexQE);
+		current->estado = EN_CAMINO_A_RESTAURANTE;
 		queue_push(qE, current);
 		pthread_mutex_unlock(&mutexQE);
 	}
 }
 
-void ejecutarCiclo() {
-	// TODO: Semáforo sobre EXEC
-	int i = 0;
+t_posicion *getNextStep(t_posicion *posC, t_posicion *posR) {
+	t_posicion *nextPos = malloc(sizeof(t_posicion));
+	// if si alcanzo X -> fijo Y o al reves
+	nextPos->posX = posC->posX < posR->posX ? 
+						posC->posX + 1 :
+						(posC->posX == posR->posX ?
+							posR->posX :
+							posR - 1);
+	nextPos->posY = posC->posY < posR->posY ?
+						posC->posY + 1 :
+						(posC->posY == posR->posY ?
+							posR->posY :
+							posR - 1);
+	return nextPos;
+}
 
+void actualizarPosicion(t_pcb *currentPcb) {
+	currentPcb->qRecorrido++;
+	t_posicion *nextPos = getNextStep(currentPcb->posCliente, currentPcb->posRest);
+	currentPcb->repartidor->posRepartidor->posX = nextPos->posX;
+	currentPcb->repartidor->posRepartidor->posY = nextPos->posY;
+}
+
+
+void ejecutarCiclosFIFO() {
 	pthread_mutex_lock(&mutexQE);
 	t_pcb *currentPcb = queue_pop(qE);
-	pthread_mutex_unlock(&mutexQE);
 	while (currentPcb != NULL && !debeDescansarRepartidor(currentPcb)) {
-		// TODO: Semáforos
-		currentPcb->qRecorrido++;
+		actualizarPosicion(currentPcb);
 		queue_push(qE, currentPcb);
+		// revisar si hay lugar para meter otro 
         sleep(tiempoRetardoCpu);
 	}
 	pthread_mutex_unlock(&mutexQE);
@@ -110,7 +134,7 @@ void *planificar(void *args) { // FIFO por ahora
 				actualizarQR();
 				actualizarQE();
 				// Corto plazo
-				ejecutarCiclos();
+				ejecutarCiclosFIFO();
 				break;
 			case HRRN:
 				break;
@@ -128,11 +152,58 @@ bool puedeEjecutarAlguno() {
 
 //-------------------------------------------------------------------//
 
+// De la commons, pero es private
+t_link_element* list_find_element(t_list *self, bool(*condition)(void*), int* index) {
+	t_link_element *element = self->head;
+	int position = 0;
+
+	while (element != NULL && !condition(element->data)) {
+		element = element->next;
+		position++;
+	}
+
+	if (index != NULL) {
+		*index = position;
+	}
+
+	return element;
+}
+
+// Preguntar al cliente su nombre y posición, asociandolo a un socket
 t_cliente *getCliente(int socketCliente) {
 	t_header *header = recibirHeaderPaquete(socketCliente);
 	t_cliente *cliente = recibirPayloadPaquete(header, socketCliente);
 	cliente->socketCliente = socketCliente;
 	free(header);
+}
+
+// Limpiar clientes desconectados
+void revisarClientesConectados() {
+	for (int i = 0; i < list_size(clientesConectados); i++) {
+		t_cliente *clienteActual = list_get(clientesConectados, i);
+		if (recv(clienteActual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
+			list_remove(clientesConectados, i);
+			log_debug(logger, "El cliente [#%d - %s] se desconectó", i, clienteActual->idCliente);
+		}
+	}
+}
+
+// Revisar si el cliente ya existe en la lista de conectados y limpiar los desconectados
+void actualizarClientesConectados(t_cliente *cliente) {
+	revisarClientesConectados();
+
+	bool estaDuplicado(void *actual) {
+		t_cliente *clienteActual = actual;
+		return string_equals_ignore_case(cliente->idCliente, clienteActual->idCliente);
+	}
+
+	int i = 0;
+	t_cliente *clienteDuplicado = list_find_element(clientesConectados, &estaDuplicado, &i);
+	if (clienteDuplicado != NULL) {
+		//list_remove(clientesConectados, i); revISAR ????????!
+	} else {
+		list_add(clientesConectados, cliente);
+	}
 }
 
 t_cliente *getRestConectado(char *restBuscado) {		
@@ -143,6 +214,31 @@ t_cliente *getRestConectado(char *restBuscado) {
 	return list_find(clientesConectados, &restFound) 
 }
 
+t_pcb *crearPcb(t_cliente *cliente, int idPedido) {
+	t_pcb *pcb = malloc(sizeof(t_pcb));
+	pcb->pid = idPedido;
+	pcb->qRecorrido = 0;
+	pcb->qDescansado = 0;
+	pcb->estado = SIN_ASIGNAR;
+	pcb->repartidor = malloc(sizeof(t_repartidor));
+	pcb->idCliente = cliente->idCliente;
+	 // validar si es restaurante o no
+	pcb->posCliente = malloc(sizeof(t_posicion));
+	pcb->posCliente->posX = cliente->posCliente->posX;
+	pcb->posCliente->posY = cliente->posCliente->posY;
+	pcb->restaurante = cliente->restauranteSeleccionado;
+	pcb->posRest = malloc(sizeof(t_posicion));
+	pcb->posRest->posX = cliente->posRestaurante->posX;
+	pcb->posRest->posY = cliente->posRestaurante->posY;
+	return pcb;
+}
+
+void agregarAQN(t_pcb *pcb) {
+	pthread_mutex_lock(&mutexQN);
+	queue_push(qN, pcb);
+	pthread_mutex_unlock(&mutexQN);
+}
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
@@ -151,14 +247,14 @@ void *atenderConexiones(void *conexionNueva)
 
 	int socketComanda = ERROR; // Cuándo se libera?
 	t_cliente *cliente = getCliente(socketCliente);
-	list_add(clientesConectados, cliente);
+	actualizarClientesConectados(cliente);
 
 	while (1) {
 
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			logClientDisconnection(socketCliente);
+			logClientDisconnection(socketCliente); // Mejorar
 			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
@@ -265,6 +361,7 @@ void *atenderConexiones(void *conexionNueva)
 
 				break;	
 			case PLATO_LISTO:;
+			// REVISAR CON VALIDACION DE ESTADO PEDIDO
 				t_plato_listo *platoListo = recibirPayloadPaquete(header, socketCliente);
 				enviarPaquete(conexionComanda, APP, PLATO_LISTO, platoListo);
 				t_header *headerPL = recibirHeaderPaquete(conexionComanda);
@@ -283,45 +380,42 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
 
-				t_cliente *restConectado = getRestConectado(reqConf->nombre);
-
 				// Obtener el pedido de COMANDA
 				enviarPaquete(conexionComanda, APP, OBTENER_PEDIDO, reqConf);
 				t_header *headerCP = recibirHeaderPaquete(conexionComanda);
 				t_pedido *pedidoConf = recibirPayloadPaquete(header, conexionComanda);
 				logObtenerPedido(pedidoConf);
 
-				// Si es RDefault, generar PCB y añadirlo para planificar, sino, consultar al restaurante
-				if (string_equals_ignore_case(cliente->restauranteSeleccionado, )) {
+				// if pedidoConf != FINALIZADO
 
+				t_pcb *pcb = malloc(sizeof(t_pcb));
+				bool hasError = false;
+
+				// Si es RDefault, generar PCB y añadirlo para planificar, sino, consultar al restaurante
+				if (string_equals_ignore_case(cliente->restauranteSeleccionado, restauranteDefault)) {
+					pcb = crearPcb(cliente, reqConf->idPedido);
+					agregarAQN(pcb);
+				} else {
+					t_cliente *restConectado = getRestConectado(reqConf->nombre);
+					enviarPaquete(restConectado->socketCliente, APP, CONFIRMAR_PEDIDO, reqConf);
+					t_header *hRest = recibirHeaderPaquete(restConectado->socketCliente);
+					t_result *rCP = recibirPayloadPaquete(hRest, restConectado->socketCliente);
+					if (rCP->hasError) {
+						hasError = true;
+						enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rCP);
+					} else {
+						pcb = crearPcb(cliente, reqConf->idPedido);
+						agregarAQN(pcb);
+					}
 				}
 
-
-				t_result *rCP = malloc(sizeof(t_result));
-				rCP->msg = "[CONFIRMAR_PEDIDO] Ok\n";
-				rCP->hasError = false;
-				enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rCP);
-				free(rCP);
-
-				/*
-				1. Obtener el pedido de COMANDA. Enviar al R el msj que llegó. Si es RDefault ir al 3
-				2. Si R retorna error, informar rechazo
-				3. Generar PCB y dejarlo en el ciclo de planif
-				4. informar a comanda la actualizacion
-				5. informar a cliente que el pedido fue conf
-				*/
-				// despues de haber confirmado un pedido:
-				
-				t_pcb *pcb = malloc(sizeof(t_pcb));
-				pcb->pid = reqConf->idPedido;
-				pcb->restaurante = restauranteSeleccionado;
-				pcb->posCliente = malloc(sizeof(t_posicion));
-				pcb->posCliente->posX = cliente->posCliente->posX;
-				pcb->posCliente->posY = cliente->posCliente->posY;
-				queue_push(qN, pcb); // agregadoa new
-
-				planificarProximo(pcb, dataRestaurante);
-
+				if (!hasError) {
+					enviarPaquete(conexionComanda, APP, CONFIRMAR_PEDIDO, reqConf);
+					t_header *hCom = recibirHeaderPaquete(conexionComanda);
+					t_result *rCPC = recibirPayloadPaquete(hCom, conexionComanda);
+					logTResult(rCPC);
+					enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rCPC);
+				}
 
 				break;
 			case CONSULTAR_PEDIDO:; /* !!! Comanda no devuelve el precio, no? */

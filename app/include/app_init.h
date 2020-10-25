@@ -60,15 +60,26 @@ typedef struct {
 	t_posicion *posRepartidor;
 } t_repartidor;
 
+typedef enum {
+	SIN_ASIGNAR = 1,
+	ESPERANDO_EJECUCION = 2,
+	ESPERANDO_PLATO = 3,
+	REPARTIDOR_DESCANSANDO = 4,
+	EN_CAMINO_A_RESTAURANTE = 5,
+	EN_CAMINO_A_CLIENTE = 6
+} t_estado_pcb;
+
 typedef struct {
 	int pid;
 	int qRecorrido;
 	int qDescansado;
-	char *restaurante;
-	t_list *instrucciones;
-	t_posicion *posCliente;
+	t_estado_pcb estado;
+	//t_list *instrucciones; // ?
 	t_repartidor *repartidor;
-	t_posicion *posRestaurante;
+	char *idCliente;
+	t_posicion *posCliente;
+	char *restaurante;
+	t_posicion *posRest;
 } t_pcb;
 
 typedef struct {

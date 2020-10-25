@@ -199,7 +199,7 @@ void *atenderConexiones(void *conexionNueva)
 				ensalada->plato = "Ensalada"; ensalada->precio = 120; ensalada->cantidadPedida = 1; ensalada->cantidadLista = 0;
 				list_add(platos, milanesa); list_add(platos, empanadas); list_add(platos, ensalada);
 
-				pedido->restaurante = string_empty(); pedido->estado = PENDIENTE;
+				pedido->restaurante = string_new(); pedido->estado = PENDIENTE;
 				pedido->platos = platos; pedido->precioTotal = calcularPrecioTotal(platos);
 
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);

@@ -240,18 +240,28 @@ void agregarAQN(t_pcb *pcb) {
 	pthread_mutex_unlock(&mutexQN);
 }
 
+t_list *obtenerRestsConectados() {
+	t_list *restaurantes = list_create();
+
+	for (int i=0; i<list_size(restaurantesConectados); i++) {
+		t_cliente *restActual = list_get(restaurantesConectados, i);
+		list_add(restaurantes, restActual->idCliente);
+	}
+
+	return restaurantes;
+}
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
     free(t_data);
 
-	int socketComanda = ERROR; // Cuándo se libera?
+	int socketComanda = ERROR;
 	t_cliente *cliente = getCliente(socketCliente);
 	actualizarClientesConectados(cliente);
 
 	while (1) {
-
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
@@ -260,8 +270,6 @@ void *atenderConexiones(void *conexionNueva)
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
-
-		socketComanda = conectarseA(COMANDA);
 
     	switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
@@ -273,7 +281,7 @@ void *atenderConexiones(void *conexionNueva)
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, rest);
 					free(rest);
 				} else {
-            		enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, restaurantesConectados);
+            		enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, obtenerRestsConectados());
 				}
         		break;
 			case SELECCIONAR_RESTAURANTE:;

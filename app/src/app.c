@@ -288,7 +288,6 @@ void *atenderConexiones(void *conexionNueva)
 				t_selecc_rest *seleccRest = recibirPayloadPaquete(header, socketCliente);
 				cliente->restauranteSeleccionado = seleccRest->restauranteSeleccionado;
 				logSeleccionarRestaurante(seleccRest);
-				// Evaluar si el cliente está ok y no desconectado
 				t_result *resSelecc = malloc(sizeof(t_result));
 				resSelecc->msg = "[SELECCIONAR_RESTAURANTE] Ok\n";
 				resSelecc->hasError = false;

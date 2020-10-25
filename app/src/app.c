@@ -178,11 +178,11 @@ t_cliente *getCliente(int socketCliente) {
 }
 
 // Limpiar clientes desconectados
-void revisarClientesConectados() {
-	for (int i = 0; i < list_size(clientesConectados); i++) {
-		t_cliente *clienteActual = list_get(clientesConectados, i);
+void revisarConectados(t_list *lista) {
+	for (int i = 0; i < list_size(lista); i++) {
+		t_cliente *clienteActual = list_get(lista, i);
 		if (recv(clienteActual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
-			list_remove(clientesConectados, i);
+			list_remove(lista, i);
 			log_debug(logger, "El cliente [#%d - %s] se desconectó", i, clienteActual->idCliente);
 		}
 	}
@@ -190,19 +190,20 @@ void revisarClientesConectados() {
 
 // Revisar si el cliente ya existe en la lista de conectados y limpiar los desconectados
 void actualizarClientesConectados(t_cliente *cliente) {
-	revisarClientesConectados();
+	revisarConectados(clientesConectados);
+	revisarConectados(restaurantesConectados);
 
 	bool estaDuplicado(void *actual) {
 		t_cliente *clienteActual = actual;
 		return string_equals_ignore_case(cliente->idCliente, clienteActual->idCliente);
 	}
 
-	int i = 0;
-	t_cliente *clienteDuplicado = list_find_element(clientesConectados, &estaDuplicado, &i);
-	if (clienteDuplicado != NULL) {
-		//list_remove(clientesConectados, i); revISAR ????????!
+	if (cliente->esRestaurante) {
+		t_cliente *restDuplicado = list_find(restaurantesConectados, &estaDuplicado);
+		if (restDuplicado != NULL) { list_add(restaurantesConectados, cliente); }
 	} else {
-		list_add(clientesConectados, cliente);
+		t_cliente *clienteDuplicado = list_find(clientesConectados, &estaDuplicado);
+		if (clienteDuplicado != NULL) {	list_add(clientesConectados, cliente); }
 	}
 }
 

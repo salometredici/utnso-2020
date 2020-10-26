@@ -296,8 +296,8 @@ void *atenderConexiones(void *conexionNueva)
 				free(resSelecc);
 				break;
 			case CONSULTAR_PLATOS:;
-				char *restConsulta = recibirPayloadPaquete(header, socketCliente); free(restConsulta);
-				
+				char *consulta = recibirPayloadPaquete(header, socketCliente); free(consulta);
+
 				if (list_is_empty(restaurantesConectados)) {
 					log_info(logger, "No hay restaurantes conectados, se enviará el RestauranteDefault...");
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PLATOS, platosResDefault);		
@@ -315,27 +315,40 @@ void *atenderConexiones(void *conexionNueva)
 				}
 				break;	
 			case CREAR_PEDIDO:;
-				/* Este mensaje permitirá la creación de un Pedido sobre el restaurante seleccionado.
-				1. Enviar el mensaje al restaurante seleccionado y obtener el ID de mensaje que este último generó. Si no hay rests, generar un random único.
-				2. Enviar Guardar Pedido a comanda informando la creacion de un nuevo pedido, si falla informar fail
-				3. retornar el id al cliente que solicito
-				*/
+				conexionComanda = conectarseA(COMANDA);
+				t_request *restAGuardar = malloc(sizeof(t_request));
+
 				if (list_is_empty(restaurantesConectados)) {
-					int unRandom = rand() % 100 + 1;
+					int unRandom = rand() % 100 + 1; // Hacer función para que devuelva números únicos
 					enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, unRandom);
+
+					restAGuardar->idPedido = unRandom;
+					restAGuardar->nombre = restauranteDefault;
 				} else {
-					t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado);
-					enviarPaquete(restConectado->socketCliente, APP, CREAR_PEDIDO, NULL);
-					printf("Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE...\n", restConectado->idCliente);
-					log_info(logger, "Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE...", restConectado->idCliente);
-					t_header *headerRest = recibirHeaderPaquete(restConectado->socketCliente);
-					int newIdPedido = recibirPayloadPaquete(headerRest, restConectado->socketCliente);
-					enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, newIdPedido);
+					t_cliente *restConsulta = getRestConectado(cliente->restauranteSeleccionado);
+					enviarPaquete(restConsulta->socketCliente, APP, CREAR_PEDIDO, NULL);
+					printf("Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE...\n", restConsulta->idCliente);
+					log_info(logger, "Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE...", restConsulta->idCliente);
+					t_header *headerRest = recibirHeaderPaquete(restConsulta->socketCliente);
+					int newIdPedido = recibirPayloadPaquete(headerRest, restConsulta->socketCliente);
 					printf("El nuevo idPedido es %d\n", newIdPedido);
 					log_info(logger, "El nuevo idPedido es %d", newIdPedido);
 					free(headerRest);
+
+					restAGuardar->idPedido = newIdPedido;
+					restAGuardar->nombre = restConsulta->idCliente;
 				}
 
+				enviarPaquete(conexionComanda, APP, GUARDAR_PEDIDO, restAGuardar);
+				t_header *headerPedidoGuardado = recibirHeaderPaquete(conexionComanda);
+				t_result *payloadPedidoGuardado = recibirPayloadPaquete(headerPedidoGuardado, conexionComanda);
+				logTResult(payloadPedidoGuardado);
+				enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, payloadPedidoGuardado->hasError ? ERROR : restAGuardar->idPedido);
+
+				free(restAGuardar);
+				free(headerPedidoGuardado);
+				free(payloadPedidoGuardado);
+				liberarConexion(conexionComanda);
 				break;	
 			case ANIADIR_PLATO:;
 				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);

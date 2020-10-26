@@ -1,16 +1,20 @@
 #ifndef COMANDA_INIT_H
 #define COMANDA_INIT_H
 
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <math.h>
+#include <stdio.h>
+#include <commons/bitarray.h>
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
-#include <commons/bitarray.h>
 #include "tests.h"
 
 #define PAGE_SIZE 32 // por enunciado 
 
 t_list *memory;
-t_list *maps;
 t_list *restaurantes;
 
 t_bitarray *frame_usage_bitmap;
@@ -20,7 +24,7 @@ void **MEMORY;
 int MEMORY_SIZE;
 int SWAP_SIZE;
 char *ALGORITMO_REEMPLAZO;
-int id_segment = 0;
+int id_segment;
 
 /*
  * Estructura de lo que esta dentro de la memoria
@@ -38,6 +42,13 @@ typedef struct{
     int estado;
 } t_segment;
 
+//creo para respetar la imagen del vid de utnso, ver si se queda asi kje
+
+typedef struct{
+    char *nombre;
+    t_segment *segment;
+}t_restaurante;
+
 /*
  * Estructura de lo una tabla de Paginas
  */
@@ -51,6 +62,7 @@ void init_sructures();
 void init_variables();
 void init_tables();
 void print_structure();
-void add_restaurant(char *nombre);
+void add_restaurant(char *nombre, t_segment *segment);
+void create_restaurant(char *name, int id_pedido);
 
 #endif

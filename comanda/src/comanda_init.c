@@ -26,10 +26,9 @@ void init_memory()
 {
 	int frames = MEMORY_SIZE / PAGE_SIZE;
 	int bitmap_size_in_bytes = ceil((double) frames / 8);
+	
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
-
-	clear_bitmap(frame_usage_bitmap, frames);
 
 	MEMORY = calloc(frames, PAGE_SIZE);
 	int i;
@@ -62,20 +61,23 @@ t_pedidoc *create_pedido(char *name, int id_pedido)
 	pedido->id_pedido = id_pedido;
 	pedido->frames = NULL;
 	log_info(logger, "Nuevo Tabla de Paginas para id_pedido-(%d) creado.", id_pedido);
+	return pedido;
 }
 
 t_segment *create_segment(char* nombre)
 {
 	t_segment *segment = malloc(sizeof(segment));
+	t_list *pedidos = list_create();
 	segment->name = nombre;
 	segment->idsegment = id_segment == 0 ? id_segment : id_segment++;
-	segment->pedidos = NULL;
+	segment->pedidos = pedidos;
 	log_info(logger, "Nuevo segmento-restaurante (%s) creado.", nombre);
 	return segment;	
 }
 
 void agregar_pedido_a_restaurante(t_segment *segment, t_pedidoc *pedido){
-	int number_of_pages = list_size(segment-> pedidos);
+	t_list *pedidos = segment->pedidos;
+	int number_of_pages = list_size(pedidos);
 	int offset = number_of_pages * sizeof(t_pedidoc); // esto no se ver si es variable el espacio
 
 	if (number_of_pages == 0) {
@@ -91,14 +93,17 @@ void agregar_pedido_a_restaurante(t_segment *segment, t_pedidoc *pedido){
 
 void create_restaurant(char *name, int id_pedido)
 {
-	add_restaurant(name);
 	t_segment *segment = create_segment(name);
+	add_restaurant(name, segment);
 	t_pedidoc *pedido = create_pedido("pedido", id_pedido);
 	agregar_pedido_a_restaurante(segment, pedido);
 }
 
-void add_restaurant(char *nombre)
+void add_restaurant(char *nombre, t_segment *segment)
 {
+	t_restaurante *restaurante = malloc(sizeof(t_restaurante));
+	restaurante->nombre = nombre;
+	restaurante->segment = segment;
 	list_add(restaurantes, nombre);
 }
 

@@ -1,10 +1,5 @@
 #include "../include/comanda.h"
 
-void create_retaurante()
-{
-	
-}
-
 bool es_restaurante_buscado(void *restaurante)
 {
 	char *actual = restaurante;
@@ -119,27 +114,31 @@ int main(int argc, char **argv) {
 	inicializarProceso(COMANDA);
     socketServidor = iniciarServidor();
 	init_comanda();
-
+/*
 	add_restaurant("Burger King");
 	add_restaurant("Macdonalds");
-
+*/
 	/*
 	*	Se obtiene data de App Llega el ID_PEDIDO y Restaurante
 	*	Se verifica si esta en la tabla restaurantes;
 	*/
 
-	char* restaurantellego= "Restaurante";
+	/*char* restaurantellego= "Restaurante";
 	int id_pedido = 12453;
 
 	char *result = find_restaurante(restaurantellego);
 
 	if(string_is_empty(&result)){
 		log_info(logger, "No se encontro el restaurante, se agrega a la tabla");
-		add_restaurant(restaurantellego);
+		create_retaurante(restaurantellego);
 	}
 	else {
 		log_info(logger, "Se encontro %s", result);		
-	}
+	}*/
+
+	create_restaurant("Burger King", 12345);
+
+
 
     int fd;
     while (1) {

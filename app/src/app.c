@@ -207,12 +207,13 @@ void actualizarClientesConectados(t_cliente *cliente) {
 	}
 }
 
-t_cliente *getRestConectado(char *restBuscado) {		
+t_cliente *getRestConectado(char *restBuscado) {
 	bool restFound(void *actual) {
-		t_cliente *clienteActual = actual;
-		return string_equals_ignore_case(restBuscado, clienteActual->restauranteSeleccionado);
+		t_cliente *restActual = actual;
+		return string_equals_ignore_case(restBuscado, restActual->idCliente);
 	}
-	return list_find(clientesConectados, &restFound) 
+
+	return list_find(restaurantesConectados, &restFound);
 }
 
 t_pcb *crearPcb(t_cliente *cliente, int idPedido) {
@@ -296,12 +297,13 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case CONSULTAR_PLATOS:;
 				char *restConsulta = recibirPayloadPaquete(header, socketCliente); free(restConsulta);
+				
 				if (list_is_empty(restaurantesConectados)) {
 					log_info(logger, "No hay restaurantes conectados, se enviará el RestauranteDefault...");
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PLATOS, platosResDefault);		
 					logRtaConsultarPlatos(platosResDefault);			
 				} else {
-					t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado); // Está bien así?
+					t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado); // Qué pasa si no está?
 					enviarPaquete(restConectado->socketCliente, APP, CONSULTAR_PLATOS, string_new());
 					log_info(logger, "Consultando los platos del restaurante %s...", restConectado->idCliente);
 					t_header *headerRest = recibirHeaderPaquete(restConectado->socketCliente);

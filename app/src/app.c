@@ -351,37 +351,45 @@ void *atenderConexiones(void *conexionNueva)
 				liberarConexion(conexionComanda);
 				break;	
 			case ANIADIR_PLATO:;
+				conexionComanda = conectarseA(COMANDA);
 				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqAniadir, header->codigoOperacion);
-								
+
+				// ¿No deberíamos obtener el RESTAURANTE dueño del pedido en lugar del RESTAURANTE seleccionado?
 				t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado);
 
+				t_header *headerCom = malloc(sizeof(t_header));
+				t_result *resAniadir = malloc(sizeof(t_result));
+
+				// Si es restauranteDefault, enviamos t_request a COMANDA
 				if (string_equals_ignore_case(restConectado->idCliente, restauranteDefault)) {
 					enviarPaquete(conexionComanda, APP, ANIADIR_PLATO, reqAniadir);
-					t_header *headerCom = recibirHeaderPaquete(conexionComanda);
-					t_result *resAniadir = recibirPayloadPaquete(headerCom, conexionComanda);
+					headerCom = recibirHeaderPaquete(conexionComanda);
+					resAniadir = recibirPayloadPaquete(headerCom, conexionComanda);
 					logTResult(resAniadir);
 					enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, resAniadir);
-					free(resAniadir);
-					free(headerCom);
-				} else {
+				} else { // Sino, enviamos t_request al RESTAURANTE dueño del pedido
 					enviarPaquete(restConectado->socketCliente, APP, ANIADIR_PLATO, reqAniadir);
-					t_header *headerCom = recibirHeaderPaquete(restConectado->socketCliente);
-					t_result *resAniadir = recibirPayloadPaquete(headerCom, restConectado->socketCliente);
+					headerCom = recibirHeaderPaquete(restConectado->socketCliente);
+					resAniadir = recibirPayloadPaquete(headerCom, restConectado->socketCliente);
 					logTResult(resAniadir);
-					// Si el restaurante dice que falló, informamos directamente al cliente
+					// Si el RESTAURANTE dice que falló, informamos directamente al CLIENTE
 					if (resAniadir->hasError) {
 						enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, resAniadir);
-					} else { // Sino, enviamos el msj a COMANDA e informamos el resultado
-						t_header *headerCom = recibirHeaderPaquete(conexionComanda);
-						t_result *resAniadir = recibirPayloadPaquete(headerCom, conexionComanda);
+					} else { // Sino, enviamos el t_request a COMANDA e informamos el resultado al CLIENTE
+						enviarPaquete(conexionComanda, APP, ANIADIR_PLATO, reqAniadir);
+						headerCom = recibirHeaderPaquete(conexionComanda);
+						resAniadir = recibirPayloadPaquete(headerCom, conexionComanda);
 						logTResult(resAniadir);
 						enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, resAniadir);
 					}
-					free(resAniadir);
-					free(headerCom);	
 				}
 
+				free(reqAniadir);
+				free(restConectado);
+				free(headerCom);
+				free(resAniadir);
+				liberarConexion(conexionComanda);
 				break;	
 			case PLATO_LISTO:;
 			// REVISAR CON VALIDACION DE ESTADO PEDIDO

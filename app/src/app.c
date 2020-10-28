@@ -391,21 +391,45 @@ void *atenderConexiones(void *conexionNueva)
 				free(resAniadir);
 				liberarConexion(conexionComanda);
 				break;	
-			case PLATO_LISTO:;
-			// REVISAR CON VALIDACION DE ESTADO PEDIDO
+			case PLATO_LISTO:; // REVISAR CON VALIDACION DE ESTADO PEDIDO
+				conexionComanda = conectarseA(COMANDA);
+
 				t_plato_listo *platoListo = recibirPayloadPaquete(header, socketCliente);
 				enviarPaquete(conexionComanda, APP, PLATO_LISTO, platoListo);
 				t_header *headerPL = recibirHeaderPaquete(conexionComanda);
 				t_result *resPL = recibirPayloadPaquete(headerPL, conexionComanda);
 				logTResult(resPL);
-				// Si la cantidad lista de comanda coincide, se desbloquea el PCB correspondiente
-				if (resPL->hasError) {
-					enviarPaquete(socketCliente, APP, RTA_PLATO_LISTO, resPL);	
-				} else {
 
+				// Verifico la respuesta de COMANDA
+				if (resPL->hasError == false) { // Obtener pedido de COMANDA para verificar cantidad de paltos listos
+					t_request *reqPedidoAVerificar = malloc(sizeof(t_request));
+					reqPedidoAVerificar->nombre = platoListo->restaurante;
+					reqPedidoAVerificar->idPedido = platoListo->idPedido;
+					enviarPaquete(conexionComanda, APP, OBTENER_PEDIDO, reqPedidoAVerificar);
+					t_header *headerPO = recibirHeaderPaquete(conexionComanda);
+					t_pedido *pedidoAVerificar = recibirPayloadPaquete(headerPO, conexionComanda);
+					
+					// Verificar si todos los platos están listos
+					t_list *platosPedido = pedidoAVerificar->platos;
+					int cantidadPlatos = list_size(platosPedido);
+					bool pedidoListo = true;
+					for (int i=0; i<cantidadPlatos; i++) {
+						t_plato *platoActual = list_get(platosPedido, i);
+						if (platoActual->cantidadLista < platoActual->cantidadPedida) { pedidoListo = false; }
+					}
+
+					if (pedidoListo) {
+						// Avisar al repartidor que ya puede buscar el pedido
+						// ToDo
+					}
 				}
-				free(resPL);
+				
+				enviarPaquete(socketCliente, APP, RTA_PLATO_LISTO, resPL);
+
+				free(platoListo);
 				free(headerPL);
+				free(resPL);
+				liberarConexion(conexionComanda);
 				break;	
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);

@@ -1,5 +1,18 @@
 #include "../include/restaurante_init.h"
 
+/* Utils */
+
+int getKeyAlgoritmo(char *key) {
+    t_keys *diccionario = diccionarioAlgoritmos;
+    for (int i = 0; i < ALGORITMONKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
+    }
+    return ERROR;
+}
+
 void logInitQueuesRestaurante(t_list *queuesCocineros) {
 	printf("------------------------------------------------------\n");
 	printf("[Queues de cocineros creadas]\n");
@@ -62,7 +75,7 @@ void inicializarAfinidadesUnicas()
 		bool stringFound(void *actual) {
 			char *stringActual = actual;
 			return string_equals_ignore_case(afinidadActual, stringActual);
-		}
+		};
 
 		// Buscamos si esa afinidad ya fue agregada a la lista de afinidades únicas
 		t_list *filtradas = list_filter(afinidadesUnicas, &stringFound); 
@@ -97,12 +110,13 @@ void inicializarListaCocineros()
 		bool stringFound(void *actual) {
 			char *stringActual = actual;
 			return string_equals_ignore_case(afinidadActual, stringActual);
-		}
+		};
 
 		cpuActual->instanciasTotales = !string_equals_ignore_case(cpuActual->afinidad, "General") ?
 											list_count_satisfying(afinidadesMd, &stringFound) :
 											cantidadCocineros - list_size(afinidadesMd);
 		
+		t_queue *qN = queue_create(); cpuActual->qN = qN;//no estaba?? estaré pensando algo mal??
 		t_queue *qR = queue_create(); cpuActual->qR = qR;
 		t_queue *qE = queue_create(); cpuActual->qE = qE;
 		t_queue *qB = queue_create(); cpuActual->qB = qB;
@@ -123,7 +137,8 @@ void inicializarQueuesIO() {
 void inicializarVariablesGlobales() {
 	quantum = getQuantum();
 	nombreRestaurante = getNombreRestaurante();
-	algoritmoPlanificacion = getAlgoritmoPlanificacion();
+	algoritmo = getAlgoritmoPlanificacion();
+	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
 }
 
 void initRestaurante() {

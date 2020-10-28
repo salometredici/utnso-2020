@@ -1,5 +1,5 @@
-#ifndef RESTAURANTE_H_
-#define RESTAURANTE_H_
+#ifndef RESTAURANTE_INIT_H
+#define RESTAURANTE_INIT_H
 
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
@@ -14,7 +14,20 @@ pthread_t threadConexiones;
 char *respuesta;
 
 int quantum;
-char *algoritmoPlanificacion;
+char *algoritmo;
+int algoritmoSeleccionado;
+
+/* Diccionario de algortimos */
+
+#define FIFO 1
+#define RR 2
+
+static t_keys diccionarioAlgoritmos[] = {
+    { "FIFO", FIFO },
+    { "RR", RR }
+};
+
+#define ALGORITMONKEYS (sizeof(diccionarioAlgoritmos)/sizeof(t_keys))
 
 /* Metadata */
 
@@ -38,6 +51,7 @@ t_list *queuesCocineros;
 typedef struct {
     char *afinidad;
     int instanciasTotales;
+    t_queue *qN;
     t_queue *qR;
     t_queue *qE;
     t_queue *qB;
@@ -59,7 +73,7 @@ typedef struct {
     int pid;
     t_list *pasosReceta;
     int pasoActual; //??
-    
+    char *estado
 } t_proceso;
 
 #endif

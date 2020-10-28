@@ -276,7 +276,7 @@ void *atenderConexiones(void *conexionNueva)
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, APP, RTA_OBTENER_PROCESO, APP);
 				break;
-        	case CONSULTAR_RESTAURANTES:;
+        	case CONSULTAR_RESTAURANTES:; // Finished
 				if (list_is_empty(restaurantesConectados)) {
 					t_list *rest = list_create(); list_add(rest, restauranteDefault);
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, rest);
@@ -285,7 +285,7 @@ void *atenderConexiones(void *conexionNueva)
             		enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, obtenerRestsConectados());
 				}
         		break;
-			case SELECCIONAR_RESTAURANTE:;
+			case SELECCIONAR_RESTAURANTE:; // Finished
 				t_selecc_rest *seleccRest = recibirPayloadPaquete(header, socketCliente);
 				cliente->restauranteSeleccionado = seleccRest->restauranteSeleccionado;
 				logSeleccionarRestaurante(seleccRest);
@@ -295,7 +295,7 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, APP, RTA_SELECCIONAR_RESTAURANTE, resSelecc);
 				free(resSelecc);
 				break;
-			case CONSULTAR_PLATOS:;
+			case CONSULTAR_PLATOS:; // Finished with annotations
 				char *consulta = recibirPayloadPaquete(header, socketCliente); free(consulta);
 
 				if (list_is_empty(restaurantesConectados)) {
@@ -303,7 +303,7 @@ void *atenderConexiones(void *conexionNueva)
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PLATOS, platosResDefault);		
 					logRtaConsultarPlatos(platosResDefault);			
 				} else {
-					t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado); // Qué pasa si no está?
+					t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado); // ¿Qué pasa si no está?
 					enviarPaquete(restConectado->socketCliente, APP, CONSULTAR_PLATOS, string_new());
 					log_info(logger, "Consultando los platos del restaurante %s...", restConectado->idCliente);
 					t_header *headerRest = recibirHeaderPaquete(restConectado->socketCliente);
@@ -314,7 +314,7 @@ void *atenderConexiones(void *conexionNueva)
 					free(headerRest);
 				}
 				break;	
-			case CREAR_PEDIDO:;
+			case CREAR_PEDIDO:; // Finished with annotations
 				conexionComanda = conectarseA(COMANDA);
 				t_request *restAGuardar = malloc(sizeof(t_request));
 
@@ -350,7 +350,7 @@ void *atenderConexiones(void *conexionNueva)
 				free(payloadPedidoGuardado);
 				liberarConexion(conexionComanda);
 				break;	
-			case ANIADIR_PLATO:;
+			case ANIADIR_PLATO:; // Finished with annotations
 				conexionComanda = conectarseA(COMANDA);
 				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqAniadir, header->codigoOperacion);
@@ -391,7 +391,8 @@ void *atenderConexiones(void *conexionNueva)
 				free(resAniadir);
 				liberarConexion(conexionComanda);
 				break;	
-			case PLATO_LISTO:; // REVISAR CON VALIDACION DE ESTADO PEDIDO
+			case PLATO_LISTO:; // In progress
+				// REVISAR CON VALIDACION DE ESTADO PEDIDO
 				conexionComanda = conectarseA(COMANDA);
 
 				t_plato_listo *platoListo = recibirPayloadPaquete(header, socketCliente);

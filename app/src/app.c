@@ -429,7 +429,8 @@ void *atenderConexiones(void *conexionNueva)
 					t_pedido *pedidoAVerificar = recibirPayloadPaquete(headerPO, conexionComanda);
 					
 					// Verificar si todos los platos están listos
-					t_list *platosPedido = pedidoAVerificar->platos;
+					t_list *platosPedido = list_create();
+					list_add_all(platosPedido, pedidoAVerificar->platos);
 					int cantidadPlatos = list_size(platosPedido);
 					bool pedidoListo = true;
 					for (int i=0; i<cantidadPlatos; i++) {

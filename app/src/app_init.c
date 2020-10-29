@@ -165,6 +165,8 @@ void inicializarQueues() {
 
 void initApp() {
 	conexionComanda = conectarseA(COMANDA);
+	// Si la conexion es exitosa, liberamos inmediatamente la conexion (no la necesitamos)
+	liberarConexion(conexionComanda);
 	inicializarVariablesGlobales();
 	inicializarRestauranteDefault();
 	inicializarRepartidores();

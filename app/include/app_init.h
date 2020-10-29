@@ -8,6 +8,7 @@
 
 int conexionComanda;
 t_list *restaurantesConectados;
+t_list *idsGenerados;
 
 /* Diccionario de algortimos */
 

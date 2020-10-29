@@ -252,6 +252,24 @@ t_list *obtenerRestsConectados() {
 	return restaurantes;
 }
 
+int generarId(int min, int max) {
+	srand(time(NULL));
+	
+	int nuevoId = (rand() % (max - min + 1)) + min;
+	
+	bool idExistente(void *actual) {
+		int idActual = actual;
+		return idActual == nuevoId;
+	}
+	
+	if (list_find(idsGenerados, &idExistente) == NULL) {
+		list_add(idsGenerados, nuevoId);
+		return nuevoId;
+	} else {
+		return generarId(min, max);
+	}
+};
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
@@ -314,12 +332,12 @@ void *atenderConexiones(void *conexionNueva)
 					free(headerRest);
 				}
 				break;	
-			case CREAR_PEDIDO:; // Finished with annotations
+			case CREAR_PEDIDO:; // Finished
 				conexionComanda = conectarseA(COMANDA);
 				t_request *restAGuardar = malloc(sizeof(t_request));
 
 				if (list_is_empty(restaurantesConectados)) {
-					int unRandom = rand() % 100 + 1; // Hacer función para que devuelva números únicos
+					int unRandom = generarId(0, 100);
 					enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, unRandom);
 
 					restAGuardar->idPedido = unRandom;

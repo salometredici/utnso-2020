@@ -9,6 +9,7 @@ void *atenderConexiones(void *conexionNueva)
 	int socketComanda = ERROR;
 
 	while (1) {
+    t_instrucciones_receta instrucciones;
 
     	t_header *header = recibirHeaderPaquete(socketCliente);
 

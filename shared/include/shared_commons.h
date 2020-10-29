@@ -209,6 +209,16 @@ typedef struct { // cantidad de cocineros y sus afinidades, posicino del restaur
 	t_list *afinidades; // lista de strings
 } md_restaurante;
 
+typedef struct {
+	char *paso;
+	int qPaso;
+} t_instrucciones_receta;
+
+typedef struct {
+	char *plato;
+	t_list *instrucciones;
+} t_receta;
+
 void limpiarPantalla();
 
 void mostrarListaStrings(t_list *listaStrings);

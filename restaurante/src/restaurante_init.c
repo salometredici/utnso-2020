@@ -93,6 +93,11 @@ void inicializarAfinidadesUnicas()
 	QAfinidadesUnicas = list_size(afinidadesUnicas);
 }
 
+void inicializarQueuesGlobales(){
+    qB = queue_create();
+    qF = queue_create();
+}
+
 void inicializarListaCocineros()
 {
 	queuesCocineros = list_create();
@@ -116,11 +121,11 @@ void inicializarListaCocineros()
 											list_count_satisfying(afinidadesMd, &stringFound) :
 											cantidadCocineros - list_size(afinidadesMd);
 		
-		t_queue *qN = queue_create(); cpuActual->qN = qN;//no estaba?? estaré pensando algo mal??
 		t_queue *qR = queue_create(); cpuActual->qR = qR;
 		t_queue *qE = queue_create(); cpuActual->qE = qE;
-		t_queue *qB = queue_create(); cpuActual->qB = qB;
-		t_queue *qF = queue_create(); cpuActual->qF = qF;
+
+		pthread_mutex_t mutexQR; cpuActual->mutexQR = mutexQR;
+		pthread_mutex_t mutexQE; cpuActual->mutexQE = mutexQE;
 
 		list_add(queuesCocineros, cpuActual);
 	}
@@ -129,7 +134,8 @@ void inicializarListaCocineros()
 }
 
 void inicializarQueuesIO() {
-	queueIO = queue_create();
+	esperandoIO = queue_create();
+	ejecutandoIO = queue_create();
 	instanciasTotalesIO = cantidadHornos;
 	logInitQueueIORestaurante();
 }
@@ -145,6 +151,7 @@ void initRestaurante() {
 	conexionSindicato = conectarseA(SINDICATO);
 	inicializarVariablesGlobales();
 	obtenerMetadata();
+	inicializarQueuesGlobales();
 	inicializarListaCocineros();
 	inicializarQueuesIO();
 }

@@ -16,9 +16,9 @@ pthread_t threadConexiones;
 pthread_t threadPlanificacion;
 
 char* respuesta;
-pthread_mutex_t mutexQN;
-pthread_mutex_t mutexQR;
-pthread_mutex_t mutexQE;
+
 pthread_mutex_t mutexQB;
+
+t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta);
 
 #endif

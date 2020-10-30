@@ -18,8 +18,11 @@ void print_structure()
 	{
 		printf("Id Frame %d\n", i);
 		log_info(logger, "Nro de Frame %d", i);
-	}
-	
+	}	
+}
+
+void log_comanda(char *text){
+	log_info(logger, text);
 }
 
 void init_memory()
@@ -57,9 +60,10 @@ void init_memory()
 t_pedidoc *create_pedido(char *name, int id_pedido)
 {
 	t_pedidoc *pedido = malloc(sizeof(t_pedidoc));
-	pedido->nombre = name;
 	pedido->id_pedido = id_pedido;
-	pedido->frames = NULL;
+	pedido->frame = NULL;
+	pedido->in_use = 0;
+	pedido->modified = 0;
 	log_info(logger, "Nuevo Tabla de Paginas para id_pedido-(%d) creado.", id_pedido);
 	return pedido;
 }

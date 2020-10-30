@@ -53,9 +53,10 @@ typedef struct{
  * Estructura de lo una tabla de Paginas
  */
 typedef struct{
-    char *nombre;
     int id_pedido;
-    t_list *frames;
+    int frame; // frame de memoria o posición de swap
+	bool in_use; 
+	bool modified; 
 } t_pedidoc; // referencia a comanda c ver despues si se puede cambiar
 
 void init_sructures();

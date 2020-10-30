@@ -6,7 +6,7 @@ bool es_restaurante_buscado(void *restaurante)
 	return string_equals_ignore_case(actual, t_restaurante_buscado);
 }
 
-t_list* find_restaurante(char* restaurante)
+t_list* exist_restaurant(char* restaurante)
 {
 	t_restaurante_buscado = restaurante;
 	return list_find(restaurantes, &es_restaurante_buscado);
@@ -34,15 +34,34 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);
 				break;
 			case GUARDAR_PEDIDO:;
-				//Primero fijarse si existe en la tabla de restaurantes
+				t_request *request = recibirPayloadPaquete(header, socketCliente);
+				logRequest(request, header->codigoOperacion);
+				free(request);
 
-				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqGuardarPedido, header->codigoOperacion);
+				/*
+				 *	Se obtiene data de App Llega el ID_PEDIDO y Restaurante
+				 *	Se verifica si esta en la tabla restaurantes;
+				 */
 
-				/*t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqGuardarPedido, header->codigoOperacion);
-				free(reqGuardarPedido);
-				t_result *rGP = malloc(sizeof(t_result));
+				t_segment *segment = exist_restaurant(request->nombre);
+
+				char *restaurante = segment->nombre;
+				if(string_is_empty(&restaurante)){
+					log_comanda("No se encontro el restaurante");
+					create_restaurant(request->nombre, request->idpedido);
+				}
+				else{
+					int idPedido = exist_pedido(request->nombre, request-> idPedido);
+					if(idPedido == 0){
+						log_comanda("No se encontro el pedido");
+						t_pedidoc *pedido = create_pedido("Pedido",);
+					}
+					else{
+						log_comanda("Se encuentra cargado el pedido");
+					}
+				}	
+
+				/*t_result *rGP = malloc(sizeof(t_result));
 				rGP->msg = "[GUARDAR_PEDIDO] Ok";
 				rGP->hasError = false;
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rGP);
@@ -113,32 +132,8 @@ int main(int argc, char **argv) {
 	
 	inicializarProceso(COMANDA);
     socketServidor = iniciarServidor();
+	
 	init_comanda();
-/*
-	add_restaurant("Burger King");
-	add_restaurant("Macdonalds");
-*/
-	/*
-	*	Se obtiene data de App Llega el ID_PEDIDO y Restaurante
-	*	Se verifica si esta en la tabla restaurantes;
-	*/
-
-	/*char* restaurantellego= "Restaurante";
-	int id_pedido = 12453;
-
-	char *result = find_restaurante(restaurantellego);
-
-	if(string_is_empty(&result)){
-		log_info(logger, "No se encontro el restaurante, se agrega a la tabla");
-		create_retaurante(restaurantellego);
-	}
-	else {
-		log_info(logger, "Se encontro %s", result);		
-	}*/
-
-	create_restaurant("Burger King", 12345);
-
-
 
     int fd;
     while (1) {

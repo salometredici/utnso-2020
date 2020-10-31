@@ -136,6 +136,22 @@ void mostrarListaPlatos(t_list *listaPlatos) {
 
 // Funciones
 
+t_link_element *list_find_element(t_list *self, bool(*condition)(void*), int *index) {
+	t_link_element *element = self->head;
+	int position = 0;
+
+	while (element != NULL && !condition(element->data)) {
+		element = element->next;
+		position++;
+	}
+
+	if (index != NULL) {
+		*index = position;
+	}
+
+	return element;
+}
+
 int calcularPrecioTotal(t_list *listaPlatos) {
 	int precioTotal = 0;
 	int cantidadPlatos = list_size(listaPlatos);

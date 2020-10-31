@@ -242,6 +242,7 @@ void limpiarPantalla();
 void mostrarListaStrings(t_list *listaStrings);
 void mostrarListaPlatos(t_list *listaPlatos);
 
+t_link_element* list_find_element(t_list *self, bool(*condition)(void*), int* index);
 int calcularPrecioTotal(t_list *listaPlatos);
 char *getStringEstadoPedido(t_estado estado);
 

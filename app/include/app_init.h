@@ -71,17 +71,20 @@ typedef enum {
 } t_estado_pcb;
 
 typedef struct {
+	// Estado del PCB
 	int pid;
 	int qRecorrido;
 	int qDescansado;
+	int qEsperando;
 	t_estado_pcb estado;
 	bool alcanzoRestaurante;
-	//t_list *instrucciones; // ?
-
+	// Repartidor asociado
 	t_repartidor *repartidor;
+	// Cliente que realiza el pedido
 	char *idCliente;
-	int socketCliente; //=
+	int socketCliente;
 	t_posicion *posCliente;
+	// Restaurante del pedido
 	char *restaurante;
 	t_posicion *posRest;
 } t_pcb;

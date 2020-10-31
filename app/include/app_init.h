@@ -5,6 +5,7 @@
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
 #include "tests.h"
+#include <math.h>
 
 int conexionComanda;
 t_list *restaurantesConectados;
@@ -88,15 +89,6 @@ typedef struct {
 	char *restaurante;
 	t_posicion *posRest;
 } t_pcb;
-
-typedef struct {
-	char *idCliente; // Si es cliente tiene CLIENTE_ID, si es un restaurante va a ser NOMBRE_RESTAURANTE
-	int socketCliente;
-	bool esRestaurante;
-	t_posicion *posCliente;
-	char *restauranteSeleccionado;
-	t_posicion *posRestaurante;
-} t_cliente;
 
 void planificarProximo(t_pcb *pcb, t_md *md);
 t_repartidor *getRepartidorMasCercano(t_posicion *posRest);

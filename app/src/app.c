@@ -40,9 +40,10 @@ void actualizarQRconQN() {
 	}
 }
 
-void pasarAQB(t_pcb *pcb) {
+void pasarAQB(t_pcb *pcb, t_estado estado) {
 	pthread_mutex_lock(&mutexQB);
-	pcb->estado = REPARTIDOR_DESCANSANDO;
+	pcb->estado = estado;
+	pcb->alcanzoRestaurante = estado == ESPERANDO_PLATO ? true : false;
 	queue_push(qB, pcb);
 	pthread_mutex_lock(&mutexQB);
 	// Logguear algo...
@@ -150,17 +151,15 @@ void ejecutarCiclosFIFO()
 	while (currentPcb != NULL) {
 		// 1. Si debe descansar, pasa a BLOQUEADO
 		if (debeDescansarRepartidor(currentPcb)) {
-			pasarAQB(currentPcb);
+			pasarAQB(currentPcb, REPARTIDOR_DESCANSANDO);
 		} else if (currentPcb->estado == EN_CAMINO_A_RESTAURANTE && llegoAlRestaurante(currentPcb)) {
 			// 2. Si llegó al restaurante y tiene todos los platos listos, sigue hacia el cliente, sino, a BLOQUEADO
-			if (todosPlatosListos(currentPcb)) { // "Se deberá mover directamente a la posición del Cliente" -> Significa que va a seguir ejecutando hasta llegar o que pasa directamente y debe finalizar?
+			if (todosPlatosListos(currentPcb)) {
 				currentPcb->estado = EN_CAMINO_A_CLIENTE;
 				currentPcb->alcanzoRestaurante = true;
 				queue_push(qE, currentPcb);
 			} else {
-				currentPcb->estado = ESPERANDO_PLATO;
-				currentPcb->alcanzoRestaurante = true;
-				queue_push(qB, currentPcb);
+				pasarAQB(currentPcb, ESPERANDO_PLATO);
 			}
 		} else {
 			// 3. Si sigue ejecutando, debe actualizar su posición de acuerdo a donde esté viajando
@@ -169,11 +168,11 @@ void ejecutarCiclosFIFO()
 		}
         sleep(tiempoRetardoCpu);
 	}
+
 	pthread_mutex_unlock(&mutexQE);
 }
 
-void *planificar(void *args) { // FIFO por ahora
-	// TODO: Semáforo
+void *planificar(void *args) {
 	while (1) {
 		switch (algoritmoSeleccionado) {
 			case FIFO:

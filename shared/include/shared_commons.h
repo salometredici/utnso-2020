@@ -228,11 +228,12 @@ typedef struct { // cantidad de cocineros y sus afinidades, posicino del restaur
 } t_md;
 
 typedef struct {
-	char *idCliente; // CLIENTE: CLIENTE_ID, RESTAURANTE: NOMBRE_RESTAURANTE
+	char *idCliente; // Si es cliente tiene CLIENTE_ID, si es un restaurante va a ser NOMBRE_RESTAURANTE
 	int socketCliente;
 	bool esRestaurante;
 	t_posicion *posCliente;
 	char *restauranteSeleccionado;
+	t_posicion *posRestaurante;
 } t_cliente;
 
 /* Funciones */

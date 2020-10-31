@@ -25,7 +25,9 @@ int getBytesTResult(t_result *result);
 int getBytesReq(t_request *request);
 int getBytesReqPlato(t_req_plato *request);
 int getBytesListaStrings(t_list *listaStrings);
+int getBytesTPlatoListo(t_plato_listo *platoListo);
 int getBytesTPosicion();
+int getBytesTSeleccRest(t_selecc_rest *seleccRest);
 int getBytesMd();
 int getPayloadSize(m_code codigoOperacion, void *stream);
 int getTamanioTotalPaquete(m_code codigoOperacion, void *stream);
@@ -44,23 +46,27 @@ void serializarHeader(void *buffer, p_code procesoOrigen, m_code codigoOperacion
 void serializarPayload(void *buffer, m_code codigoOperacion, void *stream);
 void *srlzInt(int valor);
 void *srlzString(char *mensaje);
-void *srlzMd(md_restaurante *md);
+void *srlzMd(t_md *md);
 void *srlzPedido(t_pedido *pedido);
+void *srlzTPlatoListo(t_plato_listo *platoListo);
 void *srlzTResult(t_result *result);
 void *srlzRequest(t_request *request);
 void *srlzReqPlato(t_req_plato *request);
 void *srlzListaStrings(t_list *listaStrings);
 void *srlzTPosicion(t_posicion *posicion);
+void *srlzTSeleccRest(t_selecc_rest *seleccRest);
 
 // Deserializar
 
 char *dsrlzString(void *buffer, int sizeString);
 t_list *dsrlzListaStrings(void *buffer, int sizeLista);
-md_restaurante *dsrlzMd(void *buffer, int size);
+t_md *dsrlzMd(void *buffer, int size);
 t_request *dsrlzRequest(void *buffer);
 t_req_plato *dsrlzReqPlato(void *buffer);
 t_pedido *dsrlzPedido(void *buffer, int size);
 t_result *dsrlzTResult(void *buffer);
 t_posicion *dsrlzTPosicion(void *buffer);
+t_selecc_rest *dsrlzTSeleccRest(void *buffer);
+t_plato_listo *dsrlzTPlatoListo(void *buffer);
 
 #endif

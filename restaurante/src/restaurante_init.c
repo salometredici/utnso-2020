@@ -33,14 +33,14 @@ char *getQuantum() {
 void obtenerMetadata() {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	md_restaurante *md = recibirPayloadPaquete(header, conexionSindicato);
+	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
 	inicializarVariablesMd(md);
 	logMetadata(md);
 	free(header);
 	free(md);
 }
 
-void inicializarVariablesMd(md_restaurante *md) {
+void inicializarVariablesMd(t_md *md) {
 	recetasDisponibles = list_create();
 	afinidadesMd = list_create();
 	posicion = malloc(sizeof(t_posicion));

@@ -15,25 +15,22 @@ int getKeyAlgoritmo(char *key) {
 
 /* Funciones para la planificación */
 
-double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante) {
-	int x = posRepartidor->posX - posRestaurante->posX;
-	int y = posRepartidor->posY - posRestaurante->posY;
+double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
+	int x = posRepartidor->posX - posRest->posX;
+	int y = posRepartidor->posY - posRest->posY;
 	double distancia = sqrt(pow(x, 2) + pow(y, 2));
 	return distancia;
 }
 
-t_repartidor *getRepartidorMasCercano(t_md *md) {
-	t_posicion *posicionRestaurante = malloc(sizeof(t_posicion)); 
-	posicionRestaurante = md->posX;
-	posicionRestaurante = md->posY;
+t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
 	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0);
-	double distMinima = getDistancia(primerRepartidor->posRepartidor, posicionRestaurante);		
+	double distMinima = getDistancia(primerRepartidor->posRepartidor, posRest);		
 		
-	bool repartidorMasCercano(void *actual) {
+	bool esElMasCercano(void *actual) {
 		t_repartidor *repartidorActual = actual;
-		double distACliente = getDistancia(repartidorActual->posRepartidor, posicionRestaurante);
-		return distACliente < distMinima;
-	}
+		double distARest = getDistancia(repartidorActual->posRepartidor, posRest);
+		return distARest < distMinima;
+	};
 		
 	t_repartidor *repartidorEncontrado = list_find(repartidoresDisponibles, &esElMasCercano);
 

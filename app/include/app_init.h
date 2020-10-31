@@ -75,9 +75,12 @@ typedef struct {
 	int qRecorrido;
 	int qDescansado;
 	t_estado_pcb estado;
+	bool alcanzoRestaurante;
 	//t_list *instrucciones; // ?
+
 	t_repartidor *repartidor;
 	char *idCliente;
+	int socketCliente; //=
 	t_posicion *posCliente;
 	char *restaurante;
 	t_posicion *posRest;
@@ -93,7 +96,7 @@ typedef struct {
 } t_cliente;
 
 void planificarProximo(t_pcb *pcb, t_md *md);
-t_repartidor *getRepartidorMasCercano(t_md *md);
+t_repartidor *getRepartidorMasCercano(t_posicion *posRest);
 double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
 
 #endif

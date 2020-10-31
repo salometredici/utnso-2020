@@ -19,4 +19,9 @@ pthread_mutex_t mutexQR;
 pthread_mutex_t mutexQE;
 pthread_mutex_t mutexQB;
 
+typedef enum {
+    HACIA_CLIENTE = 1,
+    HACIA_RESTAURANTE = 2
+} tour_code;
+
 #endif

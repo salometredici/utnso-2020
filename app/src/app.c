@@ -24,7 +24,7 @@ bool debeDescansarRepartidor(t_pcb *currentPcb) {
 /* Planificación FIFO */
 
 // Si hay repartidores disponibles y PCBs en NEW, los asigna y añade a READY
-void actualizarQR() {
+void actualizarQRconQN() {
 	while (!list_is_empty(repartidoresDisponibles) && !queue_is_empty(qN)) {
 		
 		pthread_mutex_lock(&mutexQN);
@@ -40,8 +40,16 @@ void actualizarQR() {
 	}
 }
 
+void pasarAQB(t_pcb *pcb) {
+	pthread_mutex_lock(&mutexQB);
+	pcb->estado = REPARTIDOR_DESCANSANDO;
+	queue_push(qB, pcb);
+	pthread_mutex_lock(&mutexQB);
+	// Logguear algo...
+}
+
 void actualizarQE() {
-	// 1. Revisar si algún repartidor tiene que descansar
+	// 1. Revisar si algún repartidor tiene que descansar -----------------
 	int sizeQE = queue_size(qE);
 	for (int i = 0; i < sizeQE; i++) {
 		pthread_mutex_lock(&mutexQE);
@@ -89,37 +97,76 @@ void actualizarQE() {
 	}
 }
 
-t_posicion *getNextStep(t_posicion *posC, t_posicion *posR) {
+t_posicion *getNextStep(t_posicion *posRepartidor, t_posicion *posObjetivo) {
 	t_posicion *nextPos = malloc(sizeof(t_posicion));
-	// if si alcanzo X -> fijo Y o al reves
-	nextPos->posX = posC->posX < posR->posX ? 
-						posC->posX + 1 :
-						(posC->posX == posR->posX ?
-							posR->posX :
-							posR - 1);
-	nextPos->posY = posC->posY < posR->posY ?
-						posC->posY + 1 :
-						(posC->posY == posR->posY ?
-							posR->posY :
-							posR - 1);
+	// Primero avanzamos/retrocedemos en el eje X y después en el eje Y
+	if (posRepartidor->posX != posObjetivo->posX) {
+		nextPos->posY = posRepartidor->posY; // No cambia en Y
+		nextPos->posX = posRepartidor->posX < posObjetivo->posX ? 
+						posRepartidor->posX + 1 :
+						posRepartidor->posX - 1;
+	} else {
+		nextPos->posX = posRepartidor->posX; // No cambia en X
+		nextPos->posY = posRepartidor->posY < posObjetivo->posY ?
+						posRepartidor->posY + 1 :
+						posRepartidor - 1;
+	}
 	return nextPos;
 }
 
-void actualizarPosicion(t_pcb *currentPcb) {
+void actualizarPosicion(t_pcb *currentPcb, tour_code code) {
 	currentPcb->qRecorrido++;
-	t_posicion *nextPos = getNextStep(currentPcb->posCliente, currentPcb->posRest);
+	t_posicion *nextPos = malloc(sizeof(t_posicion));
+	switch (code) {
+		case HACIA_CLIENTE:
+			nextPos = getNextStep(currentPcb->repartidor->posRepartidor, currentPcb->posCliente);
+			break;
+		case HACIA_RESTAURANTE:
+			nextPos = getNextStep(currentPcb->repartidor->posRepartidor, currentPcb->posRest);
+			break;
+	}
 	currentPcb->repartidor->posRepartidor->posX = nextPos->posX;
 	currentPcb->repartidor->posRepartidor->posY = nextPos->posY;
+	free(nextPos);
 }
 
+bool llegoAlRestaurante(t_pcb *pcb) {
+	return pcb->posRest->posX == pcb->repartidor->posRepartidor->posX && pcb->posRest->posY == pcb->repartidor->posRepartidor->posY;
+}
 
-void ejecutarCiclosFIFO() {
+bool todosPlatosListos(t_pcb *pcb) {
+	int conexionComanda = conectarseA(COMANDA);
+	enviarPaquete(conexionComanda, APP, CONSULTAR_PEDIDO, pcb->pid);
+	t_header *header = recibirHeaderPaquete(conexionComanda);
+	t_pedido *pedido = recibirPayloadPaquete(header, conexionComanda); // free(header) y free(pedido)?
+	return pedido->estado == FINALIZADO;
+}
+
+void ejecutarCiclosFIFO()
+{	
 	pthread_mutex_lock(&mutexQE);
 	t_pcb *currentPcb = queue_pop(qE);
-	while (currentPcb != NULL && !debeDescansarRepartidor(currentPcb)) {
-		actualizarPosicion(currentPcb);
-		queue_push(qE, currentPcb);
-		// revisar si hay lugar para meter otro 
+
+	while (currentPcb != NULL) {
+		// 1. Si debe descansar, pasa a BLOQUEADO
+		if (debeDescansarRepartidor(currentPcb)) {
+			pasarAQB(currentPcb);
+		} else if (currentPcb->estado == EN_CAMINO_A_RESTAURANTE && llegoAlRestaurante(currentPcb)) {
+			// 2. Si llegó al restaurante y tiene todos los platos listos, sigue hacia el cliente, sino, a BLOQUEADO
+			if (todosPlatosListos(currentPcb)) { // "Se deberá mover directamente a la posición del Cliente" -> Significa que va a seguir ejecutando hasta llegar o que pasa directamente y debe finalizar?
+				currentPcb->estado = EN_CAMINO_A_CLIENTE;
+				currentPcb->alcanzoRestaurante = true;
+				queue_push(qE, currentPcb);
+			} else {
+				currentPcb->estado = ESPERANDO_PLATO;
+				currentPcb->alcanzoRestaurante = true;
+				queue_push(qB, currentPcb);
+			}
+		} else {
+			// 3. Si sigue ejecutando, debe actualizar su posición de acuerdo a donde esté viajando
+			actualizarPosicion(currentPcb, currentPcb->alcanzoRestaurante ? HACIA_CLIENTE : HACIA_RESTAURANTE);
+			queue_push(qE, currentPcb);
+		}
         sleep(tiempoRetardoCpu);
 	}
 	pthread_mutex_unlock(&mutexQE);
@@ -131,7 +178,7 @@ void *planificar(void *args) { // FIFO por ahora
 		switch (algoritmoSeleccionado) {
 			case FIFO:
 				// Largo plazo
-				actualizarQR();
+				actualizarQRconQN();
 				actualizarQE();
 				// Corto plazo
 				ejecutarCiclosFIFO();
@@ -196,7 +243,7 @@ void actualizarClientesConectados(t_cliente *cliente) {
 	bool estaDuplicado(void *actual) {
 		t_cliente *clienteActual = actual;
 		return string_equals_ignore_case(cliente->idCliente, clienteActual->idCliente);
-	}
+	};
 
 	if (cliente->esRestaurante) {
 		t_cliente *restDuplicado = list_find(restaurantesConectados, &estaDuplicado);

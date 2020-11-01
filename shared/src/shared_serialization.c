@@ -50,9 +50,15 @@ int getBytesListaPlatos(t_list *listaPlatos) {
 	return bytesAEnviar;
 }
 
-// Size de 2 ints (estado y precioTotal) + size de cada t_plato
+// Size de 3 ints (idPedido, valor de longR y longPlato) + size del R + size del plato
+int getBytesTPlatoListo(t_plato_listo *platoListo) {
+	return sizeof(int) * 3 + getBytesString(platoListo->restaurante) + getBytesString(platoListo->plato);
+}
+
+// Size de 2 ints (estado y precioTotal) + size de cada t_plato --ANTES
+// Size de 3 ints (estado, precioTotal y long del R) + size de cada t_plato + size del R --AHORA
 int getBytesPedido(t_pedido *pedido) {
-	return sizeof(int) * 2 + getBytesListaPlatos(pedido->platos);
+	return sizeof(int) * 3 + getBytesListaPlatos(pedido->platos) + getBytesString(pedido->restaurante);
 }
 
 // Size de un bool, de un string y un int que representa el size del string
@@ -80,7 +86,7 @@ int getBytesListaRecetas(t_list *listaRecetas) {
 // 7 ints (posX, posY, QHornos, QPedidos, QCocineros, bytesListaRecetas, bytesListaAfinidades) + size de lista de platos + size de lista de afinidades
 // size de lista de afinidades = bytes de cada palabra + un int que represente esos bytes
 // size de lista de platos = suma de cada size de t_md_receta
-int getBytesMd(md_restaurante *md) {
+int getBytesMd(t_md *md) {
 	int bytesInts = sizeof(int) * 7;
 	int bytesListaRecetas = getBytesListaRecetas(md->platos);
 	int bytesListaAfinidades = getBytesListaStrings(md->afinidades);
@@ -89,6 +95,11 @@ int getBytesMd(md_restaurante *md) {
 
 int getBytesTPosicion() {
 	return sizeof(t_posicion);
+}
+
+// size de restauranteSeleccionado + size de idCliente + 2 ints para esos valores
+int getBytesTSeleccRest(t_selecc_rest *seleccRest) {
+	return sizeof(int) * 2 + getBytesString(seleccRest->idCliente) + getBytesString(seleccRest->restauranteSeleccionado);
 }
 
 /* GetBytes de payload y buffer */
@@ -105,6 +116,10 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case FINALIZAR_PEDIDO:
             payloadSize += getBytesReq(stream);
             break;
+		// Envío de t_plato_listo
+		case PLATO_LISTO:
+			payloadSize += getBytesTPlatoListo(stream);
+			break;	
 		// Envío de t_req_plato
 		case GUARDAR_PLATO:
 			payloadSize += getBytesReqPlato(stream);
@@ -113,8 +128,9 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case RTA_OBTENER_PEDIDO:
 			payloadSize += getBytesPedido(stream);
 			break;
+		// Envío de t_selecc_rest
 		case SELECCIONAR_RESTAURANTE:
-			//payloadSize+=getBytesString(stream); // falta ver si serializa un string u otra cosa
+			payloadSize += getBytesTSeleccRest(stream);
 			break;
 		// Envío de int
 		case RTA_CREAR_PEDIDO:
@@ -140,12 +156,11 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		case RTA_SELECCIONAR_RESTAURANTE:
 			payloadSize += getBytesTResult(stream);
 			break;
-		// Envío de md_restaurante
+		// Envío de t_md
 		case RTA_OBTENER_RESTAURANTE:
 			payloadSize += getBytesMd(stream);
 			break;
 		// Envío de una lista de strings
-        case PLATO_LISTO: // Envía restaurante, id pedido y comida
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			payloadSize += getBytesListaStrings(stream);
@@ -196,7 +211,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			buffer = srlzReqPlato(stream);
 			break;
 		case SELECCIONAR_RESTAURANTE:
-			//buffer = srlzString(stream); // hay que ver que serializar si string u otra cosa
+			buffer = srlzTSeleccRest(stream);
 			break;
 		case RTA_CREAR_PEDIDO:
 		case RTA_OBTENER_PROCESO:
@@ -226,6 +241,8 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			buffer = srlzPedido(stream);
 			break;
 		case PLATO_LISTO:
+			buffer = srlzTPlatoListo(stream);
+			break;
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = srlzListaStrings(stream);
@@ -304,6 +321,26 @@ void *srlzRequest(t_request *request) {
     return magic;
 }
 
+// Función para serializar un t_selecc_rest
+void *srlzTSeleccRest(t_selecc_rest *seleccRest) {
+	t_selecc_rest *seleccion = (t_selecc_rest*) seleccRest;
+	int desplazamiento = 0;
+	int size = getBytesTSeleccRest(seleccRest);
+	int longitudIdCliente = getBytesString(seleccRest->idCliente);
+	int longitudRestaurante = getBytesString(seleccRest->restauranteSeleccionado);
+
+	void *magic = malloc(size);
+	memcpy(magic, &longitudIdCliente, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &longitudRestaurante, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, seleccion->idCliente, longitudIdCliente);
+	desplazamiento += longitudIdCliente;
+	memcpy(magic + desplazamiento, seleccion->restauranteSeleccionado, longitudRestaurante);
+
+	return magic;
+}
+
 // Función para serializar un t_req_plato
 void *srlzReqPlato(t_req_plato *request) {
 	int desplazamiento = 0;
@@ -329,12 +366,42 @@ void *srlzReqPlato(t_req_plato *request) {
 	return magic;
 }
 
+// Función para serializar un t_plato_listo
+void *srlzTPlatoListo(t_plato_listo *platoListo) {
+	int desplazamiento = 0;
+	int size = getBytesTPlatoListo(platoListo);
+	char *plato = platoListo->plato;
+	char *restaurante = platoListo->restaurante;
+	int longPlato = getBytesString(plato);
+	int longRestaurante = getBytesString(restaurante);
+
+	void *magic = malloc(size);
+
+	memcpy(magic + desplazamiento, &platoListo->idPedido, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	memcpy(magic, &longPlato, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &longRestaurante, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	memcpy(magic + desplazamiento, plato, longPlato);
+	desplazamiento += longPlato;
+	memcpy(magic + desplazamiento, restaurante, longRestaurante);
+	desplazamiento += longRestaurante;
+
+	return magic;
+}
+
 // Función para serializar un t_pedido
 void *srlzPedido(t_pedido *pedido) {
 	int desplazamiento = 0;
 	t_list *listaPlatos = (t_list*) pedido->platos;
 
 	int longListaPlatos = list_size(listaPlatos);
+
+	int longRestaurante = string_length(pedido->restaurante); //
+	char *rest = pedido->restaurante; //
 
 	int size = getBytesPedido(pedido);
 
@@ -343,6 +410,12 @@ void *srlzPedido(t_pedido *pedido) {
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &pedido->precioTotal, sizeof(int));
 	desplazamiento += sizeof(int);
+
+	memcpy(magic + desplazamiento, &longRestaurante, sizeof(int)); //
+	desplazamiento += sizeof(int); //
+	memcpy(magic + desplazamiento, rest, longRestaurante); //
+	desplazamiento += longRestaurante;
+
 	for (int i = 0; i < longListaPlatos; i++) {
 		t_plato *plato = list_get(listaPlatos, i);
 		int longNombrePlato = getBytesString(plato->plato);
@@ -362,8 +435,8 @@ void *srlzPedido(t_pedido *pedido) {
 	return magic;
 }
 
-// Función para serializar un md_restaurante
-void *srlzMd(md_restaurante *md) {
+// Función para serializar un t_md
+void *srlzMd(t_md *md) {
 	int desplazamiento = 0;
 	t_list *recetas = (t_list*) md->platos;
 	t_list *afinidades = (t_list*) md->afinidades;
@@ -549,16 +622,52 @@ t_req_plato *dsrlzReqPlato(void *buffer) {
 	return request;
 }
 
+t_plato_listo *dsrlzTPlatoListo(void *buffer) {
+	int longPlato;
+	int longRestaurante;
+	int desplazamiento = 0;
+	t_plato_listo *platoListo = malloc(sizeof(t_plato_listo));
+
+	memcpy(&platoListo->idPedido, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&longPlato, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&longRestaurante, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	char *plato = malloc(longPlato);
+	char *restaurante = malloc(longRestaurante);
+	memcpy(plato, buffer + desplazamiento, longPlato);
+	desplazamiento += longPlato;
+	memcpy(restaurante, buffer + desplazamiento, longRestaurante);
+	desplazamiento += longRestaurante;
+	
+	platoListo->plato = plato;
+	platoListo->restaurante = restaurante;
+	return platoListo;
+}
+
 t_pedido *dsrlzPedido(void *buffer, int size) {
 	int desplazamiento = 0;
 	t_pedido *pedido = malloc(sizeof(t_pedido));
 	t_list *platos = list_create();
-	int sizeListaPlatos = size - sizeof(int) * 2;
+	//int sizeListaPlatos = size - sizeof(int) * 2; -- Ahora van a ser 3 ints y la long del R
+
+	int longRestaurante; //
 
 	memcpy(&pedido->estado, buffer, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(&pedido->precioTotal, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
+
+	memcpy(&longRestaurante, buffer + desplazamiento, sizeof(int)); //
+	desplazamiento += sizeof(int); //
+	
+	char *rest = malloc(longRestaurante); //
+	memcpy(rest, buffer + desplazamiento, longRestaurante); //
+	desplazamiento += longRestaurante; //
+
+	int sizeListaPlatos = size - sizeof(int) * 2 - longRestaurante;
 
 	while (desplazamiento < sizeListaPlatos) {
 		int longPlatoActual;
@@ -586,9 +695,9 @@ t_pedido *dsrlzPedido(void *buffer, int size) {
 	return pedido;
 }
 
-md_restaurante *dsrlzMd(void *buffer, int size) {
+t_md *dsrlzMd(void *buffer, int size) {
 	int desplazamiento = 0;
-	md_restaurante *md = malloc(sizeof(md_restaurante));
+	t_md *md = malloc(sizeof(t_md));
 	t_list *platos = list_create();
 	t_list *afinidades = list_create();
 
@@ -677,6 +786,29 @@ t_result *dsrlzTResult(void *buffer) {
 	return result;
 }
 
+t_selecc_rest *dsrlzTSeleccRest(void *buffer) {
+	int desplazamiento = 0;
+	int longIdCliente; int longRestaurante;
+	t_selecc_rest *seleccRest = malloc(sizeof(t_selecc_rest));
+
+	memcpy(&longIdCliente, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&longRestaurante, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	char *idCliente = malloc(longIdCliente);
+	char *restaurante = malloc(longRestaurante);
+
+	memcpy(idCliente, buffer, longIdCliente);
+	desplazamiento += longIdCliente;
+	memcpy(restaurante, buffer, longRestaurante);
+
+	seleccRest->idCliente = idCliente;
+	seleccRest->restauranteSeleccionado = restaurante;
+
+	return seleccRest;
+}
+
 int dsrlzInt(void *buffer) {
 	int valor;
 	memcpy(&valor, buffer, sizeof(int));
@@ -753,6 +885,9 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 		case RTA_OBTENER_PEDIDO:
 			buffer = dsrlzPedido(buffer, size);
 			break;
+		case SELECCIONAR_RESTAURANTE:
+			buffer = dsrlzTSeleccRest(buffer);
+			break;
 		case ANIADIR_PLATO:
 		case GUARDAR_PEDIDO:
 		case OBTENER_PEDIDO:
@@ -765,6 +900,8 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			buffer = dsrlzReqPlato(buffer);
 			break;
 		case PLATO_LISTO:
+			buffer = dsrlzTPlatoListo(buffer);
+			break;
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
 			buffer = dsrlzListaStrings(buffer, size);

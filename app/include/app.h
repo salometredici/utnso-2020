@@ -5,9 +5,14 @@
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
 #include "../include/app_init.h"
+#include "../include/app_planification.h"
 #include "tests.h"
 
 int socketServidor;
+
+t_list *clientesConectados;
+
 pthread_t threadConexiones;
+pthread_t threadPlanificacion;
 
 #endif

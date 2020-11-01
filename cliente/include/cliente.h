@@ -13,7 +13,8 @@
 #include "tests.h"
 
 int conexion;
-p_code procesoConectado;
+p_code procesoServidor;
+t_cliente *dataCliente;
 
 t_list *params;
 
@@ -21,7 +22,7 @@ pthread_t threadConsola;
 
 // API
 void consultarRestaurantes();
-void seleccionarRestaurante(int socketCliente, char *nombreRestaurante);
+void seleccionarRestaurante(char *idCliente, char *nombreRestaurante);
 void obtenerRestaurante(char *nombreRestaurante);
 void consultarPlatos(char *nombreRestaurante);
 void crearPedido();

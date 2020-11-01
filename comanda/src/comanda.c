@@ -2,8 +2,9 @@
 
 bool es_restaurante_buscado(void *restaurante)
 {
-	char *actual = restaurante;
-	return string_equals_ignore_case(actual, t_restaurante_buscado);
+	t_restaurante *element = restaurante;
+	char *name = element->nombre;
+	return string_equals_ignore_case(name, t_restaurante_buscado);
 }
 
 t_list* exist_restaurant(char* restaurante)
@@ -36,36 +37,31 @@ void *atenderConexiones(void *conexionNueva)
 			case GUARDAR_PEDIDO:;
 				t_request *request = recibirPayloadPaquete(header, socketCliente);
 				logRequest(request, header->codigoOperacion);
-				free(request);
 
 				/*
 				 *	Se obtiene data de App Llega el ID_PEDIDO y Restaurante
 				 *	Se verifica si esta en la tabla restaurantes;
 				 */
 
-				t_segment *segment = exist_restaurant(request->nombre);
-
-				char *restaurante = segment->nombre;
+				t_restaurante *segment = exist_restaurant(request->nombre);
+				char *restaurante = &segment->nombre;
+				
 				if(string_is_empty(&restaurante)){
 					log_comanda("No se encontro el restaurante");
-					create_restaurant(request->nombre, request->idpedido);
+					create_restaurant(request->nombre, request->idPedido);
 				}
 				else{
-					int idPedido = exist_pedido(request->nombre, request-> idPedido);
-					if(idPedido == 0){
-						log_comanda("No se encontro el pedido");
-						t_pedidoc *pedido = create_pedido("Pedido",);
-					}
-					else{
-						log_comanda("Se encuentra cargado el pedido");
-					}
+					//veo si evaluo si existe el idpedido meh chequeando
+					t_pedidoc *pedido = create_pedido(request-> idPedido);
+					agregar_pedido_a_restaurante(segment, pedido);
 				}	
 
-				/*t_result *rGP = malloc(sizeof(t_result));
+				free(request);
+				t_result *rGP = malloc(sizeof(t_result));
 				rGP->msg = "[GUARDAR_PEDIDO] Ok";
 				rGP->hasError = false;
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rGP);
-				free(rGP);*/
+				free(rGP);
 				break;
 			case GUARDAR_PLATO:;
 				/*t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);

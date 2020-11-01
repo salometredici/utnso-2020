@@ -13,12 +13,21 @@ void init_tables() {
 
 void print_structure()
 {
+	/*
 	int size = list_size(memory);
 	for(int i = 0; i < size; i++)
 	{
 		printf("Id Frame %d\n", i);
 		log_info(logger, "Nro de Frame %d", i);
-	}	
+	}*/
+	
+	for(int i = 0; i < frames; i++){
+		if(*(char*)(memory+i)!='\0'){
+			printf("%c",*(char*)(memory+i));
+		}
+	}
+	printf("\n");
+	fflush(stdout);	
 }
 
 void log_comanda(char *text){
@@ -27,7 +36,7 @@ void log_comanda(char *text){
 
 void init_memory()
 {
-	int frames = MEMORY_SIZE / PAGE_SIZE;
+	frames = MEMORY_SIZE / PAGE_SIZE;
 	int bitmap_size_in_bytes = ceil((double) frames / 8);
 	
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
@@ -53,7 +62,7 @@ void init_memory()
 		list_add(memory, frame);
 	}*/
 
-	//print_structure();
+	print_structure();
 
 }
 
@@ -71,36 +80,25 @@ t_pedidoc *create_pedido(char *name, int id_pedido)
 t_segment *create_segment(char* nombre)
 {
 	t_segment *segment = malloc(sizeof(segment));
-	t_list *pedidos = list_create();
 	segment->name = nombre;
 	segment->idsegment = id_segment == 0 ? id_segment : id_segment++;
-	segment->pedidos = pedidos;
+	segment->pedidos = list_create();
+	segment->estado = 0;
 	log_info(logger, "Nuevo segmento-restaurante (%s) creado.", nombre);
 	return segment;	
 }
 
 void agregar_pedido_a_restaurante(t_segment *segment, t_pedidoc *pedido){
-	t_list *pedidos = segment->pedidos;
-	int number_of_pages = list_size(pedidos);
-	int offset = number_of_pages * sizeof(t_pedidoc); // esto no se ver si es variable el espacio
-
-	if (number_of_pages == 0) {
-		segment->pedidos = malloc(sizeof(t_pedidoc));
-	} else {
-		int new_size = offset + sizeof(t_pedidoc);
-		segment->pedidos = realloc(segment->pedidos, new_size);
-	}
-
-	memcpy(segment->pedidos + offset, pedido, sizeof(t_pedidoc));
-	free(pedido);
+	list_add(segment->pedidos, pedido);
+	log_comanda("Se agrego un pedido");
 }
 
 void create_restaurant(char *name, int id_pedido)
 {
 	t_segment *segment = create_segment(name);
-	add_restaurant(name, segment);
 	t_pedidoc *pedido = create_pedido("pedido", id_pedido);
 	agregar_pedido_a_restaurante(segment, pedido);
+	add_restaurant(name, segment);
 }
 
 void add_restaurant(char *nombre, t_segment *segment)
@@ -108,7 +106,8 @@ void add_restaurant(char *nombre, t_segment *segment)
 	t_restaurante *restaurante = malloc(sizeof(t_restaurante));
 	restaurante->nombre = nombre;
 	restaurante->segment = segment;
-	list_add(restaurantes, nombre);
+	list_add(restaurantes, restaurante);
+	//printf();
 }
 
 void init_comanda() {

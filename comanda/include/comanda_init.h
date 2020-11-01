@@ -25,6 +25,7 @@ int MEMORY_SIZE;
 int SWAP_SIZE;
 char *ALGORITMO_REEMPLAZO;
 int id_segment;
+int frames;
 
 /*
  * Estructura de lo que esta dentro de la memoria
@@ -65,5 +66,7 @@ void init_tables();
 void print_structure();
 void add_restaurant(char *nombre, t_segment *segment);
 void create_restaurant(char *name, int id_pedido);
+void agregar_pedido_a_restaurante(t_segment *segment, t_pedidoc *pedido);
+
 
 #endif

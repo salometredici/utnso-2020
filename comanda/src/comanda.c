@@ -38,22 +38,17 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *request = recibirPayloadPaquete(header, socketCliente);
 				logRequest(request, header->codigoOperacion);
 
-				/*
-				 *	Se obtiene data de App Llega el ID_PEDIDO y Restaurante
-				 *	Se verifica si esta en la tabla restaurantes;
-				 */
-
-				t_restaurante *segment = exist_restaurant(request->nombre);
-				char *restaurante = &segment->nombre;
+				t_restaurante *restaurante = exist_restaurant(request->nombre);
+				char *nombre = &restaurante->nombre;
 				
-				if(string_is_empty(&restaurante)){
+				if(string_is_empty(&nombre)){
 					log_comanda("No se encontro el restaurante");
 					create_restaurant(request->nombre, request->idPedido);
 				}
 				else{
 					//veo si evaluo si existe el idpedido meh chequeando
-					t_pedidoc *pedido = create_pedido(request-> idPedido);
-					agregar_pedido_a_restaurante(segment, pedido);
+					t_pedidoc *pedido = create_pedido(request-> idPedido);					
+					agregar_pedido_a_restaurante(restaurante->segment, pedido);
 				}	
 
 				free(request);
@@ -64,14 +59,16 @@ void *atenderConexiones(void *conexionNueva)
 				free(rGP);
 				break;
 			case GUARDAR_PLATO:;
-				/*t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
+				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
 				logRequestPlato(reqGuardarPlato);
+				
+				
 				free(reqGuardarPlato);
 				t_result *rGPlato = malloc(sizeof(t_result));
 				rGPlato->msg = "[GUARDAR_PLATO] Ok";
 				rGPlato->hasError = false;
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rGPlato);
-				free(rGPlato);*/
+				free(rGPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				/*t_request *reqConf = recibirPayloadPaquete(header, socketCliente);

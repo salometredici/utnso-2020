@@ -107,7 +107,6 @@ void add_restaurant(char *nombre, t_segment *segment)
 	restaurante->nombre = nombre;
 	restaurante->segment = segment;
 	list_add(restaurantes, restaurante);
-	//printf();
 }
 
 void init_comanda() {

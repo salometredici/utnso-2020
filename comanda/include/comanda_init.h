@@ -27,6 +27,12 @@ char *ALGORITMO_REEMPLAZO;
 int id_segment;
 int frames;
 
+typedef enum {
+    INICIAL,
+    ENPROCESO,
+    FINALIZADO
+}estado;
+
 /*
  * Estructura de lo que esta dentro de la memoria
  */

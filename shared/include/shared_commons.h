@@ -1,6 +1,7 @@
 #ifndef SHARED_COMMONS_H
 #define SHARED_COMMONS_H
 
+#include <math.h>
 #include <stdio.h>
 #include <netdb.h>
 #include <errno.h>
@@ -52,6 +53,7 @@ typedef enum {
 	TERMINAR_PEDIDO = 113,
 	OBTENER_RECETA = 114,
 	OBTENER_PROCESO = 115,
+	ENVIAR_DATACLIENTE = 116,
     // Respuestas
     RTA_CONSULTAR_RESTAURANTES = 200,
 	RTA_SELECCIONAR_RESTAURANTE = 201,
@@ -71,7 +73,7 @@ typedef enum {
 	RTA_OBTENER_PROCESO = 215
 } m_code;
 
-// Commons
+/* Commons (todos los procesos van a tener estos tres) */
 
 t_log *logger;
 p_code process;
@@ -117,6 +119,7 @@ static t_keys diccionarioComandos[] = {
     { "TERMINAR_PEDIDO", TERMINAR_PEDIDO },
     { "OBTENER_RECETA", OBTENER_RECETA },
 	{ "OBTENER_PROCESO", OBTENER_PROCESO },
+	{ "ENVIAR_DATACLIENTE", ENVIAR_DATACLIENTE },
     { "RTA_OBTENER_RESTAURANTE", RTA_OBTENER_RESTAURANTE },
     { "RTA_CONSULTAR_RESTAURANTES", RTA_CONSULTAR_RESTAURANTES },
 	{ "RTA_SELECCIONAR_RESTAURANTE", RTA_SELECCIONAR_RESTAURANTE },
@@ -137,13 +140,16 @@ static t_keys diccionarioComandos[] = {
 
 #define COMMANDNKEYS (sizeof(diccionarioComandos)/sizeof(t_keys))
 
+// Devuelve el valor en string de un proceso/comando, el parámetro option corresponde al diccionario (PROCNKEYS o COMMANDNKEYS)
 char *getStringKeyValue(int key, int option);
+// Devuelve el número correspondiente a un comando para ser utilizado en un switch o comparación
 int commandToString(char *key);
+// Devuelve el p_code correspondiente a un int
 p_code intToPCode(int key);
 
 bool stringFound(char *expected, char *actual);
 
-// Config
+ /* Funciones de t_config */
 
 int obtenerPuertoEscucha();
 char *obtenerCliente();
@@ -151,7 +157,12 @@ char *obtenerLogFileName();
 bool obtenerActiveConsole();
 int obtenerLogLevel();
 
-// Structs
+/* Structs */
+
+typedef struct {
+	char *idCliente;
+	char *restauranteSeleccionado;
+} t_selecc_rest;
 
 typedef struct {
 	bool hasError;
@@ -188,7 +199,14 @@ typedef struct {
 	int precio;
 } t_plato;
 
+typedef struct {
+	char *restaurante;
+	int idPedido;
+	char *plato;
+} t_plato_listo;
+
 typedef struct { // Ir actualizando con erratas del TP! No debería tener el id también?
+	char *restaurante;
 	t_estado estado;
 	t_list *platos;
 	int precioTotal; // Quizás después corresponda un float o double
@@ -207,7 +225,18 @@ typedef struct { // cantidad de cocineros y sus afinidades, posicino del restaur
 	int cantidadCocineros;
 	t_list *platos; // lista de t_md_receta
 	t_list *afinidades; // lista de strings
-} md_restaurante;
+} t_md;
+
+typedef struct {
+	char *idCliente; // Si es cliente tiene CLIENTE_ID, si es un restaurante va a ser NOMBRE_RESTAURANTE
+	int socketCliente;
+	bool esRestaurante;
+	t_posicion *posCliente;
+	char *restauranteSeleccionado;
+	t_posicion *posRestaurante;
+} t_cliente;
+
+/* Funciones */
 
 typedef struct {
 	char *paso;
@@ -224,6 +253,7 @@ void limpiarPantalla();
 void mostrarListaStrings(t_list *listaStrings);
 void mostrarListaPlatos(t_list *listaPlatos);
 
+t_link_element* list_find_element(t_list *self, bool(*condition)(void*), int* index);
 int calcularPrecioTotal(t_list *listaPlatos);
 char *getStringEstadoPedido(t_estado estado);
 

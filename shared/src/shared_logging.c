@@ -65,9 +65,35 @@ void logListaRecetas(t_list *listaRecetas) {
 	}
 }
 
-/* md_restaurante */
+/* CONSULTAR_PEDIDO: t_pedido CON nombre de restaurante */
 
-void logMetadata(md_restaurante *md) {
+void logConsultarPedido(t_pedido *pedido, int idPedido) {
+	printf("Pedido #%d:\n", idPedido);
+	log_info(logger, "Pedido #%d:", idPedido);
+	printf("\tRestaurante: %s, Estado: %s, Precio Total: $%d\n", pedido->restaurante, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+	log_info(logger, "\tRestaurante: %s, Estado: %s, Precio Total: $%d", pedido->restaurante, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+	mostrarListaPlatos(pedido->platos);
+}
+
+/* OBTENER_PEDIDO: t_pedido SIN nombre de restaurante */
+
+void logObtenerPedido(t_pedido *pedido, int idPedido) {
+	printf("Pedido #%d:\n", idPedido);
+	log_info(logger, "Pedido #%d:", idPedido);
+	printf("\tEstado: %s, Precio Total: $%d\n", getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+	log_info(logger, "\tEstado: %s, Precio Total: $%d", getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+	mostrarListaPlatos(pedido->platos);
+}
+
+/* t_cliente */
+
+void logInitDataCliente(t_cliente *cliente) {
+	log_info("Cliente %s iniciado, PosX: %d, PosY: %d", cliente->idCliente, cliente->posCliente->posX, cliente->posCliente->posY);
+}
+
+/* t_md */
+
+void logMetadata(t_md *md) {
 	printf("\033[1m[Metadata del restaurante]:\033[0m\n");
 	log_info(logger, "Metadata del restaurante:");
 	printf("\tCantidad de cocineros: \033[1m%d\033[0m\n", md->cantidadCocineros);
@@ -83,6 +109,18 @@ void logMetadata(md_restaurante *md) {
 	mostrarListaStrings(md->afinidades);
 	printf("\t\033[1mRecetas:\033[1m\n");
 	logListaRecetas(md->platos);
+}
+
+void logSeleccionarRestaurante(t_selecc_rest *seleccion) {
+	printf("Se ha asociado al cliente \033[1m%s\033[0m con el restaurante \033[1;35m%s\033[0m\n", seleccion->idCliente, seleccion->restauranteSeleccionado);
+	log_info(logger, "Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restauranteSeleccionado);
+}
+
+/* t_result */
+
+void logTResult(t_result *result) {
+	printf("Resultado \033[1m[%s]\033[0m: %s\n", result->hasError ? "FAILED" : "SUCCESS", result->msg);
+	log_info(logger, "Resultado [%s]: %s", result->hasError ? "FAILED" : "SUCCESS", result->msg);
 }
 
 void logHeader(m_code codigoOperacion, p_code procesoOrigen) {

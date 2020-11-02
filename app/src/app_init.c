@@ -1,60 +1,48 @@
 #include "../include/app_init.h"
 
-void cargarConfiguracionApp() {
-	appConfig= malloc(sizeof(appConfig_t));
+/* Utils */
 
-	appConfig->platosDefault =config_get_array_value(config,"PLATOS_DEFAULT");
-	appConfig->posicionRestDefaultX = config_get_int_value(config,"POSICION_REST_DEFAULT_X");
-	appConfig->posicionRestDefaultY = config_get_int_value(config,"POSICION_REST_DEFAULT_Y");	
-	/*
-	printf("\n\n grado de multiprogramacion: %d",appConfig->gradoMultiprocesamiento);
-	printf("\n algoritmo de planificacion: %s",appConfig->algoritmoPlanificacion);
-	printf("\n alpha: %.2f", appConfig->alpha);
-	printf("\n estimacion inicial: %d", appConfig->estimacionInicial);
-	printf("\n platos default: %s", appConfig->platosDefault[0]);
-	printf("\n posicion restaurante default X: %d", appConfig->posicionRestDefaultX);
-	printf("\n posicion restaurante default Y: %d\n", appConfig->posicionRestDefaultY);
-
-	int i;
-	for (i = 0; appConfig->posicionRepartidores[i] != NULL; i++)
-	{
-		printf("\n posicion del repartidor %d: %s",i , appConfig->posicionRepartidores[i]);
+int getKeyAlgoritmo(char *key) {
+    t_keys *diccionario = diccionarioAlgoritmos;
+    for (int i = 0; i < ALGORITMONKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
     }
-	printf("\n cantidad de posiciones de repartidores es: %d\n", i);
+    return ERROR;
+}
+
+/* Funciones para la planificación */
+
+double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
+	int x = posRepartidor->posX - posRest->posX;
+	int y = posRepartidor->posY - posRest->posY;
+	double distancia = sqrt(pow(x, 2) + pow(y, 2));
+	return distancia;
+}
+
+t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
+	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0);
+	double distMinima = getDistancia(primerRepartidor->posRepartidor, posRest);		
+		
+	bool esElMasCercano(void *actual) {
+		t_repartidor *repartidorActual = actual;
+		double distARest = getDistancia(repartidorActual->posRepartidor, posRest);
+		return distARest < distMinima;
+	};
+		
+	t_repartidor *repartidorEncontrado = list_find(repartidoresDisponibles, &esElMasCercano);
+
+	// Se agrega al repartidor a la lista de Ocupados y se lo quita de la de Disponibles
+	t_repartidor *repartidorMasCercano = repartidorEncontrado == NULL ? primerRepartidor : repartidorMasCercano;
+	list_remove(repartidoresDisponibles, repartidorMasCercano->idRepartidor);
+	list_add(repartidoresOcupados, repartidorMasCercano);
 	
-	for (i = 0; appConfig->frecuenciaDescando[i] != NULL; i++)
-	{
-		printf("\n frecuencia de descanso %d: %s",i, appConfig->frecuenciaDescando[i]);
-    }
-
-	for (i = 0; appConfig->tiempoDescanso[i] != NULL; i++)
-	{
-     	printf("\n tiempo de descanso %d: %s",i, appConfig->tiempoDescanso[i]);
-    }
-	printf("\n\n");
-	*/
-	free(appConfig);
+	return repartidorMasCercano;
 }
 
-void inicializarEstructurasYListas() {
-	
-	listaPedidos = list_create(); // aca se van a ir colocando los PCB
-	listaRepartidores = list_create();
-	NUEVOS = list_create();
-    LISTOS = list_create();
-	EJECUTANDO = list_create();
-    BLOQUEADOS = list_create();
-    FINALIZADOS = list_create();
-
-	cargarPCByListas();
-
-}
-void cargarPCByListas() {
-// Aca se carga los repartidores a la lista de repartidores
-// y los PCB que referencian a cada pedido
-}
-
-//-----
+/* Getters */
 
 double getAlpha() {
 	return config_get_double_value(config, "ALPHA");
@@ -92,9 +80,11 @@ char **getPlatosDefault() {
 	return config_get_array_value(config,"PLATOS_DEFAULT");
 }
 
+/* Inicialización */
+
 void inicializarRepartidores() {
 	int i = 0;
-	repartidores = list_create();
+	repartidoresDisponibles = list_create();
 	char **tiemposDescanso = getTiemposDescanso();
 	char **repartidoresConfig = getRepartidores();
 	char **frecuenciasDescanso = getFrecuenciasDescanso();
@@ -108,6 +98,7 @@ void inicializarRepartidores() {
 		posRActual->posX = atoi(valores[0]);
 		posRActual->posY = atoi(valores[1]);
 
+		repartidorActual->idRepartidor = i;
 		repartidorActual->posRepartidor = posRActual;
 		repartidorActual->tiempoDescanso = atoi(tiemposDescanso[i]);
 		repartidorActual->freqDescanso = atoi(frecuenciasDescanso[i]);
@@ -119,13 +110,13 @@ void inicializarRepartidores() {
 				repartidorActual->freqDescanso,
 				repartidorActual->tiempoDescanso);
 		
-		list_add(repartidores, repartidorActual);
+		list_add(repartidoresDisponibles, repartidorActual);
 		free(repartidorActual);
 		free(posRActual);
 		i++;
 	} while(repartidoresConfig[i] != NULL);
 
-	cantidadRepartidores = list_size(repartidores);
+	cantidadRepartidores = list_size(repartidoresDisponibles);
 }
 
 void inicializarPosResDefault() {
@@ -156,8 +147,9 @@ void inicializarVariablesGlobales() {
 	alpha = getAlpha();
 	tiempoRetardoCpu = getTiempoRetardoCpu();
 	estimacionInicial = getEstimacionInicial();
-	algoritmoPlanificacion = getAlgoritmoPlanificacion();
 	gradoMultiprocesamiento = getGradoMultiprocesamiento();
+	algoritmo = getAlgoritmoPlanificacion();
+	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
 }
 
 void inicializarQueues() {
@@ -170,15 +162,10 @@ void inicializarQueues() {
 
 void initApp() {
 	conexionComanda = conectarseA(COMANDA);
+	// Si la conexion es exitosa, liberamos inmediatamente la conexion (no la necesitamos)
+	liberarConexion(conexionComanda);
 	inicializarVariablesGlobales();
 	inicializarRestauranteDefault();
 	inicializarRepartidores();
 	inicializarQueues();
-
-
-	// 	cargarConfiguracionApp();
-	
-	// inicializarEstructurasYListas();
-
-	// planificar(); // seguramente habra que tener un hilo para esto. Despues ver donde va esta funcion
 }

@@ -29,13 +29,26 @@ bool puedeEjecutarAlguno() {
 
 /* Avisos a COMANDA y CLIENTE */
 
-bool todosPlatosListos(t_pcb *pcb) { // ? Revisar cómo saber si todos los platos están listos - ARREGLAR!
+bool todosPlatosListos(t_pcb *pcb) {
 	int conexionComanda = conectarseA(COMANDA);
-	enviarPaquete(conexionComanda, APP, CONSULTAR_PEDIDO, pcb->pid);
+	
+	t_request *req = malloc(sizeof(t_request));
+	req->idPedido = pcb->pid;
+	req->nombre = pcb->restaurante;
+
+	enviarPaquete(conexionComanda, APP, OBTENER_PEDIDO, req);
 	t_header *header = recibirHeaderPaquete(conexionComanda);
-	t_pedido *pedido = recibirPayloadPaquete(header, conexionComanda); // free(header) y free(pedido)?
+	t_pedido *pedido = recibirPayloadPaquete(header, conexionComanda);
 	liberarConexion(conexionComanda);
-	return pedido->estado == FINALIZADO;
+
+	bool noEstaCompleto(void *actual) {
+		t_plato *platoActual = actual;
+		return platoActual->cantidadLista < platosActual->cantidadPedida;
+	};
+
+	t_plato *platoNoListo = list_find(pedido->platos, &noEstaCompleto);
+
+	return platoNoListo != NULL ? false : true; 
 }
 
 void informarPedidoFinalizado(t_pcb *pcb) {
@@ -190,6 +203,35 @@ void pasarAQB(t_pcb *pcb, t_estado estado) {
 	// Logguear algo...
 }
 
+// Actualizar el estado de PCB en QB
+void desbloquearPCB(int idPedido) {
+	pthread_mutex_lock(&mutexQB);
+	int qIndex = 0;
+	int qSize = queue_size(qB);
+	t_pcb *pcbADesbloquear = malloc(sizeof(t_pcb));
+
+	t_queue *newQB = queue_create();
+
+	for (int i = 0; i < qSize; i++) {
+		t_pcb *currentPCB = queue_pop(qB);
+		if (currentPCB->pid == idPedido) {
+			qIndex = i;
+			pcbADesbloquear = currentPCB;
+			pcbADesbloquear->qDescansado = 0;
+			pcbADesbloquear->estado = ESPERANDO_EJECUCION;
+		} else {
+			queue_push(newQB, currentPCB);
+		}
+	}
+
+	qR = newQB; // Ahora qB tiene un elemento menos
+	pthread_mutex_unlock(&mutexQB);
+	// Agregamos el PCB desbloqueado a la QR
+	pthread_mutex_lock(&mutexQR);
+	queue_push(qR, pcbADesbloquear);
+	pthread_mutex_unlock(&mutexQR);
+}
+
 /* FIFO */
 
 void actualizarQEconQR_FIFO() {
@@ -205,41 +247,14 @@ void actualizarQEconQR_FIFO() {
 	}
 }
 
-void ejecutarCiclosFIFO()
-{	
-	pthread_mutex_lock(&mutexQE);
-	t_pcb *currentPcb = queue_pop(qE);
-
-	while (currentPcb != NULL) {
-		// 1. Si debe descansar, pasa a BLOQUEADO
-		if (debeDescansarRepartidor(currentPcb)) {
-			pasarAQB(currentPcb, REPARTIDOR_DESCANSANDO);
-			currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
-		} else if (currentPcb->estado == EN_CAMINO_A_RESTAURANTE && llegoAlRestaurante(currentPcb)) {
-			// 2. Si llegó al restaurante y tiene todos los platos listos, sigue hacia el cliente, sino, a BLOQUEADO
-			if (todosPlatosListos(currentPcb)) {
-				currentPcb->estado = EN_CAMINO_A_CLIENTE;
-				currentPcb->alcanzoRestaurante = true;
-				queue_push(qE, currentPcb);
-			} else {
-				pasarAQB(currentPcb, ESPERANDO_PLATO);
-				currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
-			}
-		} else if(currentPcb->estado == EN_CAMINO_A_CLIENTE && llegoAlCliente(currentPcb)) {
-			// 3. Si llegó al cliente, se da por concluido el pedido
-			informarPedidoFinalizado(currentPcb);
-			informarEntregaCliente(currentPcb);
-			queue_push(currentPcb, qF);
-			currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
-		} else {
-			// 4. Si sigue ejecutando, debe actualizar su posición de acuerdo a donde esté viajando
-			actualizarPosicion(currentPcb, currentPcb->alcanzoRestaurante ? HACIA_CLIENTE : HACIA_RESTAURANTE);
-			//queue_push(qE, currentPcb);
-		}
-        sleep(tiempoRetardoCpu);
+void actualizarQDescanso() {
+	pthread_mutex_lock(&mutexQB);
+	for (int i = 0; i < queue_size(qB); i++) {
+		t_pcb *current = queue_pop(qB);
+		current->qDescansado++;
+		queue_push(qB, current);
 	}
-
-	pthread_mutex_unlock(&mutexQE);
+	pthread_mutex_unlock(&mutexQB);
 }
 
 /* HRRN */
@@ -296,7 +311,9 @@ void actualizarQEconQR_HRRN() {
 	}
 }
 
-void ejecutarCiclosHRRN() // Idem que el de fifo, pero incrementa el tiempo en espera de cada PCB de qR al terminar un ciclo
+/* Ejecución */
+
+void ejecutarCiclos() // Para FIFO y HRRN
 {
 	pthread_mutex_lock(&mutexQE);
 	t_pcb *currentPcb = queue_pop(qE);
@@ -305,32 +322,28 @@ void ejecutarCiclosHRRN() // Idem que el de fifo, pero incrementa el tiempo en e
 		// 1. Si debe descansar, pasa a BLOQUEADO
 		if (debeDescansarRepartidor(currentPcb)) {
 			pasarAQB(currentPcb, REPARTIDOR_DESCANSANDO);
-			actualizarTiemposEspera();
 			currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 		} else if (currentPcb->estado == EN_CAMINO_A_RESTAURANTE && llegoAlRestaurante(currentPcb)) {
 			// 2. Si llegó al restaurante y tiene todos los platos listos, sigue hacia el cliente, sino, a BLOQUEADO
 			if (todosPlatosListos(currentPcb)) {
 				currentPcb->estado = EN_CAMINO_A_CLIENTE;
 				currentPcb->alcanzoRestaurante = true;
-				//queue_push(qE, currentPcb);
 			} else {
 				pasarAQB(currentPcb, ESPERANDO_PLATO);
-				actualizarTiemposEspera();
 				currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 			}
-		} else if(currentPcb->estado == EN_CAMINO_A_CLIENTE && llegoAlCliente(currentPcb)) {
+		} else if (currentPcb->estado == EN_CAMINO_A_CLIENTE && llegoAlCliente(currentPcb)) {
 			// 3. Si llegó al cliente, se da por concluido el pedido
 			informarPedidoFinalizado(currentPcb);
 			informarEntregaCliente(currentPcb);
-			actualizarTiemposEspera();
 			queue_push(currentPcb, qF);
 			currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 		} else {
 			// 4. Si sigue ejecutando, debe actualizar su posición de acuerdo a donde esté viajando
 			actualizarPosicion(currentPcb, currentPcb->alcanzoRestaurante ? HACIA_CLIENTE : HACIA_RESTAURANTE);
-			actualizarTiemposEspera();
-			//queue_push(qE, currentPcb);
 		}
+		if (algoritmoSeleccionado == HRRN) { actualizarTiemposEspera(); }
+		actualizarQDescanso();
         sleep(tiempoRetardoCpu);
 	}
 

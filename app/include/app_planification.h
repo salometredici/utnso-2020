@@ -23,15 +23,14 @@ t_pcb *crearPcb(t_cliente *cliente, int idPedido);
 void agregarAQN();
 void actualizarQRconQN();
 void actualizarQRconQB();
+void ejecutarCiclos();
 
 /* FIFO */
 
 void actualizarQEconQR_FIFO();
-void ejecutarCiclosFIFO();
 
 /* HRRN */
 
 void actualizarQEconQR_HRRN();
-void ejecutarCiclosHRRN();
 
 #endif

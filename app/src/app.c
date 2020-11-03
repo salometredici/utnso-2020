@@ -9,7 +9,7 @@ void *planificar(void *args) {
 				actualizarQRconQB();
 				actualizarQEconQR_FIFO();
 				// Corto plazo
-				ejecutarCiclosFIFO();
+				ejecutarCiclos();
 				break;
 			case HRRN:
 				// Largo plazo
@@ -17,7 +17,7 @@ void *planificar(void *args) {
 				actualizarQRconQB();
 				actualizarQEconQR_HRRN();
 				// Corto plazo
-				ejecutarCiclosHRRN();
+				ejecutarCiclos();
 				break;
 			case SJF:
 				break;
@@ -205,6 +205,7 @@ void *atenderConexiones(void *conexionNueva)
 				logRequest(reqAniadir, header->codigoOperacion);
 
 				// ¿No deberíamos obtener el RESTAURANTE dueño del pedido en lugar del RESTAURANTE seleccionado?
+				// si no fuese asi, podemos obtener el nombre del restaurante de CONSULTAR_PEDIDO
 				t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado);
 
 				t_header *headerCom = malloc(sizeof(t_header));
@@ -270,8 +271,7 @@ void *atenderConexiones(void *conexionNueva)
 					}
 
 					if (pedidoListo) {
-						// Avisar al repartidor que ya puede buscar el pedido
-						// ToDo
+						desbloquearPCB(reqPedidoAVerificar->idPedido);
 					}
 				}
 				

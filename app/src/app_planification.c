@@ -224,7 +224,7 @@ void desbloquearPCB(int idPedido) {
 		}
 	}
 
-	qR = newQB; // Ahora qB tiene un elemento menos
+	qB = newQB; // Ahora qB tiene un elemento menos
 	pthread_mutex_unlock(&mutexQB);
 	// Agregamos el PCB desbloqueado a la QR
 	pthread_mutex_lock(&mutexQR);

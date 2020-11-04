@@ -49,7 +49,7 @@ double getAlpha() {
 }
 
 int getEstimacionInicial() {
-	return config_get_int_value(config, "ESTIMACION_INICIAL");
+	return config_get_double_value(config, "ESTIMACION_INICIAL");
 }
 
 char *getAlgoritmoPlanificacion() {

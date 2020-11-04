@@ -311,6 +311,46 @@ void actualizarQEconQR_HRRN() {
 	}
 }
 
+/* SJF */
+
+t_pcb *proximoAEjecutarSJF() {
+	pthread_mutex_lock(&mutexQR);
+	int qSize = queue_size(qR);
+	t_pcb *primerPCB = queue_peek(qR);
+	int freqDescansoMin = primerPCB->repartidor->freqDescanso;
+	t_pcb *nextPCBtoExec = malloc(sizeof(t_pcb));
+
+	t_queue *newQR = queue_create();
+
+	for (int i = 0; i < qSize; i++) {
+		t_pcb *currentPCB = queue_pop(qR);
+		if (currentPCB->repartidor->freqDescanso < freqDescansoMin) {
+			queue_push(newQR, nextPCBtoExec);
+			nextPCBtoExec = currentPCB;
+			freqDescansoMin = currentPCB->repartidor->freqDescanso;
+		} else {
+			queue_push(newQR, currentPCB);
+		}
+	}
+
+	qR = newQR; // Ahora qR tiene un elemento menos
+
+	pthread_mutex_unlock(&mutexQR);
+	return nextPCBtoExec;
+}
+
+void actualizarQEconQR_SJF() {
+	// Reviso si puedo agregar más PCBs de QR a EXEC
+	while (puedeEjecutarAlguno() && !queue_is_empty(qR)) {
+		t_pcb *current = proximoAEjecutarSJF();
+		pthread_mutex_lock(&mutexQE);
+		current->estado = current->alcanzoRestaurante ? EN_CAMINO_A_CLIENTE : EN_CAMINO_A_RESTAURANTE;
+		queue_push(qE, current);
+		pthread_mutex_unlock(&mutexQE);
+	}
+}
+
+
 /* Ejecución */
 
 void ejecutarCiclos() // Para FIFO y HRRN

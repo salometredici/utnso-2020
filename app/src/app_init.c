@@ -23,7 +23,7 @@ double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
 }
 
 t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
-	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0);
+	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0); // Que pasa si no hay repartidoresDisponibles?
 	double distMinima = getDistancia(primerRepartidor->posRepartidor, posRest);		
 		
 	bool esElMasCercano(void *actual) {
@@ -31,7 +31,7 @@ t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
 		double distARest = getDistancia(repartidorActual->posRepartidor, posRest);
 		return distARest < distMinima;
 	};
-		
+
 	t_repartidor *repartidorEncontrado = list_find(repartidoresDisponibles, &esElMasCercano);
 
 	// Se agrega al repartidor a la lista de Ocupados y se lo quita de la de Disponibles

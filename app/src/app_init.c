@@ -23,13 +23,17 @@ double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
 }
 
 t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
-	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0); // Que pasa si no hay repartidoresDisponibles?
+	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0);
 	double distMinima = getDistancia(primerRepartidor->posRepartidor, posRest);		
 		
 	bool esElMasCercano(void *actual) {
 		t_repartidor *repartidorActual = actual;
 		double distARest = getDistancia(repartidorActual->posRepartidor, posRest);
-		return distARest < distMinima;
+		if (distARest < distMinima) {
+			distMinima = distARest;
+			return true;
+		}
+		return false;
 	};
 
 	t_repartidor *repartidorEncontrado = list_find(repartidoresDisponibles, &esElMasCercano);
@@ -162,8 +166,6 @@ void inicializarQueues() {
 
 void initApp() {
 	conexionComanda = conectarseA(COMANDA);
-	// Si la conexion es exitosa, liberamos inmediatamente la conexion (no la necesitamos)
-	liberarConexion(conexionComanda);
 	inicializarVariablesGlobales();
 	inicializarRestauranteDefault();
 	inicializarRepartidores();

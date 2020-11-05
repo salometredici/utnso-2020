@@ -13,7 +13,7 @@ void logRtaConsultarPlatos(t_list *platosEnviados) {
 
 // Retorna si un repartidor ya descansó lo suficiente como para volver a READY
 bool repartidorDescansado(t_pcb *currentPcb) {
-	return currentPcb->qDescansado == currentPcb->repartidor->tiempoDescanso;
+	return currentPcb->qDescansado >= currentPcb->repartidor->tiempoDescanso;
 }
 
 // Retorna si un repartidor ya completó una tanda de ejecución y debe pasar a BLOQ para descansar
@@ -43,7 +43,7 @@ bool todosPlatosListos(t_pcb *pcb) {
 
 	bool noEstaCompleto(void *actual) {
 		t_plato *platoActual = actual;
-		return platoActual->cantidadLista < platosActual->cantidadPedida;
+		return platoActual->cantidadLista < platoActual->cantidadPedida;
 	};
 
 	t_plato *platoNoListo = list_find(pedido->platos, &noEstaCompleto);
@@ -199,6 +199,7 @@ void pasarAQB(t_pcb *pcb, t_estado estado) {
 	pthread_mutex_lock(&mutexQB);
 	pcb->estado = estado;
 	pcb->alcanzoRestaurante = estado == ESPERANDO_PLATO ? true : false;
+	pcb->qRecorrido = 0;
 	queue_push(qB, pcb);
 	pthread_mutex_lock(&mutexQB);
 	// Logguear algo...
@@ -289,6 +290,7 @@ t_pcb *proximoAEjecutarHRRN() {
 		int tasaRtaActual = obtenerTasaRta(currentPCB);
 		if (tasaRtaActual >= tasaRtaMax) {
 			qIndex = i;
+			if (nextPCBtoExec != NULL) queue_push(newQR, nextPCBtoExec);
 			nextPCBtoExec = currentPCB;
 			tasaRtaMax = tasaRtaActual;
 		} else {
@@ -314,8 +316,8 @@ void actualizarQEconQR_HRRN() {
 
 /* SJF */
 
-void actualizarEstimacion(t_pcb *pcb, int realCPU) {
-	double nuevaEstimacion = pcb->ultimaEstimacion*alpha + realCPU*(1 - alpha);
+void actualizarEstimacion(t_pcb *pcb) {
+	double nuevaEstimacion = pcb->ultimaEstimacion*alpha + pcb->qRecorrido*(1 - alpha);
 	pcb->ultimaEstimacion = nuevaEstimacion;
 }
 
@@ -365,14 +367,13 @@ void ejecutarCiclos() // Para FIFO, HRRN y SJF
 {
 	pthread_mutex_lock(&mutexQE);
 	t_pcb *currentPcb = queue_pop(qE);
-	int contCiclos = 0;
 
 	while (currentPcb != NULL) {
 		// 1. Si debe descansar, pasa a BLOQUEADO
 		if (debeDescansarRepartidor(currentPcb)) {
 			pasarAQB(currentPcb, REPARTIDOR_DESCANSANDO);
-			if (algoritmoSeleccionado == SJF) { actualizarEstimacion(currentPcb, contCiclos); contCiclos = 0; }
-			currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
+			if (algoritmoSeleccionado == SJF) actualizarEstimacion(currentPcb);
+			// currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 		} else if (currentPcb->estado == EN_CAMINO_A_RESTAURANTE && llegoAlRestaurante(currentPcb)) {
 			// 2. Si llegó al restaurante y tiene todos los platos listos, sigue hacia el cliente, sino, a BLOQUEADO
 			if (todosPlatosListos(currentPcb)) {
@@ -380,22 +381,22 @@ void ejecutarCiclos() // Para FIFO, HRRN y SJF
 				currentPcb->alcanzoRestaurante = true;
 			} else {
 				pasarAQB(currentPcb, ESPERANDO_PLATO);
-				if (algoritmoSeleccionado == SJF) { actualizarEstimacion(currentPcb, contCiclos); contCiclos = 0; }
-				currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
+				if (algoritmoSeleccionado == SJF) actualizarEstimacion(currentPcb);
+				// currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 			}
 		} else if (currentPcb->estado == EN_CAMINO_A_CLIENTE && llegoAlCliente(currentPcb)) {
 			// 3. Si llegó al cliente, se da por concluido el pedido
 			informarPedidoFinalizado(currentPcb);
 			informarEntregaCliente(currentPcb);
-			if (algoritmoSeleccionado == SJF) { actualizarEstimacion(currentPcb, contCiclos); contCiclos = 0; }
+			if (algoritmoSeleccionado == SJF) actualizarEstimacion(currentPcb);
 			queue_push(currentPcb, qF);
-			currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
+			// currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 		} else {
 			// 4. Si sigue ejecutando, debe actualizar su posición de acuerdo a donde esté viajando
 			actualizarPosicion(currentPcb, currentPcb->alcanzoRestaurante ? HACIA_CLIENTE : HACIA_RESTAURANTE);
 		}
+		currentPcb = queue_pop(qE); // Continúa el ciclo con el siguiente PCB
 		if (algoritmoSeleccionado == HRRN) { actualizarTiemposEspera(); }
-		if (algoritmoSeleccionado == SJF) contCiclos++;
 		actualizarQDescanso();
         sleep(tiempoRetardoCpu);
 	}

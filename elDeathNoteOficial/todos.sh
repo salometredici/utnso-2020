@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd tp-2020-2c-death-code/sindicato && make clean && make 
+cd .. && cd sindicato && make clean && make 
 gnome-terminal -e ./sindicato
 cd .. && cd comanda && make clean && make
 gnome-terminal -e ./comanda

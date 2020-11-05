@@ -20,6 +20,12 @@ void *planificar(void *args) {
 				ejecutarCiclos();
 				break;
 			case SJF:
+				// Largo plazo
+				actualizarQRconQN();
+				actualizarQRconQB();
+				actualizarQEconQR_SJF();
+				// Corto plazo
+				ejecutarCiclos();
 				break;
 			default:
 				break;
@@ -241,7 +247,7 @@ void *atenderConexiones(void *conexionNueva)
 				free(resAniadir);
 				liberarConexion(conexionComanda);
 				break;	
-			case PLATO_LISTO:; // In progress
+			case PLATO_LISTO:; // Finished
 				// REVISAR CON VALIDACION DE ESTADO PEDIDO
 				conexionComanda = conectarseA(COMANDA);
 

@@ -62,7 +62,7 @@ void *atenderConexiones(void *conexionNueva)
 				// Sólo recibe el ID del pedido
 				// 1. Obtener el Pedido desde Sindicato
 
-				reqConf->restaurante = nombreRestaurante;
+				reqConf->nombre = nombreRestaurante;
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf);
 				t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
 				t_pedido *pedidoConf = recibirPayloadPaquete(header, conexionSindicato);

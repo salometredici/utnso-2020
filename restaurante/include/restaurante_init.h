@@ -81,18 +81,8 @@ typedef enum {
 	ESPERANDO_HORNO = 4, //esperando que se libere instancia io
 	EN_HORNO = 5, //en io
     REPOSANDO = 6, // en bloqueado hasta que se cumpla qReposada
+    DONE = 7
 } t_estado_proceso;
-
-
-
-typedef struct {
-	char *idCliente; // Si es cliente tiene CLIENTE_ID, si es un restaurante va a ser NOMBRE_RESTAURANTE
-	int socketCliente;
-	bool esRestaurante;
-	t_posicion *posCliente;
-	char *restauranteSeleccionado;
-	t_posicion *posRestaurante;
-} t_cliente;
 
 t_list *clientesConectados; //por socket
 
@@ -106,6 +96,7 @@ typedef struct {
     int posInstruccionActual; 
     int qInstruccionActual; 
     int qEjecutada; // sirve para contar el tiempo en io tambien
+    int quantum;
 } t_proceso; 
 
 #endif

@@ -10,6 +10,20 @@ int getBytesString(char *string) {
 	return strlen(string) + 1;
 }
 
+int getBytesListaInstrucciones(t_list *listaInstrucciones){
+	int cantidadElementos = list_size(listaInstrucciones);
+	int bytesAEnviar = cantidadElementos * sizeof(int);
+
+	for (int i = 0; i < cantidadElementos; i++) {
+		t_instrucciones_receta *instruccion = list_get(listaInstrucciones, i);
+
+		bytesAEnviar += getBytesString(instruccion->paso);
+		bytesAEnviar += sizeof(int);
+	}
+
+	return bytesAEnviar;
+}
+
 // Size de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud + 1
 int getBytesListaStrings(t_list *listaStrings) {
 	int cantidadElementos = list_size(listaStrings);
@@ -167,6 +181,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Envío de una receta
 		case RTA_OBTENER_RECETA:
+			payloadSize += getBytesListaInstrucciones(stream);
 			// TODO
 			break;
 		// Si no tiene parámetros que serializar, queda en 0
@@ -559,6 +574,25 @@ char *dsrlzString(void *buffer, int sizeString) {
 	return cadena;
 }
 
+t_list *dsrlzListaInstrucciones(void *buffer, int sizeLista) {
+	int longitudInstruccion;
+	int desplazamiento = 0;
+	t_list *valores = list_create();
+
+	while (desplazamiento < sizeLista) {
+		memcpy(&longitudInstruccion, buffer + desplazamiento, sizeof(int));
+		desplazamiento += sizeof(int);
+		t_instrucciones_receta *instruccion = malloc(sizeof(t_instrucciones_receta));
+		memcpy(instruccion->paso, buffer + desplazamiento, longitudInstruccion);
+		desplazamiento += longitudInstruccion;
+		memcpy(instruccion->qPaso, buffer + desplazamiento, sizeof(int));
+		desplazamiento += sizeof(int);
+		list_add(valores, instruccion);
+	}
+
+	return valores;
+}
+
 // Función para deserializar una lista de strings, habiendo recibido en el buffer el tamaño de cada palabra inclusive
 t_list *dsrlzListaStrings(void *buffer, int sizeLista) {
 	int longitudPalabra;
@@ -907,7 +941,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			buffer = dsrlzListaStrings(buffer, size);
 			break;
 		case RTA_OBTENER_RECETA:
-			// TODO dsrlzReceta
+			buffer = dsrlzListaInstrucciones(buffer, size);
 			break;
 		default:
 			printf("Qué ha pasao'?! џ(ºДºџ)\n");

@@ -114,8 +114,7 @@ void *atenderConexiones(void *conexionNueva)
     free(t_data);
 
 	int socketComanda = ERROR;
-	t_cliente *cliente = getCliente(socketCliente);
-	actualizarClientesConectados(cliente);
+
 
 	while (1) {
     	t_header *header = recibirHeaderPaquete(socketCliente);
@@ -130,6 +129,11 @@ void *atenderConexiones(void *conexionNueva)
     	switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, APP, RTA_OBTENER_PROCESO, APP);
+				break;
+			case ENVIAR_DATACLIENTE:;
+				t_cliente *cliente = getCliente(socketCliente);
+				actualizarClientesConectados(cliente);
+				free(cliente);
 				break;
         	case CONSULTAR_RESTAURANTES:; // Finished
 				if (list_is_empty(restaurantesConectados)) {

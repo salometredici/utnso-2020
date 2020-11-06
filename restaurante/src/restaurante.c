@@ -1,18 +1,61 @@
 #include "../include/restaurante.h"
 
+// Limpiar clientes desconectados
+void revisarConectados(t_list *lista) {
+    for (int i = 0; i < list_size(lista); i++) {
+        t_cliente *clienteActual = list_get(lista, i);
+        if (recv(clienteActual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
+            list_remove(lista, i);
+            log_debug(logger, "El cliente [#%d - %s] se desconectó", i, clienteActual->idCliente);
+        }
+    }
+}
 
+// Preguntar al cliente su nombre y posición, asociandolo a un socket
+t_cliente *getCliente(int socketCliente) {
+	t_header *header = recibirHeaderPaquete(socketCliente);
+	t_cliente *cliente = recibirPayloadPaquete(header, socketCliente);
+	cliente->socketCliente = socketCliente;
+	free(header);
+}
 
+// Revisar si el cliente ya existe en la lista de conectados y limpiar los desconectados
+void actualizarClientesConectados(t_cliente *cliente) {
+    revisarConectados(clientesConectados);
+
+    bool estaDuplicado(void *actual) {
+        t_cliente *clienteActual = actual;
+        return string_equals_ignore_case(cliente->idCliente, clienteActual->idCliente);
+    };
+
+	t_cliente *cliDuplicado = list_find(clientesConectados, &estaDuplicado);
+	if (cliDuplicado != NULL) { list_add(clientesConectados, cliente); }
+}
+
+void crearProceso(t_cliente *cliente, int idPedido, char *plato){
+	int conexionSindicato = conectarseA(SINDICATO);
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RECETA, plato);
+	t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
+	t_list *instrucciones = recibirPayloadPaquete(hRConf, conexionSindicato);
+	liberarConexion(conexionSindicato);
+
+	t_receta *receta = malloc(sizeof(t_receta));
+	receta->plato = plato;
+	receta->instrucciones = instrucciones;
+
+	t_proceso *proceso = crearPcb(cliente, idPedido, receta);
+
+	agregarQueue(1, proceso); // agregar a queue de ready 
+}
 
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
     free(t_data);
-
 	int socketSindicato = ERROR;
 
 	while (1) {
-
 		t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
@@ -25,31 +68,61 @@ void *atenderConexiones(void *conexionNueva)
 		socketSindicato = conectarseA(SINDICATO);
 
 		switch (header->codigoOperacion) {
+			case ENVIAR_DATACLIENTE:;
+				t_cliente *cliente = getCliente(socketCliente);
+				actualizarClientesConectados(cliente);
+				break;
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_OBTENER_PROCESO, RESTAURANTE);
 				break;
 			case CONSULTAR_PLATOS:;
 				char *restConsulta = recibirPayloadPaquete(header, socketCliente); free(restConsulta);
 				// Se consultan los platos de este restaurante a Sindicato
+				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
 				t_header *hConsulta = recibirHeaderPaquete(conexionSindicato);
 				t_list *platosRest = recibirPayloadPaquete(hConsulta, conexionSindicato);
+				liberarConexion(conexionSindicato);
 				free(hConsulta);
 				// Se contesta con los platos obtenidos
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest);
 				free(platosRest);
 				break;
 			case CREAR_PEDIDO:;
-				int newIdPedido = 77;
-				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, newIdPedido);
+				pthread_mutex_lock(&mutexQPedidos);
+				cantidadPedidos++;
+				pthread_mutex_unlock(&mutexQPedidos);
+
+				conexionSindicato = conectarseA(SINDICATO);
+				enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, cantidadPedidos);
+				t_header *hrRtaGuardarPedido = recibirHeaderPaquete(conexionSindicato);
+				t_result *reqRtaGuardarPedido = recibirPayloadPaquete(header, socketCliente);
+				liberarConexion(conexionSindicato);
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, cantidadPedidos);
 				break;
 			case ANIADIR_PLATO:;
+				// tiene que tener un plato y un id pedido
 				t_request *reqAniadir = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqAniadir, header->codigoOperacion);
-				free(reqAniadir);
 
+				t_req_plato *reqPlato= malloc(sizeof(t_req_plato));
+				reqPlato->idPedido = reqAniadir->idPedido;
+				reqPlato->restaurante = nombreRestaurante;
+				reqPlato->plato = reqAniadir->nombre;
+				reqPlato->cantidadPlato = 1;
+
+				conexionSindicato = conectarseA(SINDICATO);
+				enviarPaquete(socketSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
+				t_header *hrRtaGuardarPlato = recibirHeaderPaquete(conexionSindicato);
+				t_result *reqRtaGuardarPlato = recibirPayloadPaquete(header, socketCliente);
+				liberarConexion(conexionSindicato);
+				free(hrRtaGuardarPlato);
+				// if(reqRtaGuardarPlato->hasError){
+				// 	crearProceso(cliente, reqPlato->idPedido, reqPlato->plato);
+				// }
+				// ver si solo se puede hacer si el pedido no esta confirmado 
 				t_result *resAP = malloc(sizeof(t_result));
-				resAP->hasError = false;
+				resAP->hasError = reqRtaGuardarPlato->hasError;
 				resAP->msg = "[ANIADIR_PLATO] OK";
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_ANIADIR_PLATO, resAP);
 				free(resAP);
@@ -63,19 +136,24 @@ void *atenderConexiones(void *conexionNueva)
 				// 1. Obtener el Pedido desde Sindicato
 
 				reqConf->nombre = nombreRestaurante;
+				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf);
 				t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
 				t_pedido *pedidoConf = recibirPayloadPaquete(header, conexionSindicato);
+				liberarConexion(SINDICATO);
 				mostrarListaPlatos(pedidoConf->platos);
 				free(hRConf);
 
 				// 2. Generar PCB de cada plato y dejarlo en el ciclo de planificación
 				// Obtener receta de Sindicato para saber trazabilidad al momento de ejecución
 				// El número de pedido se deberá guardar dentro del PCB
-
 				
-
-
+				// por cada plato pedir la receta y generar pcb
+				for (int i = 0;i<list_size(pedidoConf->platos);i++){
+					//conseguir receta de sindicato //MENSAJE OBTENER RECETA
+					char *platoActual = list_get(pedidoConf->platos,i);
+					crearProceso(cliente, reqConf->idPedido, platoActual);
+				}
 
 				// 3. Informar a quien lo invocó que su pedido fue confirmado
 
@@ -85,7 +163,17 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
 				free(resCP);
 				break;
-			case CONSULTAR_PEDIDO: // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
+			case CONSULTAR_PEDIDO:; // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
+				t_request *reqConsultarPedido = recibirPayloadPaquete(header, socketCliente);
+				reqConsultarPedido->nombre = nombreRestaurante;
+				
+				conexionSindicato = conectarseA(SINDICATO);
+				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO , reqConsultarPedido);
+				t_header *hRConsultarP = recibirHeaderPaquete(conexionSindicato);
+				t_pedido *pedidoConsultar = recibirPayloadPaquete(header, conexionSindicato);
+				liberarConexion(SINDICATO);
+				pedidoConsultar->restaurante = nombreRestaurante;
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PEDIDO, pedidoConsultar);
 				break;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
@@ -99,92 +187,52 @@ void *atenderConexiones(void *conexionNueva)
     return 0;
 }
 
-int main(int argc, char *argv[])
-{
+void *planificar(void *arg) {
+	int queuePosition = (int)arg;
+	// TODO: Semáforo
+	t_queue_obj *currentCPU = list_get(queuesCocineros, queuePosition);
+	while (1) {
+		switch (algoritmoSeleccionado) {
+			case FIFO:
+				// Largo plazo
+				actualizarQB(currentCPU);
+				actualizarQRaQE(currentCPU);
+				
+				// Corto plazo
+				ejecutarCiclosFIFO(currentCPU);
+				break;
+			case RR:
+				// Largo plazo //se pueden reutilizar??
+				actualizarQB(currentCPU);
+				actualizarQRaQE(currentCPU);		
+
+				// Corto plazo
+				ejecutarCiclosRR(currentCPU);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+startPlanificacion(){
+	int size = list_size(queuesCocineros);
+	for(int i = 0; i < size; i++) {
+		pthread_t threadPlanificacionAfinidad;
+		pthread_create(&threadPlanificacionAfinidad, NULL, (void*)planificar, i);
+	}
+}
+
+int main(int argc, char *argv[]) {
 	inicializarProceso(RESTAURANTE);
-	socketServidor = iniciarServidor();
+	conexion = iniciarServidor();//conectarseA(RESTAURANTE);
 	initRestaurante();
-
-
-
-
-
-
-
-
-	/* Prueba de GUARDAR_PEDIDO */
-
-	t_request *reqGuardarPedido = malloc(sizeof(t_request));
-	reqGuardarPedido->nombre = nombreRestaurante;
-	reqGuardarPedido->idPedido = 777;
-
-	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, reqGuardarPedido);
-	t_header *header = recibirHeaderPaquete(conexionSindicato);
-	free(reqGuardarPedido);
-
-	t_result *resultGuardarPedido = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s\n", resultGuardarPedido->msg);
-	printf("Tuvo error: %s\n", resultGuardarPedido->hasError ? "true" : "false");
-	log_info(logger, "%s", resultGuardarPedido->msg);
-
-	/* Prueba de CONSULTAR_PLATOS */
-
-	enviarPaquete(conexionSindicato, RESTAURANTE, CONSULTAR_PLATOS, nombreRestaurante);
-	header = recibirHeaderPaquete(conexionSindicato);
-	t_list *platos = recibirPayloadPaquete(header, conexionSindicato);
-	mostrarListaStrings(platos);
-	free(platos);
-
-	/* Prueba de GUARDAR_PLATO */
-
-	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
-	reqPlato->restaurante = nombreRestaurante;
-	reqPlato->plato = "Empanadas";
-	reqPlato->cantidadPlato = 3;
-	reqPlato->idPedido = 777;
-
-	enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
-	header = recibirHeaderPaquete(conexionSindicato);
-	free(reqPlato);
-
-	t_result *resultGuardarPlato = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s\n", resultGuardarPlato->msg);
-	printf("Tuvo error: %s\n", resultGuardarPlato->hasError ? "true" : "false");
-	log_info(logger, "%s", resultGuardarPlato);
-
-	/* Prueba de CONFIRMAR_PEDIDO */
-
-	t_request *pedidoConf = malloc(sizeof(t_request));
-	pedidoConf->nombre = nombreRestaurante;
-	pedidoConf->idPedido = 777;
-
-	enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, pedidoConf);
-	header = recibirHeaderPaquete(conexionSindicato);
-	free(pedidoConf);
-
-	t_result *resultConfPedido = recibirPayloadPaquete(header, conexionSindicato);
-	printf("%s\n", resultConfPedido->msg);
-	printf("Tuvo error: %s\n", resultConfPedido->hasError ? "true" : "false");
-	log_info(logger, "%s", resultConfPedido);
-
-	/* Prueba de OBTENER_PEDIDO */
-
-	t_request *pedidoObt = malloc(sizeof(t_request));
-	pedidoObt->nombre = nombreRestaurante;
-	pedidoObt->idPedido = 777;
-
-	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, pedidoObt);
-	header = recibirHeaderPaquete(conexionSindicato);
-	free(pedidoObt);
-
-	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexionSindicato);
-	mostrarListaPlatos(pedidoCompleto->platos);
-	free(pedidoCompleto);
+	startPlanificacion();
 
 	// Inicio del bucle que va a generar los diferentes hilos de conexión
 	int fd;
 	while (1) {
-		fd = aceptarCliente(socketServidor);
+		fd = aceptarCliente(conexion);
 		if (fd != -1) {
 			// Creo un nuevo hilo para la conexión aceptada
 			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
@@ -197,7 +245,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	
-	liberarConexion(socketServidor);
+	//pthread_kill(threadPlanificacion, SIGTERM); ver si matamos todas las planificaciones
+	liberarConexion(conexion);
     finalizarProceso();
     return EXIT_SUCCESS;
 }

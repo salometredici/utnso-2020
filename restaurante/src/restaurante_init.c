@@ -1,5 +1,18 @@
 #include "../include/restaurante_init.h"
 
+/* Utils */
+
+int getKeyAlgoritmo(char *key) {
+    t_keys *diccionario = diccionarioAlgoritmos;
+    for (int i = 0; i < ALGORITMONKEYS; i++) {
+        t_keys sym = diccionario[i];
+        if (strcmp(sym.key, key) == 0) {
+            return sym.valor;
+        }
+    }
+    return ERROR;
+}
+
 void logInitQueuesRestaurante(t_list *queuesCocineros) {
 	printf("------------------------------------------------------\n");
 	printf("[Queues de cocineros creadas]\n");
@@ -28,6 +41,10 @@ char *getAlgoritmoPlanificacion() {
 
 char *getQuantum() {
 	return config_get_int_value(config, "QUANTUM");
+}
+
+int getTiempoRetardoCpu() {
+	return config_get_int_value(config, "RETARDO_CICLO_CPU");
 }
 
 void obtenerMetadata() {
@@ -62,7 +79,7 @@ void inicializarAfinidadesUnicas()
 		bool stringFound(void *actual) {
 			char *stringActual = actual;
 			return string_equals_ignore_case(afinidadActual, stringActual);
-		}
+		};
 
 		// Buscamos si esa afinidad ya fue agregada a la lista de afinidades únicas
 		t_list *filtradas = list_filter(afinidadesUnicas, &stringFound); 
@@ -78,6 +95,10 @@ void inicializarAfinidadesUnicas()
 	}
 
 	QAfinidadesUnicas = list_size(afinidadesUnicas);
+}
+
+void inicializarQueuesGlobales(){
+    qF = queue_create();
 }
 
 void inicializarListaCocineros()
@@ -97,7 +118,7 @@ void inicializarListaCocineros()
 		bool stringFound(void *actual) {
 			char *stringActual = actual;
 			return string_equals_ignore_case(afinidadActual, stringActual);
-		}
+		};
 
 		cpuActual->instanciasTotales = !string_equals_ignore_case(cpuActual->afinidad, "General") ?
 											list_count_satisfying(afinidadesMd, &stringFound) :
@@ -106,7 +127,10 @@ void inicializarListaCocineros()
 		t_queue *qR = queue_create(); cpuActual->qR = qR;
 		t_queue *qE = queue_create(); cpuActual->qE = qE;
 		t_queue *qB = queue_create(); cpuActual->qB = qB;
-		t_queue *qF = queue_create(); cpuActual->qF = qF;
+
+		pthread_mutex_t mutexQR; cpuActual->mutexQR = mutexQR;
+		pthread_mutex_t mutexQE; cpuActual->mutexQE = mutexQE;
+		pthread_mutex_t mutexQB; cpuActual->mutexQB = mutexQB;
 
 		list_add(queuesCocineros, cpuActual);
 	}
@@ -115,7 +139,8 @@ void inicializarListaCocineros()
 }
 
 void inicializarQueuesIO() {
-	queueIO = queue_create();
+	esperandoIO = queue_create();
+	ejecutandoIO = queue_create();
 	instanciasTotalesIO = cantidadHornos;
 	logInitQueueIORestaurante();
 }
@@ -123,13 +148,16 @@ void inicializarQueuesIO() {
 void inicializarVariablesGlobales() {
 	quantum = getQuantum();
 	nombreRestaurante = getNombreRestaurante();
-	algoritmoPlanificacion = getAlgoritmoPlanificacion();
+	algoritmo = getAlgoritmoPlanificacion();
+	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
+	tiempoRetardoCpu = getTiempoRetardoCpu();
 }
 
 void initRestaurante() {
 	conexionSindicato = conectarseA(SINDICATO);
 	inicializarVariablesGlobales();
 	obtenerMetadata();
+	inicializarQueuesGlobales();
 	inicializarListaCocineros();
 	inicializarQueuesIO();
 }

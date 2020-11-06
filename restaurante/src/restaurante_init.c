@@ -43,6 +43,10 @@ char *getQuantum() {
 	return config_get_int_value(config, "QUANTUM");
 }
 
+int getTiempoRetardoCpu() {
+	return config_get_int_value(config, "RETARDO_CICLO_CPU");
+}
+
 void obtenerMetadata() {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
@@ -94,7 +98,6 @@ void inicializarAfinidadesUnicas()
 }
 
 void inicializarQueuesGlobales(){
-    qB = queue_create();
     qF = queue_create();
 }
 
@@ -123,9 +126,11 @@ void inicializarListaCocineros()
 		
 		t_queue *qR = queue_create(); cpuActual->qR = qR;
 		t_queue *qE = queue_create(); cpuActual->qE = qE;
+		t_queue *qB = queue_create(); cpuActual->qB = qB;
 
 		pthread_mutex_t mutexQR; cpuActual->mutexQR = mutexQR;
 		pthread_mutex_t mutexQE; cpuActual->mutexQE = mutexQE;
+		pthread_mutex_t mutexQB; cpuActual->mutexQB = mutexQB;
 
 		list_add(queuesCocineros, cpuActual);
 	}
@@ -145,6 +150,7 @@ void inicializarVariablesGlobales() {
 	nombreRestaurante = getNombreRestaurante();
 	algoritmo = getAlgoritmoPlanificacion();
 	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
+	tiempoRetardoCpu = getTiempoRetardoCpu();
 }
 
 void initRestaurante() {

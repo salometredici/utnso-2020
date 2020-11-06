@@ -5,6 +5,7 @@
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
 #include "tests.h"
+#include <math.h>
 
 int socketServidor;
 int conexionSindicato;
@@ -16,6 +17,7 @@ char *respuesta;
 int quantum;
 char *algoritmo;
 int algoritmoSeleccionado;
+int tiempoRetardoCpu;
 
 /* Diccionario de algortimos */
 
@@ -33,6 +35,7 @@ static t_keys diccionarioAlgoritmos[] = {
 
 int cantidadHornos;
 int cantidadPedidos; // necesita semaforo, se va a usar para generar id de pedidos nuevos
+pthread_mutex_t mutexQPedidos;
 int cantidadCocineros;
 t_list *recetasDisponibles;
 t_list *afinidadesMd;
@@ -48,7 +51,6 @@ t_list *afinidadesUnicas;
 // dentro de queuesCocineros se encuentra qR qE por cada afinidad
 
 t_list *queuesCocineros;
-t_queue *qB; //no es e/s
 t_queue *qF;
 
 
@@ -57,8 +59,10 @@ typedef struct {
     int instanciasTotales;
     t_queue *qR;
     t_queue *qE;
+    t_queue *qB;
     pthread_mutex_t mutexQR;
     pthread_mutex_t mutexQE;
+    pthread_mutex_t mutexQB;
 } t_queue_obj;
 
 void logInitQueuesRestaurante(t_list *queuesCocineros);
@@ -90,6 +94,7 @@ typedef struct {
     int pid;
     t_list *pasosReceta; //instrucciones
     char *idCliente;
+    int socketCliente; //todo
     char *plato;
     t_estado_proceso *estado;
     char *instruccionActual;

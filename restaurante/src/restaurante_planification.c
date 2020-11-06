@@ -1,4 +1,4 @@
-
+#include "../include/restaurante_planification.h"
 
 // PCB
 t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta) {
@@ -41,129 +41,65 @@ void agregarQueue(int opcion, t_proceso *pcb) {
 	} 
 }
 
-void agregarQR(t_proceso *pcb){
-	agregarQueue(1, pcb);
-}
 
 /* Planificación */
 
 // Actualiza los que hayan cumplido su tiempoen block a new
-void actualizarQB() {
+void actualizarQB(t_queue_obj *currentCPU) {
 	//1. revisar queue bloqueados
-	if (!queue_is_empty(qB)) {
-		for(int i = 0; i < queue_size(qB);i++) {
-			pthread_mutex_lock(&mutexQB);
-			t_proceso *sigARevisar = queue_pop(qB); // Lo sacamos de la cola de Bloqueado
-			pthread_mutex_unlock(&mutexQB);
-			if( sigARevisar->estado == REPOSANDO && sigARevisar->qInstruccionActual == 0 ){
+	if (!queue_is_empty(currentCPU->qB)) {
+		for(int i = 0; i < queue_size(currentCPU->qB);i++) {
+			pthread_mutex_lock(&currentCPU->mutexQB);
+			t_proceso *sigARevisar = queue_pop(currentCPU->qB); // Lo sacamos de la cola de Bloqueado
+			pthread_mutex_unlock(&currentCPU->mutexQB);
+			
+			if(sigARevisar->estado == REPOSANDO && sigARevisar->qInstruccionActual == 0){
 				sigARevisar->estado = ESPERANDO_EJECUCION;
 				sigARevisar->posInstruccionActual++;
 
 				t_instrucciones_receta *pasoActual = list_get(sigARevisar->pasosReceta,sigARevisar->posInstruccionActual);
-				sigARevisar->instruccionActual = pasoActual->paso;
-				sigARevisar->qInstruccionActual = pasoActual->qPaso;
-				sigARevisar->qEjecutada = 0;
+				if(sigARevisar) {
+					sigARevisar->estado = DONE;
+					pthread_mutex_lock(&mutexQF);
+					queue_push(qF,sigARevisar);
+					pthread_mutex_unlock(&mutexQF);
+				} else {
+					sigARevisar->instruccionActual = pasoActual->paso;
+					sigARevisar->qInstruccionActual = pasoActual->qPaso;
+					sigARevisar->qEjecutada = 0;
+					
+					pthread_mutex_lock(&currentCPU->mutexQR);
+					queue_push(currentCPU->qR,sigARevisar);
+					pthread_mutex_unlock(&currentCPU->mutexQR);
+				}
 				
-				agregarQueue(1, sigARevisar); //agrego a ready slds
 			} else {
-				pthread_mutex_lock(&mutexQB);
-				queue_push(qB,sigARevisar);
-				pthread_mutex_unlock(&mutexQB);
+				pthread_mutex_lock(&currentCPU->mutexQB);
+				queue_push(currentCPU->qB,sigARevisar);
+				pthread_mutex_unlock(&currentCPU->mutexQB);
 			}
 		}
     }	
 }
 
-void actualizarQE() {
-	// 1. Revisar si algún plato tiene que reposar / hornear / pasar a ready
-	void _evaluarPorCocinero(void* element) {
-        t_queue_obj *queue = element;
-		t_queue *qE = queue->qE;
-		pthread_mutex_t mutexQE = queue->mutexQE;
-
-		// ver si lo cambia sobre la referencia cuando lo pruebo 
-		//o tengo que usar directo el element
-		if (!queue_is_empty(qE)) {
-			for(int i = 0; i < queue_size(qE);i++){
-				pthread_mutex_lock(&mutexQE);
-				t_proceso *sigARevisar = queue_pop(qE); // Lo sacamos de la cola de Bloqueado
-				pthread_mutex_unlock(&mutexQE);
-				if( sigARevisar->qInstruccionActual == 0 ){
-					sigARevisar->posInstruccionActual++;
-					t_instrucciones_receta *pasoActual = list_get(sigARevisar->pasosReceta,sigARevisar->posInstruccionActual);
-					
-					if(string_equals_ignore_case(pasoActual->paso, "REPOSAR")) {
-						sigARevisar->estado = REPOSANDO;
-						sigARevisar->instruccionActual = pasoActual->paso;
-						sigARevisar->qInstruccionActual = pasoActual->qPaso;
-						sigARevisar->qEjecutada = 0;
-						
-						pthread_mutex_lock(&mutexQB);
-						queue_push(qB, sigARevisar);
-						pthread_mutex_unlock(&mutexQB);
-					} else if(string_equals_ignore_case(pasoActual->paso, "HORNEAR")) {
-						sigARevisar->estado = ESPERANDO_HORNO;
-						sigARevisar->instruccionActual = pasoActual->paso;
-						sigARevisar->qInstruccionActual = pasoActual->qPaso;
-						sigARevisar->qEjecutada = 0;
-						
-						pthread_mutex_lock(&mutexEsperaIO);
-						queue_push(esperandoIO,sigARevisar);
-						pthread_mutex_unlock(&mutexEsperaIO);
-					} else {
-						sigARevisar->estado = EJECUTANDO;
-						sigARevisar->instruccionActual = pasoActual->paso;
-						sigARevisar->qInstruccionActual = pasoActual->qPaso;
-						sigARevisar->qEjecutada = 0;
-						agregarQueue(0, sigARevisar);// vas a ejecutando again
-					}
-				}
-				else {
-					pthread_mutex_lock(&mutexQE);
-					queue_push(qE,sigARevisar);
-					pthread_mutex_unlock(&mutexQE);
-				}
-			}
-    	}
-        //free(queue);
-    };
-
-    list_iterate(queuesCocineros, _evaluarPorCocinero);
-
-	// 2. Reviso si puedo agregar más PCBs de QB a EXEC de repartidores que ya descansaron (OJO con los repartidores bloq que esperan avisos!)
-	
-	// 3. Reviso si puedo agregar más PCBs de QR a EXEC
-}
-
-void actualizarQRaQE(){
-	void _evaluarCocineros(void* element){
-		// rompe la compliacion si no se asigna la variable element
-		t_queue_obj *queue = element;
-		t_queue *qR = queue->qR;
-		pthread_mutex_t mutexQR = queue->mutexQR;
-
-		if (!queue_is_empty(qR))  {
-			if(queue_size(queue->qE) < queue->instanciasTotales){
-			int disponibles = queue->instanciasTotales-queue_size(queue->qE);
+void actualizarQRaQE(t_queue_obj *currentCPU) {
+	if (!queue_is_empty(currentCPU->qR))  {
+		if(queue_size(currentCPU->qE) < currentCPU->instanciasTotales) {
+			int disponibles = currentCPU->instanciasTotales - queue_size(currentCPU->qE);
 			for(int i = 0; i < disponibles; i++) {
-				pthread_mutex_lock(&mutexQR);
-				t_proceso *sigARevisar = queue_pop(qR); // Lo sacamos de la cola de ready
-				pthread_mutex_unlock(&mutexQR);
+				pthread_mutex_lock(&currentCPU->mutexQR);
+				t_proceso *sigARevisar = queue_pop(currentCPU->qR); // Lo sacamos de la cola de ready
+				pthread_mutex_unlock(&currentCPU->mutexQR);
 				
-				pthread_mutex_lock(&queue->mutexQE);
-				queue_push(queue->qE,sigARevisar);
-				pthread_mutex_unlock(&queue->mutexQE);
+				pthread_mutex_lock(&currentCPU->mutexQE);
+				queue_push(currentCPU->qE,sigARevisar);
+				pthread_mutex_unlock(&currentCPU->mutexQE);
 			}
 		}
-    	}
-        
-        //free(queue);
-    };
-
-    list_iterate(queuesCocineros, _evaluarCocineros);
+	}
 }
 
-void ejecutarCicloIO(){
+void ejecutarCicloIO() {
 	if (!queue_is_empty(ejecutandoIO)) {
 		//nos fijamos si alguno termino su rafaga
 		for(int i = 0; i < queue_size(ejecutandoIO);i++){
@@ -192,85 +128,146 @@ void ejecutarCicloIO(){
 	}
 }
 
-void ejecutarCiclosFIFO() {
-	void _ejecucionCocineros(void *element){
-		t_queue_obj *queue = element;
-		pthread_mutex_lock(&queue->mutexQE);
-		t_proceso *currentPcb = queue_pop(queue->qE);
-
-		while (currentPcb != NULL) {
-			currentPcb->qEjecutada++;
-			currentPcb->qInstruccionActual--;
-			queue_push(queue->qE, currentPcb);
-
-			//ver que se puede mejorar
-			if(!currentPcb->qInstruccionActual){
-				ejecutarCicloIO();
-				break;
-			}
-			
-			ejecutarCicloIO();
-			//sleep(tiempoRetardoCpu); // lei que más adelante van a agregar esta variable
-			currentPcb = queue_pop(queue->qE);
-		}
-		pthread_mutex_unlock(&queue->mutexQE);
+void actualizarEsperaQB(t_queue_obj *currentCPU){
+	pthread_mutex_lock(&currentCPU->mutexQB);
+	for (int i = 0; i < queue_size(currentCPU->qB); i++) {
+		t_proceso *current = queue_pop(currentCPU->qB);
+		current->qEjecutada++;
+		current->qInstruccionActual--;
+		queue_push(currentCPU->qB, current);
 	}
-
-	list_iterate(queuesCocineros, _ejecucionCocineros);
+	pthread_mutex_unlock(&currentCPU->mutexQB);
 }
 
-void ejecutarCiclosRR() {
-	void _ejecucionCocineros(void *element){
-		t_queue_obj *queue = element;
-		pthread_mutex_lock(&queue->mutexQE);
-		t_proceso *currentPcb = queue_pop(queue->qE);
+void ejecutarFinalizar(t_proceso *currentProc){
+	currentProc->estado = DONE;
+	pthread_mutex_lock(&mutexQF);
+	queue_push(qF,currentProc);
+	pthread_mutex_unlock(&mutexQF);
 
-		while (currentPcb != NULL) {
-			currentPcb->qEjecutada++;
-			currentPcb->qInstruccionActual--;
-			currentPcb->quantum--;
-			queue_push(queue->qE, currentPcb);
+	int conexionSindicato = conectarseA(SINDICATO);
+	t_plato_listo *platoListo = malloc(sizeof(platoListo));
+	platoListo->restaurante = nombreRestaurante;
+	platoListo->idPedido = currentProc->pid;
+	platoListo->plato = currentProc->plato;
 
-			// si el quantum es cero
-			if(!currentPcb->quantum){
-				ejecutarCicloIO();
-				break;
-			}
-			
-			ejecutarCicloIO();
-			//sleep(tiempoRetardoCpu); // lei que más adelante van a agregar esta variable
-			currentPcb = queue_pop(queue->qE);
-		}
-		pthread_mutex_unlock(&queue->mutexQE);
-	}
+	enviarPaquete(conexionSindicato, RESTAURANTE, PLATO_LISTO, platoListo);
+	t_header *hrRtaPlatoListo = recibirHeaderPaquete(conexionSindicato);
+	t_result *reqRtaPlatoListo = recibirPayloadPaquete(hrRtaPlatoListo, conexionSindicato);
 
-	list_iterate(queuesCocineros, _ejecucionCocineros);
+	//todo avisar al modulo q solicito
 }
 
-void *planificar(void *args) {
-	// TODO: Semáforo
-	while (1) {
-		switch (algoritmoSeleccionado) {
-			case FIFO:
-				// Largo plazo
-				actualizarQB();
-				actualizarQE();
-				actualizarQRaQE();
-				
-				// Corto plazo
-				ejecutarCiclosFIFO();
-				break;
-			case RR:
-				// Largo plazo //se pueden reutilizar??
-				actualizarQB();
-				actualizarQE();
-				actualizarQRaQE();		
+void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
+	pthread_mutex_lock(&currentCPU->mutexQE);
+	t_proceso *currentProc = queue_pop(currentCPU->qE);
+	
+	while (currentProc != NULL) {
+		currentProc->qEjecutada++;
+		currentProc->qInstruccionActual--;
+		if(currentProc->qInstruccionActual == 0) {
+			currentProc->posInstruccionActual++;
+			t_instrucciones_receta *pasoSig = list_get(currentProc->pasosReceta,currentProc->posInstruccionActual);
+			
+			if(pasoSig) {
+				if (string_equals_ignore_case(pasoSig->paso, "REPOSAR")) {
+					currentProc->estado = REPOSANDO;
+					currentProc->instruccionActual = pasoSig->paso;
+					currentProc->qInstruccionActual = pasoSig->qPaso;
+					currentProc->qEjecutada = 0;
+					
+					pthread_mutex_lock(&currentCPU->mutexQB);
+					queue_push(currentCPU->qB, currentProc);
+					pthread_mutex_unlock(&currentCPU->mutexQB);
+				} else if (string_equals_ignore_case(pasoSig->paso, "HORNEAR")) {
+					currentProc->estado = ESPERANDO_HORNO;
+					currentProc->instruccionActual = pasoSig->paso;
+					currentProc->qInstruccionActual = pasoSig->qPaso;
+					currentProc->qEjecutada = 0;
+					
+					pthread_mutex_lock(&mutexEsperaIO);
+					queue_push(esperandoIO,currentProc);
+					pthread_mutex_unlock(&mutexEsperaIO);
+				} else {
+					currentProc->estado = EJECUTANDO;
+					currentProc->instruccionActual = pasoSig->paso;
+					currentProc->qInstruccionActual = pasoSig->qPaso;
+					currentProc->qEjecutada = 0;
 
-				// Corto plazo
-				ejecutarCiclosRR();
-				break;
-			default:
-				break;
+					queue_push(currentCPU->qE, currentProc);
+				}
+			} else {
+				ejecutarFinalizar(currentProc);
+			}
+		} else {
+			queue_push(currentCPU->qE,currentProc);
 		}
+		
+		ejecutarCicloIO();
+		actualizarEsperaQB(currentCPU);
+		currentProc = queue_pop(currentCPU->qE); // Continúa el ciclo con el siguiente PCB
+		pthread_mutex_unlock(&currentCPU->mutexQE);
+		sleep(tiempoRetardoCpu);
+	}
+}
+
+void ejecutarCiclosRR(t_queue_obj *currentCPU) {
+	pthread_mutex_lock(&currentCPU->mutexQE);
+	t_proceso *currentProc = queue_pop(currentCPU->qE);
+	
+	while (currentProc != NULL) {
+		currentProc->qEjecutada++;
+		currentProc->qInstruccionActual--;
+		currentProc->quantum--;
+		if(currentProc->qInstruccionActual == 0) {
+			currentProc->posInstruccionActual++;
+			t_instrucciones_receta *pasoSig = list_get(currentProc->pasosReceta,currentProc->posInstruccionActual);
+			
+			if(pasoSig) {
+				if (string_equals_ignore_case(pasoSig->paso, "REPOSAR")) {
+					currentProc->estado = REPOSANDO;
+					currentProc->instruccionActual = pasoSig->paso;
+					currentProc->qInstruccionActual = pasoSig->qPaso;
+					currentProc->qEjecutada = 0;
+					
+					pthread_mutex_lock(&currentCPU->mutexQB);
+					queue_push(currentCPU->qB, currentProc);
+					pthread_mutex_unlock(&currentCPU->mutexQB);
+				} else if (string_equals_ignore_case(pasoSig->paso, "HORNEAR")) {
+					currentProc->estado = ESPERANDO_HORNO;
+					currentProc->instruccionActual = pasoSig->paso;
+					currentProc->qInstruccionActual = pasoSig->qPaso;
+					currentProc->qEjecutada = 0;
+					
+					pthread_mutex_lock(&mutexEsperaIO);
+					queue_push(esperandoIO,currentProc);
+					pthread_mutex_unlock(&mutexEsperaIO);
+				} else {
+					currentProc->estado = EJECUTANDO;
+					currentProc->instruccionActual = pasoSig->paso;
+					currentProc->qInstruccionActual = pasoSig->qPaso;
+					currentProc->qEjecutada = 0;
+
+					queue_push(currentCPU->qE, currentProc);
+				}
+			} else {
+				currentProc->estado = DONE;
+				pthread_mutex_lock(&mutexQF);
+				queue_push(qF,currentProc);
+				pthread_mutex_unlock(&mutexQF);
+			}
+		} else if (quantum == currentProc->quantum) {
+			pthread_mutex_lock(&currentCPU->mutexQR);
+			queue_push(currentCPU->qR, currentProc);
+			pthread_mutex_unlock(&currentCPU->mutexQR);
+		} else {
+			queue_push(currentCPU->qE,currentProc);
+		}
+		
+		ejecutarCicloIO();
+		actualizarEsperaQB(currentCPU);
+		currentProc = queue_pop(currentCPU->qE); // Continúa el ciclo con el siguiente PCB
+		pthread_mutex_unlock(&currentCPU->mutexQE);
+		sleep(tiempoRetardoCpu);
 	}
 }

@@ -4,7 +4,14 @@
 #include "../../shared/include/shared_serialization.h"
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
-#include "../include/comanda_init.h"
+#include <commons/bitarray.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <math.h>
+#include <stdio.h>
+
+#define PAGE_SIZE 32 // por enunciado 
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -19,6 +26,17 @@ t_list *restaurantes;
 t_bitarray *frame_usage_bitmap;
 void* bitmap_pointer;
 
+t_bitarray *swap_usage_bitmap;
+void* swap_bitmap_pointer;
+
+void **MEMORIA;
+int MEMORY_SIZE;
+int SWAP_SIZE;
+char* SWAP_FILE;
+FILE *swap_file;
+char *ALGORITMO_REEMPLAZO;
+int frames;
+
 typedef struct{
     char *nombre;
     t_list *pedidos; /*Tabla de Paginas*/
@@ -27,7 +45,7 @@ typedef struct{
 typedef struct {
     int estado;
     int id_pedido;
-    t_list *platos; //paginas
+    t_list *pages; //paginas
 }t_pedidoc; // referencia a comanda c ver despues si se puede cambiar
 
 typedef struct{
@@ -35,7 +53,7 @@ typedef struct{
 	bool in_use; 
 	bool modified;
     bool flag; //1 en memoria principal
-} t_plato; //pagina
+}t_page; //plato conflict types
 
 /*Marco en la memoria*/
 typedef struct{
@@ -49,7 +67,7 @@ t_pedidoc *crear_pedido(int id_pedido);
 t_restaurante *find_restaurante(char *nombre);
 void add_pedido_to_restaurante(t_restaurante *restaurante, t_pedidoc *pedido);
 t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
-t_plato* find_plato(t_pedidoc *pedido, char *plato);
-t_plato* asignar_frame(char *plato, int cantidad);
+t_page* find_plato(t_pedidoc *pedido, char *plato);
+t_page* asignar_frame(char *plato, int cantidad);
 
 #endif

@@ -13,8 +13,8 @@ void init_restaurantes() {
 void print_structure()
 {	
 	for(int i = 0; i < frames; i++){
-		if(*(char*)(memory+i)!='\0'){
-			printf("%c",*(char*)(memory+i));
+		if(*(char*)(MEMORIA + i)!='\0'){
+			printf("%c",*(char*)(MEMORIA + i));
 		}
 	}
 	printf("\n");

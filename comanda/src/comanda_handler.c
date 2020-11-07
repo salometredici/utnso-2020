@@ -12,25 +12,25 @@ t_result* _guardar_pedido(char *nombre_rest, int id_pedido){
 		if(restaurante_creado == NULL){
 			result->msg = "[GUARDAR_PEDIDO] Fail";
 			result->hasError = true;
-			return t_result;
+			return result;
 		}
 		t_pedidoc *pedido = crear_pedido(id_pedido);
-		add_pedido_to_restaurante(restaurante, pedido);
+		add_pedido_to_restaurante(restaurantes, pedido);
 		
 		result->msg = "[GUARDAR_PEDIDO] Ok";
 		result->hasError = false;
-		return t_result;
+		return result;
 	}
 
-	t_pedidoc *pedido = crear_pedido(); 
+	t_pedidoc *pedido = crear_pedido(id_pedido); 
 	add_pedido_to_restaurante(rest, pedido);
 	
-	result->msg = "[GUARDAR_PEDIDO] Ok"
+	result->msg = "[GUARDAR_PEDIDO] Ok";
 	result->hasError = false;
-	return t_result;
+	return result;
 }
 
-t_result _guardar_plato(char *nombre_rest, int id_pedido, char *plato, int cantidad){
+t_result* _guardar_plato(char *nombre_rest, int id_pedido, char *plato, int cantidad){
 	/*
 	 * Primero Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion --done
 	 * Desp verificar si existe el segmento del pedido, tambien informar --done
@@ -39,41 +39,40 @@ t_result _guardar_plato(char *nombre_rest, int id_pedido, char *plato, int canti
 	 * se debera agregar el plato y anexar la cantidad que se tiene cocinar de dicho plato
 	 * responde el mensaje indicando si se puedo realizar
 	 */
+	t_result *result = malloc(sizeof(result));
 
 	if(strlen(plato) + 1 > 24){
-		t_result->msg = "[GUARDAR_PLATO]El nombre del plato exede el tamanio";
-		t_result->hasError = true;
-		return t_result;		
+		result->msg = "[GUARDAR_PLATO]El nombre del plato exede el tamanio";
+		result->hasError = true;
+		return result;		
 	}
-
-	t_result *result = malloc(sizeof(result));
 
 	t_restaurante *rest = find_restaurante(nombre_rest);	
 
 	if(rest == NULL){
-		t_result->msg = "[GUARDAR_PLATO]SEGFAULT - No existe el Restaurante";
-		t_result->hasError = true;
-		return t_result;
+		result->msg = "[GUARDAR_PLATO]SEGFAULT - No existe el Restaurante";
+		result->hasError = true;
+		return result;
 	}
 	
 	t_pedidoc *pedido = find_pedido(rest, id_pedido);
 
 	if(pedido == NULL){
-		t_result->msg = "[GUARDAR_PLATO] No existe el pedido";
-		t_result->hasError = true;
-		return t_result;
+		result->msg = "[GUARDAR_PLATO] No existe el pedido";
+		result->hasError = true;
+		return result;
 	}
 
-	t_plato *plato = find_plato(pedido->platos);
+	t_page *page = find_plato(pedido->pages, nombre_rest);
 
-	if(plato == NULL){
-		t_plato *plato_creado = asignar_frame(plato, cantidad);
+	if(page == NULL){
+		t_page *plato_creado = asignar_frame(plato, cantidad);
 
 		if(plato_creado != NULL){
-			list_add(pedido->platos, plato_creado);
+			list_add(pedido->pages, plato_creado);
 			result->msg = "[GUARDAR_PLATO] Exito";
-			resutl->hasError = false;
-			return t_result;
+			result->hasError = false;
+			return result;
 		}
 
 	}

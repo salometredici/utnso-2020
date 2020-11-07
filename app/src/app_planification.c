@@ -211,16 +211,19 @@ void actualizarQRconQN() {
 }
 
 void actualizarQRconQB() {
-	// Reviso si puedo agregar más PCBs de QB a READY de repartidores que ya descansaron
+	// Revisamos si algún PCB de BLOCKED ya descansó y puede pasar a READY
 	int sizeQB = queue_size(qB);
 	for (int b = 0; b < sizeQB; b++) {
 		pthread_mutex_lock(&mutexQB);
 		t_pcb *current = queue_pop(qB);
 		pthread_mutex_unlock(&mutexQB);
 		if (current->estado == REPARTIDOR_DESCANSANDO && repartidorDescansado(current)) {
-			pthread_mutex_lock(&mutexQR);
+			log_debug(logger, "[PLANIFICATION] PCB #%d finished its timeout. Cycles resting: %d", current->pid, current->qDescansado);
 			current->estado = ESPERANDO_EJECUCION;
+			current->qDescansado = 0;
+			pthread_mutex_lock(&mutexQR);
 			queue_push(qR, current);
+			log_debug(logger, "[PLANIFICATION] PCB #%d has returned from BLOCKED state to READY", current->pid);
 			pthread_mutex_unlock(&mutexQR);
 		} else {
 			pthread_mutex_lock(&mutexQB);

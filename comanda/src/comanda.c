@@ -22,39 +22,35 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);
 				break;
 			case GUARDAR_PEDIDO:;
-				/*t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqGuardarPedido, header->codigoOperacion);
-				free(reqGuardarPedido);
-				t_result *rGP = malloc(sizeof(t_result));
-				rGP->msg = "[GUARDAR_PEDIDO] Ok";
-				rGP->hasError = false;
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, rGP);
-				free(rGP);*/
+				t_request *requestgp = recibirPayloadPaquete(header, socketCliente);				
+				t_result *resultgp = _guardar_pedido(requestgp->nombre, requestgp->idPedido);
+				free(requestgp);
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, resultgp);
+				free(resultgp);
 				break;
 			case GUARDAR_PLATO:;
-				/*t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
-				logRequestPlato(reqGuardarPlato);
-				free(reqGuardarPlato);
-				t_result *rGPlato = malloc(sizeof(t_result));
-				rGPlato->msg = "[GUARDAR_PLATO] Ok";
-				rGPlato->hasError = false;
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, rGPlato);
-				free(rGPlato);*/
+				t_req_plato *requestgpl = recibirPayloadPaquete(header, socketCliente);
+
+				t_result *resultgpl = _guardar_plato(requestgpl->restaurante, requestgpl->idPedido, requestgpl->plato, requestgpl->cantidadPlato);
+				
+				free(requestgpl);
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, resultgpl);
+				free(resultgpl);
 				break;
 			case CONFIRMAR_PEDIDO:;
-				/*t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
 				free(reqConf);
 				t_result *rCP = malloc(sizeof(t_result));
 				rCP->msg = "[CONFIRMAR_PEDIDO] Ok";
 				rCP->hasError = false;
 				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, rCP);
-				free(rCP);*/
+				free(rCP);
 				break;
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;
 			case OBTENER_PEDIDO:;
-				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
+				/*t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqObt, header->codigoOperacion);
 				free(reqObt);
 
@@ -69,7 +65,7 @@ void *atenderConexiones(void *conexionNueva)
 				pedido->estado = PENDIENTE; pedido->platos = platos; pedido->precioTotal = calcularPrecioTotal(platos);
 
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
-				free(pedido); free(milanesa); free(empanadas); free(ensalada);
+				free(pedido); free(milanesa); free(empanadas); free(ensalada);*/
 				break;
 			case FINALIZAR_PEDIDO:;
 				/*t_request *reqFin = recibirPayloadPaquete(header, socketCliente);
@@ -93,10 +89,12 @@ void *atenderConexiones(void *conexionNueva)
 }
 
 int main(int argc, char **argv) {
+	
 	inicializarProceso(COMANDA);
     socketServidor = iniciarServidor();
-	initComanda();
 	
+	init_comanda();
+
     int fd;
     while (1) {
         fd = aceptarCliente(socketServidor);

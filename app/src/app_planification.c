@@ -155,8 +155,13 @@ void actualizarPosicion(t_pcb *currentPcb, tour_code code) {
 }
 
 void liberarRepartidor(t_repartidor *repartidor) {
+	pthread_mutex_lock(&mutexListaOcupados);
 	list_remove(repartidoresOcupados, repartidor->idRepartidor);
+	pthread_mutex_unlock(&mutexListaOcupados);
+	pthread_mutex_lock(&mutexListaDisponibles);
 	list_add(repartidoresDisponibles, repartidor);
+	log_debug(logger, "[PLANIFICATION] Repartidor #d is now available. Total available now: %d", repartidor->idRepartidor, list_size(repartidoresDisponibles));
+	pthread_mutex_unlock(&mutexListaDisponibles);
 }
 
 /* Planificación */
@@ -172,14 +177,13 @@ t_pcb *crearPcb(t_cliente *cliente, int idPedido) {
 	pcb->repartidor = malloc(sizeof(t_repartidor));
 	pcb->idCliente = cliente->idCliente;
 	pcb->socketCliente = cliente->socketCliente;
-	 // validar si es restaurante o no
 	pcb->posCliente = malloc(sizeof(t_posicion));
 	pcb->posCliente->posX = cliente->posCliente->posX;
 	pcb->posCliente->posY = cliente->posCliente->posY;
-	pcb->restaurante = cliente->restauranteSeleccionado;
+	pcb->restaurante = cliente->restSeleccionado;
 	pcb->posRest = malloc(sizeof(t_posicion));
-	pcb->posRest->posX = cliente->posRestaurante->posX;
-	pcb->posRest->posY = cliente->posRestaurante->posY;
+	pcb->posRest->posX = cliente->posRest->posX;
+	pcb->posRest->posY = cliente->posRest->posY;
 	pcb->ultimaEstimacion = estimacionInicial;
 	return pcb;
 }
@@ -235,41 +239,39 @@ void actualizarQRconQB() {
 
 void pasarAQB(t_pcb *pcb, t_estado estado) {
 	pthread_mutex_lock(&mutexQB);
+	pcb->qRecorrido = 0;
 	pcb->estado = estado;
 	pcb->alcanzoRestaurante = estado == ESPERANDO_PLATO ? true : false;
-	pcb->qRecorrido = 0;
 	queue_push(qB, pcb);
+	log_debug(logger, "[PLANIFICATION] PCB #%d added to BLOCKED queue in %s state", pcb->pid, pcb->alcanzoRestaurante ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO"); // TODO: Mejorar log
 	pthread_mutex_lock(&mutexQB);
-	// Logguear algo...
 }
 
-// Actualizar el estado de PCB en QB
 void desbloquearPCB(int idPedido) {
 	pthread_mutex_lock(&mutexQB);
-	int qIndex = 0;
 	int qSize = queue_size(qB);
-	t_pcb *pcbADesbloquear = malloc(sizeof(t_pcb));
-
 	t_queue *newQB = queue_create();
-
+	t_pcb *pcbADesbloquear = malloc(sizeof(t_pcb));
 	for (int i = 0; i < qSize; i++) {
 		t_pcb *currentPCB = queue_pop(qB);
 		if (currentPCB->pid == idPedido) {
-			qIndex = i;
 			pcbADesbloquear = currentPCB;
+			pcbADesbloquear->qEsperando = 0;
 			pcbADesbloquear->qDescansado = 0;
 			pcbADesbloquear->estado = ESPERANDO_EJECUCION;
 		} else {
 			queue_push(newQB, currentPCB);
 		}
 	}
-
-	qB = newQB; // Ahora qB tiene un elemento menos
+	qB = newQB;
 	pthread_mutex_unlock(&mutexQB);
-	// Agregamos el PCB desbloqueado a la QR
+	
 	pthread_mutex_lock(&mutexQR);
 	queue_push(qR, pcbADesbloquear);
+	log_debug(logger, "[PLANIFICATION] PCB #%d has returned from BLOCKED state to READY", pcbADesbloquear->pid);
 	pthread_mutex_unlock(&mutexQR);
+
+	free(pcbADesbloquear);
 }
 
 /* FIFO */

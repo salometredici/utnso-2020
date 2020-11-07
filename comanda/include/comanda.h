@@ -10,6 +10,4 @@
 int socketServidor;
 pthread_t threadConexiones;
 
-char* t_restaurante_buscado;
-
 #endif

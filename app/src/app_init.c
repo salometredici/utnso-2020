@@ -121,6 +121,10 @@ void inicializarVariablesGlobales() {
 	gradoMultiprocesamiento = getGradoMultiprocesamiento();
 	algoritmo = getAlgoritmoPlanificacion();
 	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
+	clientesConectados = list_create();
+	restaurantesConectados = list_create();
+	repartidoresDisponibles = list_create();
+	repartidoresOcupados = list_create();
 }
 
 void inicializarQueues() {

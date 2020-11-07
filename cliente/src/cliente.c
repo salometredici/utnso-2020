@@ -325,6 +325,9 @@ void initVariablesGlobales() {
 	dataCliente = malloc(sizeof(t_cliente));
 	dataCliente->esRestaurante = false;
 	dataCliente->restSeleccionado = string_new();
+	dataCliente->posRest = malloc(sizeof(t_posicion));
+	dataCliente->posRest->posX = ERROR;
+	dataCliente->posRest->posY = ERROR;
 	dataCliente->idCliente = config_get_string_value(config, "ID_CLIENTE");
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");

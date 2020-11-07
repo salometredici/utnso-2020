@@ -10,8 +10,6 @@
 
 int socketServidor;
 
-t_list *clientesConectados;
-
 pthread_t threadConexiones;
 pthread_t threadPlanificacion;
 

@@ -2,15 +2,6 @@
 
 /* Funciones y métodos */
 
-// Preguntamos al cliente su nombre y posición, asociándolo a un socket
-t_cliente *getCliente(int socketCliente) {
-	t_header *header = recibirHeaderPaquete(socketCliente);
-	t_cliente *cliente = recibirPayloadPaquete(header, socketCliente);
-	cliente->socketCliente = socketCliente;
-	logClientInfo(cliente);
-	free(header);
-}
-
 // Limpiamos clientes desconectados de una lista
 void revisarConectados(t_list *lista) {
 	for (int i = 0; i < list_size(lista); i++) {
@@ -32,12 +23,12 @@ void actualizarClientesConectados(t_cliente *cliente) {
 		return string_equals_ignore_case(cliente->idCliente, clienteActual->idCliente);
 	};
 
-	if (cliente->esRestaurante) {
+	if (cliente->esRestaurante) { // TODO: Revisar
 		t_cliente *restDuplicado = list_find(restaurantesConectados, &estaDuplicado);
-		if (restDuplicado != NULL) { list_add(restaurantesConectados, cliente); }
+		if (restDuplicado != NULL || list_is_empty(restaurantesConectados)) { list_add(restaurantesConectados, cliente); }
 	} else {
 		t_cliente *clienteDuplicado = list_find(clientesConectados, &estaDuplicado);
-		if (clienteDuplicado != NULL) {	list_add(clientesConectados, cliente); }
+		if (clienteDuplicado != NULL || list_is_empty(clientesConectados)) {	list_add(clientesConectados, cliente); }
 	}
 }
 
@@ -109,6 +100,7 @@ void *atenderConexiones(void *conexionNueva)
     int socketCliente = t_data->socketThread;
     free(t_data);
 
+	t_cliente *cliente = malloc(sizeof(t_cliente));
 	int socketComanda = ERROR;
 
 	while (1) {
@@ -127,7 +119,9 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, APP, RTA_OBTENER_PROCESO, APP);
 				break;
 			case ENVIAR_DATACLIENTE:;
-				t_cliente *cliente = getCliente(socketCliente);
+				cliente = recibirPayloadPaquete(header, socketCliente);
+				cliente->socketCliente = socketCliente;
+				logClientInfo(cliente);
 				actualizarClientesConectados(cliente);
 				free(cliente);
 				break;
@@ -144,9 +138,8 @@ void *atenderConexiones(void *conexionNueva)
 				t_selecc_rest *seleccRest = recibirPayloadPaquete(header, socketCliente);
 				cliente->restSeleccionado = seleccRest->restauranteSeleccionado;
 				logSeleccionarRestaurante(seleccRest);
-				t_result *resSelecc = getTResult("[SELECCIONAR_RESTAURANTE] Ok\n",false);
+				t_result *resSelecc = getTResult("[SELECCIONAR_RESTAURANTE] Ok",false);
 				enviarPaquete(socketCliente, APP, RTA_SELECCIONAR_RESTAURANTE, resSelecc);
-				free(resSelecc);
 				break;
 			case CONSULTAR_PLATOS:; // Finished with annotations
 				char *consulta = recibirPayloadPaquete(header, socketCliente); free(consulta);
@@ -348,7 +341,7 @@ void *atenderConexiones(void *conexionNueva)
             	printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
             	break;
  	   	}
-		free(header);
+		// free(header);
 	}
 	// TODO: Liberar conexion a comanda y sacar al cliente de la lista de conectados
     pthread_exit(EXIT_SUCCESS);

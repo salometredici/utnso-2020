@@ -35,7 +35,7 @@ void *threadLecturaConsola(void *args) {
 							consultarRestaurantes();
 							break;
 						case SELECCIONAR_RESTAURANTE:
-							seleccionarRestaurante(dataCliente->idCliente, parametro2);
+							seleccionarRestaurante(dataCliente->idCliente, parametro1);
 							break;
 						case CONSULTAR_PLATOS:
 							consultarPlatos("");
@@ -322,9 +322,12 @@ void obtenerNombreServidor() {
 }
 
 void initVariablesGlobales() {
-	t_cliente *dataCliente = malloc(sizeof(t_cliente));
+	dataCliente = malloc(sizeof(t_cliente));
 	dataCliente->esRestaurante = false;
-	dataCliente->restauranteSeleccionado = string_new();
+	dataCliente->restSeleccionado = string_new();
+	dataCliente->posRest = malloc(sizeof(t_posicion));
+	dataCliente->posRest->posX = ERROR;
+	dataCliente->posRest->posY = ERROR;
 	dataCliente->idCliente = config_get_string_value(config, "ID_CLIENTE");
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");

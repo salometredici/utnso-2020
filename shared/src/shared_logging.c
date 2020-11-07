@@ -1,5 +1,23 @@
 #include "../include/shared_logging.h"
 
+/* APP */
+
+void logClientInfo(t_cliente *cliente) {
+	printf("\tCliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s\n", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante);
+	printf("\t[Posición en el mapa]: [%d,%d]\n", cliente->posCliente->posX, cliente->posCliente->posY);
+	log_info(logger, "\tCliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante);
+	log_info(logger, "\t[Posición en el mapa]: [%d,%d]", cliente->posCliente->posX, cliente->posCliente->posY);
+}
+
+void logRtaConsultarPlatos(t_list *platosEnviados) {
+	printf("Platos enviados:\n");
+	log_info(logger, "Platos enviados:");
+	for (int i = 0; i < list_size(platosEnviados); i++) {
+		printf("\tPlato #%d: %s\n", i, list_get(platosEnviados, i));
+		log_info(logger, "\tPlato #%d: %s", i, list_get(platosEnviados, i));
+	}
+}
+
 /* Formatted logs */
 
 void logInitializedProcess() {
@@ -112,7 +130,7 @@ void logMetadata(t_md *md) {
 }
 
 void logSeleccionarRestaurante(t_selecc_rest *seleccion) {
-	printf("Se ha asociado al cliente \033[1m%s\033[0m con el restaurante \033[1;35m%s\033[0m\n", seleccion->idCliente, seleccion->restauranteSeleccionado);
+	printf("Se ha asociado al cliente " BOLD "%s" RESET " con el restaurante \033[1;35m%s\033[0m\n", seleccion->idCliente, seleccion->restauranteSeleccionado);
 	log_info(logger, "Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restauranteSeleccionado);
 }
 

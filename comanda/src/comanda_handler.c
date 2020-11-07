@@ -40,17 +40,23 @@ t_result _guardar_plato(char *nombre_rest, int id_pedido, char *plato, int canti
 	 * responde el mensaje indicando si se puedo realizar
 	 */
 
+	if(strlen(plato) + 1 > 24){
+		t_result->msg = "[GUARDAR_PLATO]El nombre del plato exede el tamanio";
+		t_result->hasError = true;
+		return t_result;		
+	}
+
 	t_result *result = malloc(sizeof(result));
 
 	t_restaurante *rest = find_restaurante(nombre_rest);	
 
 	if(rest == NULL){
-		t_result->msg = "[GUARDAR_PLATO] No existe el Restaurante";
+		t_result->msg = "[GUARDAR_PLATO]SEGFAULT - No existe el Restaurante";
 		t_result->hasError = true;
 		return t_result;
 	}
 	
-	t_pedidoc *pedido = find_pedido(id_pedido);
+	t_pedidoc *pedido = find_pedido(rest, id_pedido);
 
 	if(pedido == NULL){
 		t_result->msg = "[GUARDAR_PLATO] No existe el pedido";
@@ -61,8 +67,15 @@ t_result _guardar_plato(char *nombre_rest, int id_pedido, char *plato, int canti
 	t_plato *plato = find_plato(pedido->platos);
 
 	if(plato == NULL){
-		//No esta el plato entonces tengo que encontrar el frame en memoria
-		int frame = asignar_frame(plato,);
+		t_plato *plato_creado = asignar_frame(plato, cantidad);
+
+		if(plato_creado != NULL){
+			list_add(pedido->platos, plato_creado);
+			result->msg = "[GUARDAR_PLATO] Exito";
+			resutl->hasError = false;
+			return t_result;
+		}
+
 	}
 
 }

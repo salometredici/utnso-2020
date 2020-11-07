@@ -19,34 +19,28 @@ t_list *restaurantes;
 t_bitarray *frame_usage_bitmap;
 void* bitmap_pointer;
 
-typedef enum {
-    INICIAL,
-    ENPROCESO,
-    FINALIZADOP
-}estado;
-
 typedef struct{
     char *nombre;
     t_list *pedidos; /*Tabla de Paginas*/
-    int estado;
 } t_restaurante;
 
 typedef struct {
+    int estado;
     int id_pedido;
-    t_list *platos; //platos
-}t_pedidoc;
+    t_list *platos; //paginas
+}t_pedidoc; // referencia a comanda c ver despues si se puede cambiar
 
 typedef struct{
-    int *frame; //puntero a frame
+    int frame; 
 	bool in_use; 
 	bool modified;
-    bool flag; 
-} t_plato; // referencia a comanda c ver despues si se puede cambiar
+    bool flag; //1 en memoria principal
+} t_plato; //pagina
 
 /*Marco en la memoria*/
 typedef struct{
     uint32_t cantidad;
-    uint32_t cantidadLista;
+    uint32_t cantidad_lista;
     char *comida;
 } t_frame;
 
@@ -54,6 +48,8 @@ t_restaurante *crear_restaurante(char *nombre_rest);
 t_pedidoc *crear_pedido(int id_pedido);
 t_restaurante *find_restaurante(char *nombre);
 void add_pedido_to_restaurante(t_restaurante *restaurante, t_pedidoc *pedido);
-t_pedidoc* find_pedido(t_restaurante *restaurante, int id)
+t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
+t_plato* find_plato(t_pedidoc *pedido, char *plato);
+t_plato* asignar_frame(char *plato, int cantidad);
 
 #endif

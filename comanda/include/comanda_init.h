@@ -15,7 +15,7 @@
 
 #define PAGE_SIZE 32 // por enunciado 
 
-void **MEMORY;
+void **MEMORIA;
 int MEMORY_SIZE;
 int SWAP_SIZE;
 char *ALGORITMO_REEMPLAZO;

@@ -33,21 +33,21 @@ void init_memory()
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
 
-	MEMORY = calloc(frames, PAGE_SIZE);
+	MEMORIA = calloc(frames, PAGE_SIZE);
 	int i;
 	for(i = 0; i < frames; i++) {
 		void* new_frame = malloc(PAGE_SIZE);
-		memset(new_frame, 1, sizeof(bool));
-		memset(new_frame + sizeof(bool), NULL, PAGE_SIZE - sizeof(bool));
-		*(MEMORY + i) = new_frame;
+		memset(new_frame, NULL, PAGE_SIZE);
+		*(MEMORIA + i) = new_frame;
 	}
-	print_structure();
+
+	//print_structure();
 }
 
 void init_virtual() {
 
 	swap_file = fopen(SWAP_FILE, "wb+");
-
+	
 	int swap_frames = SWAP_SIZE / PAGE_SIZE;
 	int swap_bitmap_size_in_bytes = ceil((double) swap_frames / 8);
 	swap_bitmap_pointer = malloc(swap_bitmap_size_in_bytes);

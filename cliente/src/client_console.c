@@ -27,7 +27,7 @@ void mostrarComandosValidos(char *modulo) {
 		switch (proceso) {
 			case OPTION_APP:
 				printf("\033[0;33mCONSULTAR_RESTAURANTES\033[0m\n");
-				printf("\033[0;33mSELECCIONAR_RESTAURANTE\033[0m [NOMBRE_CLIENTE] [NOMBRE_RESTAURANTE]\n");
+				printf("\033[0;33mSELECCIONAR_RESTAURANTE\033[0m [NOMBRE_RESTAURANTE]\n");
 				printf("\033[0;33mCONSULTAR_PLATOS\033[0m [NOMBRE_RESTAURANTE]\n");
 				printf("\033[0;33mCREAR_PEDIDO\033[0m\n");
 				printf("\033[0;33mANIADIR_PLATO\033[0m [NOMBRE_PLATO] [ID_PEDIDO]\n");
@@ -93,10 +93,9 @@ int validateCommand(int option, int command, char **parameters) {
 		case OPTION_APP:
 			switch (command) {
 				case SELECCIONAR_RESTAURANTE:
-					if (!parameters[1] || !parameters[2]) {
+					if (!parameters[1]) {
 						showCommandErrorMsg(command);
-						printf("\033[1;33mSELECCIONAR_RESTAURANTE [CLIENTE] [NOMBRE_RESTAURANTE]\033[0m\n");
-						printf("\t[!] \033[1m[CLIENTE]: int\033[0m\n");
+						printf("\033[1;33mSELECCIONAR_RESTAURANTE [NOMBRE_RESTAURANTE]\033[0m\n");
 						printf("\t[!] \033[1m[NOMBRE_RESTAURANTE]: char*\033[0m\n");
 						return ERROR;
 					}

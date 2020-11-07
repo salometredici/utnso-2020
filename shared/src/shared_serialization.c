@@ -97,6 +97,12 @@ int getBytesListaRecetas(t_list *listaRecetas) {
 	return bytesAEnviar;
 }
 
+// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño
+int getBytesTCliente(t_cliente *cliente) {
+	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSeleccionado)
+			+ getBytesTPosicion(cliente->posCliente) + getBytesTPosicion(cliente->posRest);
+}
+
 // 7 ints (posX, posY, QHornos, QPedidos, QCocineros, bytesListaRecetas, bytesListaAfinidades) + size de lista de platos + size de lista de afinidades
 // size de lista de afinidades = bytes de cada palabra + un int que represente esos bytes
 // size de lista de platos = suma de cada size de t_md_receta
@@ -141,6 +147,9 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		// Envío de t_pedido
 		case RTA_OBTENER_PEDIDO:
 			payloadSize += getBytesPedido(stream);
+			break;
+		case ENVIAR_DATACLIENTE:
+			payloadSize += getBytesTCliente(stream);
 			break;
 		// Envío de t_selecc_rest
 		case SELECCIONAR_RESTAURANTE:
@@ -224,6 +233,9 @@ void *serializar(m_code codigoOperacion, void *stream) {
             break;
 		case GUARDAR_PLATO:
 			buffer = srlzReqPlato(stream);
+			break;
+		case ENVIAR_DATACLIENTE:
+			buffer = srlzTCliente(stream);
 			break;
 		case SELECCIONAR_RESTAURANTE:
 			buffer = srlzTSeleccRest(stream);
@@ -523,6 +535,35 @@ void *srlzTPosicion(t_posicion* posicion) {
 	return magic;
 }
 
+void *srlzTCliente(t_cliente *cliente) {
+	int desplazamiento = 0;
+	int longId = getBytesString(cliente->idCliente);
+	int longRest = getBytesString(cliente->restSeleccionado);
+	
+	void *magic = malloc(getBytesTCliente(cliente));
+	
+	memcpy(magic + desplazamiento, &longId, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &longRest, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, cliente->idCliente, longId);
+	desplazamiento += longId;
+	memcpy(magic + desplazamiento, cliente->restSeleccionado, longRest);
+	desplazamiento += longRest;
+
+	memcpy(magic + desplazamiento, &cliente->esRestaurante, sizeof(bool));
+	desplazamiento += sizeof(bool);
+	memcpy(magic + desplazamiento, &cliente->posCliente->posX, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &cliente->posCliente->posY, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &cliente->posRest->posX, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &cliente->posRest->posY, sizeof(int));
+
+	return magic;
+}
+
 void serializarPayload(void *buffer, m_code codigoOperacion, void *stream) {
 	int desplazamiento = getBytesHeader();
 	int payloadSize = getPayloadSize(codigoOperacion, stream);
@@ -802,6 +843,42 @@ t_posicion *dsrlzTPosicion(void *buffer) {
 	return posicion;
 }
 
+t_cliente *dsrlzTCliente(void *buffer) {
+	t_cliente *cliente = malloc(sizeof(t_cliente));
+	cliente->posCliente = malloc(sizeof(t_posicion));
+	cliente->posRest = malloc(sizeof(t_posicion));
+	int desplazamiento = 0;
+	int longId; int longRest;
+
+	memcpy(&longId, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&longRest, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	char *id = malloc(longId);
+	char *rest = malloc(longRest);
+
+	memcpy(id, buffer + desplazamiento, longId);
+	desplazamiento += longId;
+	memcpy(rest, buffer + desplazamiento, longRest);
+	desplazamiento += longRest;
+
+	memcpy(&cliente->esRestaurante, buffer + desplazamiento, sizeof(bool));
+	desplazamiento += sizeof(bool);
+
+	memcpy(&cliente->posCliente->posX, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&cliente->posCliente->posY, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&cliente->posRest->posX, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&cliente->posRest->posY, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	cliente->idCliente = id; cliente->restSeleccionado = rest;
+	return cliente;
+}
+
 t_result *dsrlzTResult(void *buffer) {
 	int longitudPalabra;
 	int desplazamiento = 0;
@@ -822,20 +899,21 @@ t_result *dsrlzTResult(void *buffer) {
 
 t_selecc_rest *dsrlzTSeleccRest(void *buffer) {
 	int desplazamiento = 0;
-	int longIdCliente; int longRestaurante;
+	int longIdCliente = 0;
+	int longRestaurante = 0;
 	t_selecc_rest *seleccRest = malloc(sizeof(t_selecc_rest));
 
 	memcpy(&longIdCliente, buffer, sizeof(int));
 	desplazamiento += sizeof(int);
-	memcpy(&longRestaurante, buffer, sizeof(int));
+	memcpy(&longRestaurante, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 
 	char *idCliente = malloc(longIdCliente);
 	char *restaurante = malloc(longRestaurante);
 
-	memcpy(idCliente, buffer, longIdCliente);
+	memcpy(idCliente, buffer + desplazamiento, longIdCliente);
 	desplazamiento += longIdCliente;
-	memcpy(restaurante, buffer, longRestaurante);
+	memcpy(restaurante, buffer + desplazamiento, longRestaurante);
 
 	seleccRest->idCliente = idCliente;
 	seleccRest->restauranteSeleccionado = restaurante;
@@ -932,6 +1010,9 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
             break;
 		case GUARDAR_PLATO:
 			buffer = dsrlzReqPlato(buffer);
+			break;
+		case ENVIAR_DATACLIENTE:
+			buffer = dsrlzTCliente(buffer);
 			break;
 		case PLATO_LISTO:
 			buffer = dsrlzTPlatoListo(buffer);

@@ -5,6 +5,24 @@
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
 
+#define ESCAPE "\033"
+#define BOLD "\033[1m"
+#define RED "\033[0;31m"
+#define BOLDRED "\033[1;31m"
+#define GREEN "\033[0;32m"
+#define BOLDGREEN "\033[1;32m"
+#define YELLOW "\033[0;33m"
+#define BOLDYELLOW "\033[1;33m"
+#define BLUE "\033[0;34m"
+#define BOLDBLUE "\033[1;34m"
+#define MAGENTA "\033[0;35m"
+#define BOLDMAGENTA "\033[1;35m"
+#define CYAN "\033[0;36m" 
+#define BOLDCYAN "\033[1;36m"
+#define RESET "\033[0m"
+
+void logRtaConsultarPlatos(t_list *platosEnviados);
+
 void logConsoleInput(char *comandoLeido);
 void logClientDisconnection(int socketCliente);
 void logMetadataRestaurante(t_posicion posicion); // Después va a ser un t_md, es un response
@@ -18,5 +36,8 @@ void logConsultaPlatos(char *restaurante);
 void logTResult(t_result *result);
 void logConsultarPedido(t_pedido *pedidoCons, int idPedido);
 void logInitDataCliente(t_cliente *cliente);
+
+// APP
+void logClientInfo(t_cliente *cliente);
 
 #endif

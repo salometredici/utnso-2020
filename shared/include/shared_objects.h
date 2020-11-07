@@ -5,6 +5,7 @@
 #include "../include/shared_core.h"
 #include "../include/shared_logging.h"
 
-// En esta shared pueden ir todas las inicializaciones de objetos
+t_request *getTRequest(int idPedido, char *nombre);
+t_result *getTResult(char *msg, bool hasError);
 
 #endif

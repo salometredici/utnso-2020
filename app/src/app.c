@@ -1,47 +1,17 @@
 #include "../include/app.h"
 
-void *planificar(void *args) {
-	while (1) {
-		switch (algoritmoSeleccionado) {
-			case FIFO:
-				// Largo plazo
-				actualizarQRconQN();
-				actualizarQRconQB();
-				actualizarQEconQR_FIFO();
-				// Corto plazo
-				ejecutarCiclos();
-				break;
-			case HRRN:
-				// Largo plazo
-				actualizarQRconQN();
-				actualizarQRconQB();
-				actualizarQEconQR_HRRN();
-				// Corto plazo
-				ejecutarCiclos();
-				break;
-			case SJF:
-				// Largo plazo
-				actualizarQRconQN();
-				actualizarQRconQB();
-				actualizarQEconQR_SJF();
-				// Corto plazo
-				ejecutarCiclos();
-				break;
-			default:
-				break;
-		}
-	}
-}
+/* Funciones y métodos */
 
-// Preguntar al cliente su nombre y posición, asociandolo a un socket
+// Preguntamos al cliente su nombre y posición, asociándolo a un socket
 t_cliente *getCliente(int socketCliente) {
 	t_header *header = recibirHeaderPaquete(socketCliente);
 	t_cliente *cliente = recibirPayloadPaquete(header, socketCliente);
 	cliente->socketCliente = socketCliente;
+	logClientInfo(cliente);
 	free(header);
 }
 
-// Limpiar clientes desconectados
+// Limpiamos clientes desconectados de una lista
 void revisarConectados(t_list *lista) {
 	for (int i = 0; i < list_size(lista); i++) {
 		t_cliente *clienteActual = list_get(lista, i);
@@ -52,7 +22,7 @@ void revisarConectados(t_list *lista) {
 	}
 }
 
-// Revisar si el cliente ya existe en la lista de conectados y limpiar los desconectados
+// Revisamos si el cliente ya existe en la lista de conectados y limpiar los desconectados
 void actualizarClientesConectados(t_cliente *cliente) {
 	revisarConectados(clientesConectados);
 	revisarConectados(restaurantesConectados);
@@ -69,15 +39,6 @@ void actualizarClientesConectados(t_cliente *cliente) {
 		t_cliente *clienteDuplicado = list_find(clientesConectados, &estaDuplicado);
 		if (clienteDuplicado != NULL) {	list_add(clientesConectados, cliente); }
 	}
-}
-
-t_cliente *getRestConectado(char *restBuscado) {
-	bool restFound(void *actual) {
-		t_cliente *restActual = actual;
-		return string_equals_ignore_case(restBuscado, restActual->idCliente);
-	};
-
-	return list_find(restaurantesConectados, &restFound);
 }
 
 int generarId(int min, int max) {
@@ -98,6 +59,14 @@ int generarId(int min, int max) {
 	}
 };
 
+t_cliente *getRestConectado(char *restBuscado) {
+	bool restFound(void *actual) {
+		t_cliente *restActual = actual;
+		return string_equals_ignore_case(restBuscado, restActual->idCliente);
+	};
+	return list_find(restaurantesConectados, &restFound);
+}
+
 t_list *obtenerRestsConectados() {
 	t_list *nombresRests = list_create();
 	for (int i = 0; i < list_size(restaurantesConectados); i++) {
@@ -107,6 +76,33 @@ t_list *obtenerRestsConectados() {
 	return nombresRests;
 }
 
+/* Hilo de planificación */
+
+void *planificar(void *args) {
+	while (1) {
+		// Largo plazo
+		actualizarQRconQN();
+		actualizarQRconQB();
+		switch (algoritmoSeleccionado) {
+			case FIFO:
+				actualizarQEconQR_FIFO();
+				break;
+			case HRRN:
+				actualizarQEconQR_HRRN();
+				break;
+			case SJF:
+				actualizarQEconQR_SJF();
+				break;
+			default:
+				break;
+		}
+		// Corto plazo
+		ejecutarCiclos();
+	}
+}
+
+/* Hilo de conexiones */
+
 void *atenderConexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
@@ -115,12 +111,12 @@ void *atenderConexiones(void *conexionNueva)
 
 	int socketComanda = ERROR;
 
-
 	while (1) {
+		
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			logClientDisconnection(socketCliente); // Mejorar
+			logClientDisconnection(socketCliente); // TODO: Mejora en los logs de desconexión
 			liberarConexion(socket);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
@@ -135,7 +131,7 @@ void *atenderConexiones(void *conexionNueva)
 				actualizarClientesConectados(cliente);
 				free(cliente);
 				break;
-        	case CONSULTAR_RESTAURANTES:; // Finished
+        	case CONSULTAR_RESTAURANTES:;
 				if (list_is_empty(restaurantesConectados)) {
 					t_list *rest = list_create(); list_add(rest, restauranteDefault);
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, rest);
@@ -144,25 +140,22 @@ void *atenderConexiones(void *conexionNueva)
             		enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, obtenerRestsConectados());
 				}
         		break;
-			case SELECCIONAR_RESTAURANTE:; // Finished
+			case SELECCIONAR_RESTAURANTE:;
 				t_selecc_rest *seleccRest = recibirPayloadPaquete(header, socketCliente);
-				cliente->restauranteSeleccionado = seleccRest->restauranteSeleccionado;
+				cliente->restSeleccionado = seleccRest->restauranteSeleccionado;
 				logSeleccionarRestaurante(seleccRest);
-				t_result *resSelecc = malloc(sizeof(t_result));
-				resSelecc->msg = "[SELECCIONAR_RESTAURANTE] Ok\n";
-				resSelecc->hasError = false;
+				t_result *resSelecc = getTResult("[SELECCIONAR_RESTAURANTE] Ok\n",false);
 				enviarPaquete(socketCliente, APP, RTA_SELECCIONAR_RESTAURANTE, resSelecc);
 				free(resSelecc);
 				break;
 			case CONSULTAR_PLATOS:; // Finished with annotations
 				char *consulta = recibirPayloadPaquete(header, socketCliente); free(consulta);
-
 				if (list_is_empty(restaurantesConectados)) {
 					log_info(logger, "No hay restaurantes conectados, se enviará el RestauranteDefault...");
 					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PLATOS, platosResDefault);		
 					logRtaConsultarPlatos(platosResDefault);			
 				} else {
-					t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado); // ¿Qué pasa si no está?
+					t_cliente *restConectado = getRestConectado(cliente->restSeleccionado); // ¿Qué pasa si no está?
 					enviarPaquete(restConectado->socketCliente, APP, CONSULTAR_PLATOS, string_new());
 					log_info(logger, "Consultando los platos del restaurante %s...", restConectado->idCliente);
 					t_header *headerRest = recibirHeaderPaquete(restConectado->socketCliente);
@@ -173,38 +166,38 @@ void *atenderConexiones(void *conexionNueva)
 					free(headerRest);
 				}
 				break;	
-			case CREAR_PEDIDO:; // Finished
+			case CREAR_PEDIDO:; // TODO: Mejorar logs
 				conexionComanda = conectarseA(COMANDA);
-				t_request *restAGuardar = malloc(sizeof(t_request));
+				t_request *reqGuardarPedido;
 
 				if (list_is_empty(restaurantesConectados)) {
 					int unRandom = generarId(0, 100);
 					enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, unRandom);
-
-					restAGuardar->idPedido = unRandom;
-					restAGuardar->nombre = restauranteDefault;
+					reqGuardarPedido = getTRequest(unRandom, restauranteDefault);
 				} else {
-					t_cliente *restConsulta = getRestConectado(cliente->restauranteSeleccionado);
+					t_cliente *restConsulta = getRestConectado(cliente->restSeleccionado);
 					enviarPaquete(restConsulta->socketCliente, APP, CREAR_PEDIDO, NULL);
+
 					printf("Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE...\n", restConsulta->idCliente);
 					log_info(logger, "Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE...", restConsulta->idCliente);
+					
 					t_header *headerRest = recibirHeaderPaquete(restConsulta->socketCliente);
 					int newIdPedido = recibirPayloadPaquete(headerRest, restConsulta->socketCliente);
+					
 					printf("El nuevo idPedido es %d\n", newIdPedido);
 					log_info(logger, "El nuevo idPedido es %d", newIdPedido);
+					
+					reqGuardarPedido = getTRequest(newIdPedido, restConsulta->idCliente);
 					free(headerRest);
-
-					restAGuardar->idPedido = newIdPedido;
-					restAGuardar->nombre = restConsulta->idCliente;
 				}
 
-				enviarPaquete(conexionComanda, APP, GUARDAR_PEDIDO, restAGuardar);
+				enviarPaquete(conexionComanda, APP, GUARDAR_PEDIDO, reqGuardarPedido);
 				t_header *headerPedidoGuardado = recibirHeaderPaquete(conexionComanda);
 				t_result *payloadPedidoGuardado = recibirPayloadPaquete(headerPedidoGuardado, conexionComanda);
 				logTResult(payloadPedidoGuardado);
-				enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, payloadPedidoGuardado->hasError ? ERROR : restAGuardar->idPedido);
+				enviarPaquete(socketCliente, APP, RTA_CREAR_PEDIDO, payloadPedidoGuardado->hasError ? ERROR : reqGuardarPedido->idPedido);
 
-				free(restAGuardar);
+				free(reqGuardarPedido);
 				free(headerPedidoGuardado);
 				free(payloadPedidoGuardado);
 				liberarConexion(conexionComanda);
@@ -215,31 +208,31 @@ void *atenderConexiones(void *conexionNueva)
 				logRequest(reqAniadir, header->codigoOperacion);
 
 				// ¿No deberíamos obtener el RESTAURANTE dueño del pedido en lugar del RESTAURANTE seleccionado?
-				// si no fuese asi, podemos obtener el nombre del restaurante de CONSULTAR_PEDIDO
-				t_cliente *restConectado = getRestConectado(cliente->restauranteSeleccionado);
+				// Si no fuese asi, podemos obtener el nombre del restaurante de CONSULTAR_PEDIDO
+				t_cliente *restConectado = getRestConectado(cliente->restSeleccionado);
 
-				t_header *headerCom = malloc(sizeof(t_header));
+				t_header *hAniadir = malloc(sizeof(t_header));
 				t_result *resAniadir = malloc(sizeof(t_result));
 
 				// Si es restauranteDefault, enviamos t_request a COMANDA
 				if (string_equals_ignore_case(restConectado->idCliente, restauranteDefault)) {
 					enviarPaquete(conexionComanda, APP, ANIADIR_PLATO, reqAniadir);
-					headerCom = recibirHeaderPaquete(conexionComanda);
-					resAniadir = recibirPayloadPaquete(headerCom, conexionComanda);
+					hAniadir = recibirHeaderPaquete(conexionComanda);
+					resAniadir = recibirPayloadPaquete(hAniadir, conexionComanda);
 					logTResult(resAniadir);
 					enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, resAniadir);
 				} else { // Sino, enviamos t_request al RESTAURANTE dueño del pedido
 					enviarPaquete(restConectado->socketCliente, APP, ANIADIR_PLATO, reqAniadir);
-					headerCom = recibirHeaderPaquete(restConectado->socketCliente);
-					resAniadir = recibirPayloadPaquete(headerCom, restConectado->socketCliente);
+					hAniadir = recibirHeaderPaquete(restConectado->socketCliente);
+					resAniadir = recibirPayloadPaquete(hAniadir, restConectado->socketCliente);
 					logTResult(resAniadir);
 					// Si el RESTAURANTE dice que falló, informamos directamente al CLIENTE
 					if (resAniadir->hasError) {
 						enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, resAniadir);
 					} else { // Sino, enviamos el t_request a COMANDA e informamos el resultado al CLIENTE
 						enviarPaquete(conexionComanda, APP, ANIADIR_PLATO, reqAniadir);
-						headerCom = recibirHeaderPaquete(conexionComanda);
-						resAniadir = recibirPayloadPaquete(headerCom, conexionComanda);
+						hAniadir = recibirHeaderPaquete(conexionComanda);
+						resAniadir = recibirPayloadPaquete(hAniadir, conexionComanda);
 						logTResult(resAniadir);
 						enviarPaquete(socketCliente, APP, RTA_ANIADIR_PLATO, resAniadir);
 					}
@@ -247,103 +240,109 @@ void *atenderConexiones(void *conexionNueva)
 
 				free(reqAniadir);
 				free(restConectado);
-				free(headerCom);
+				free(hAniadir);
 				free(resAniadir);
 				liberarConexion(conexionComanda);
 				break;	
-			case PLATO_LISTO:; // Finished
-				// REVISAR CON VALIDACION DE ESTADO PEDIDO
+			case PLATO_LISTO:;
 				conexionComanda = conectarseA(COMANDA);
 
 				t_plato_listo *platoListo = recibirPayloadPaquete(header, socketCliente);
 				enviarPaquete(conexionComanda, APP, PLATO_LISTO, platoListo);
 				t_header *headerPL = recibirHeaderPaquete(conexionComanda);
-				t_result *resPL = recibirPayloadPaquete(headerPL, conexionComanda);
-				logTResult(resPL);
+				t_result *resultPL = recibirPayloadPaquete(headerPL, conexionComanda);
+				logTResult(resultPL);
 
-				// Verifico la respuesta de COMANDA
-				if (resPL->hasError == false) { // Obtener pedido de COMANDA para verificar cantidad de paltos listos
-					t_request *reqPedidoAVerificar = malloc(sizeof(t_request));
-					reqPedidoAVerificar->nombre = platoListo->restaurante;
-					reqPedidoAVerificar->idPedido = platoListo->idPedido;
+				// Obtener pedido de COMANDA para verificar cantidad de platos listos
+				if (!resultPL->hasError) {
+					t_request *reqPedidoAVerificar = getTRequest(platoListo->restaurante, platoListo->idPedido);
 					enviarPaquete(conexionComanda, APP, OBTENER_PEDIDO, reqPedidoAVerificar);
 					t_header *headerPO = recibirHeaderPaquete(conexionComanda);
 					t_pedido *pedidoAVerificar = recibirPayloadPaquete(headerPO, conexionComanda);
 					
 					// Verificar si todos los platos están listos
-					t_list *platosPedido = list_create();
-					list_add_all(platosPedido, pedidoAVerificar->platos);
-					int cantidadPlatos = list_size(platosPedido);
-					bool pedidoListo = true;
-					for (int i=0; i<cantidadPlatos; i++) {
-						t_plato *platoActual = list_get(platosPedido, i);
-						if (platoActual->cantidadLista < platoActual->cantidadPedida) { pedidoListo = false; }
-					}
+					t_list *platosPedido = list_create(); list_add_all(platosPedido, pedidoAVerificar->platos);
 
-					if (pedidoListo) {
+					bool platoListo(void *actual) {
+						t_plato *platoActual = actual;
+						return platoActual->cantidadLista == platoActual->cantidadPedida;
+					};
+
+					bool todosPlatosListos = list_all_satisfy(pedidoAVerificar->platos, &platoListo);
+					
+					// int cantidadPlatos = list_size(platosPedido);
+					// bool pedidoListo = true;
+					// for (int i=0; i<cantidadPlatos; i++) {
+					// 	t_plato *platoActual = list_get(platosPedido, i);
+					// 	if (platoActual->cantidadLista < platoActual->cantidadPedida) { pedidoListo = false; }
+					// }
+
+					if (todosPlatosListos) {
 						desbloquearPCB(reqPedidoAVerificar->idPedido);
 					}
 				}
 				
-				enviarPaquete(socketCliente, APP, RTA_PLATO_LISTO, resPL);
+				enviarPaquete(socketCliente, APP, RTA_PLATO_LISTO, resultPL);
 
 				free(platoListo);
 				free(headerPL);
-				free(resPL);
+				free(resultPL);
 				liberarConexion(conexionComanda);
 				break;	
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
 
-				// Obtener el pedido de COMANDA
+				// 1. Obtener el pedido de COMANDA
 				enviarPaquete(conexionComanda, APP, OBTENER_PEDIDO, reqConf);
 				t_header *headerCP = recibirHeaderPaquete(conexionComanda);
 				t_pedido *pedidoConf = recibirPayloadPaquete(header, conexionComanda);
 				logObtenerPedido(pedidoConf);
 
-				// if pedidoConf != FINALIZADO
-
-				t_pcb *pcb = malloc(sizeof(t_pcb));
 				bool hasError = false;
+				t_pcb *pcb = malloc(sizeof(t_pcb));
 
-				// Si es RDefault, generar PCB y añadirlo para planificar, sino, consultar al restaurante
-				if (string_equals_ignore_case(cliente->restauranteSeleccionado, restauranteDefault)) {
+				// 2. Si es RDefault, generar PCB y añadirlo para planificar, sino, consultar al restaurante que corresponda
+				if (string_equals_ignore_case(cliente->restSeleccionado, restauranteDefault)) {
+					// 3.Generar el PCB y dejarlo en planificación
 					pcb = crearPcb(cliente, reqConf->idPedido);
 					agregarAQN(pcb);
 				} else {
 					t_cliente *restConectado = getRestConectado(reqConf->nombre);
 					enviarPaquete(restConectado->socketCliente, APP, CONFIRMAR_PEDIDO, reqConf);
-					t_header *hRest = recibirHeaderPaquete(restConectado->socketCliente);
-					t_result *rCP = recibirPayloadPaquete(hRest, restConectado->socketCliente);
-					if (rCP->hasError) {
+					t_header *hRestConfP = recibirHeaderPaquete(restConectado->socketCliente);
+					t_result *resultConfP = recibirPayloadPaquete(hRestConfP, restConectado->socketCliente);
+					if (resultConfP->hasError) {
 						hasError = true;
-						enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rCP);
+						enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, resultConfP);
 					} else {
+						// 3.Generar el PCB y dejarlo en planificación
 						pcb = crearPcb(cliente, reqConf->idPedido);
 						agregarAQN(pcb);
 					}
 				}
 
+				// 4. Informar a COMANDA la actualización del estado del pedido
 				if (!hasError) {
 					enviarPaquete(conexionComanda, APP, CONFIRMAR_PEDIDO, reqConf);
-					t_header *hCom = recibirHeaderPaquete(conexionComanda);
-					t_result *rCPC = recibirPayloadPaquete(hCom, conexionComanda);
-					logTResult(rCPC);
-					enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, rCPC);
+					t_header *hComanda = recibirHeaderPaquete(conexionComanda);
+					t_result *resultConfPComanda = recibirPayloadPaquete(hComanda, conexionComanda);
+					logTResult(resultConfPComanda);
+					// 5. Informar a CLIENTE que el pedido fue confirmado
+					enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, resultConfPComanda);
 				}
 
 				break;
-			case CONSULTAR_PEDIDO:; /* !!! Comanda no devuelve el precio, no? */
+			case CONSULTAR_PEDIDO:;
 				int idPedidoCons = recibirPayloadPaquete(header, socketCliente);
-				// Se consulta a COMANDA para obtener el pedido
+				conexionComanda = conectarseA(COMANDA);
 				enviarPaquete(conexionComanda, APP, CONSULTAR_PEDIDO, idPedidoCons);
-				t_header *headerCons = recibirHeaderPaquete(conexionComanda);
-				t_pedido *pedidoCons = recibirPayloadPaquete(headerCons, conexionComanda);
-				enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PEDIDO, pedidoCons);
+				t_header *headerConsCom = recibirHeaderPaquete(conexionComanda);
+				t_pedido *pedidoCons = recibirPayloadPaquete(headerConsCom, conexionComanda);
 				logConsultarPedido(pedidoCons, idPedidoCons);
+				enviarPaquete(socketCliente, APP, RTA_CONSULTAR_PEDIDO, pedidoCons);
+				free(headerConsCom);
 				free(pedidoCons);
-				free(headerCons);
 				break;			
         	default:
             	printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

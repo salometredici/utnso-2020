@@ -36,7 +36,7 @@ t_posicion *posResDefault;
 
 double alpha;
 int tiempoRetardoCpu;
-int estimacionInicial;
+double estimacionInicial;
 int gradoMultiprocesamiento; // Cantidad de repartidores que pueden estar en Exec a la vez
 char *algoritmo;
 int algoritmoSeleccionado;
@@ -88,6 +88,7 @@ typedef struct {
 	// Restaurante del pedido
 	char *restaurante;
 	t_posicion *posRest;
+	double ultimaEstimacion;
 } t_pcb;
 
 void planificarProximo(t_pcb *pcb, t_md *md);

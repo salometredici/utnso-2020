@@ -125,7 +125,7 @@ int conectarseA(p_code proceso) {
 			break;
 		case RESTAURANTE:
 			ip = config_get_string_value(config, "IP_RESTAURANTE");
-			puerto = config_get_int_value(config, "PUERTO_RESTAURANTE");
+			puerto = config_get_int_value(config, "PUERTO_ESCUCHA");
 			break;
 		case SINDICATO:
 			ip = config_get_string_value(config, "IP_SINDICATO");

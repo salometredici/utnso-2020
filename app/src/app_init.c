@@ -29,9 +29,13 @@ t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
 	bool esElMasCercano(void *actual) {
 		t_repartidor *repartidorActual = actual;
 		double distARest = getDistancia(repartidorActual->posRepartidor, posRest);
-		return distARest < distMinima;
+		if (distARest < distMinima) {
+			distMinima = distARest;
+			return true;
+		}
+		return false;
 	};
-		
+
 	t_repartidor *repartidorEncontrado = list_find(repartidoresDisponibles, &esElMasCercano);
 
 	// Se agrega al repartidor a la lista de Ocupados y se lo quita de la de Disponibles
@@ -49,7 +53,7 @@ double getAlpha() {
 }
 
 int getEstimacionInicial() {
-	return config_get_int_value(config, "ESTIMACION_INICIAL");
+	return config_get_double_value(config, "ESTIMACION_INICIAL");
 }
 
 char *getAlgoritmoPlanificacion() {
@@ -162,8 +166,6 @@ void inicializarQueues() {
 
 void initApp() {
 	conexionComanda = conectarseA(COMANDA);
-	// Si la conexion es exitosa, liberamos inmediatamente la conexion (no la necesitamos)
-	liberarConexion(conexionComanda);
 	inicializarVariablesGlobales();
 	inicializarRestauranteDefault();
 	inicializarRepartidores();

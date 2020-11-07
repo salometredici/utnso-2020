@@ -238,6 +238,16 @@ typedef struct {
 
 /* Funciones */
 
+typedef struct {
+	char *paso;
+	int qPaso;
+} t_instrucciones_receta;
+
+typedef struct {
+	char *plato;
+	t_list *instrucciones;
+} t_receta;
+
 void limpiarPantalla();
 
 void mostrarListaStrings(t_list *listaStrings);

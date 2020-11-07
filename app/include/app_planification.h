@@ -26,6 +26,8 @@ double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
 
 t_pcb *crearPcb(t_cliente *cliente, int idPedido);
 void agregarAQN();
+void pasarAQB(t_pcb *pcb, t_estado estado);
+void desbloquearPCB(int idPedido);
 void actualizarQRconQN();
 void actualizarQRconQB();
 void ejecutarCiclos();
@@ -37,5 +39,9 @@ void actualizarQEconQR_FIFO();
 /* HRRN */
 
 void actualizarQEconQR_HRRN();
+
+/* SJF */
+
+void actualizarQEconQR_SJF();
 
 #endif

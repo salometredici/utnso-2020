@@ -93,6 +93,4 @@ typedef struct {
 	double ultimaEstimacion;
 } t_pcb;
 
-void planificarProximo(t_pcb *pcb, t_md *md);
-
 #endif

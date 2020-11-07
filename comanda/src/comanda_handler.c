@@ -15,7 +15,7 @@ t_result* _guardar_pedido(char *nombre_rest, int id_pedido){
 			return result;
 		}
 		t_pedidoc *pedido = crear_pedido(id_pedido);
-		add_pedido_to_restaurante(restaurantes, pedido);
+		add_pedido_to_restaurante(restaurante_creado, pedido);
 		
 		result->msg = "[GUARDAR_PEDIDO] Ok";
 		result->hasError = false;
@@ -63,13 +63,17 @@ t_result* _guardar_plato(char *nombre_rest, int id_pedido, char *plato, int cant
 		return result;
 	}
 
-	t_page *page = find_plato(pedido->pages, nombre_rest);
+	t_page *page = find_plato(pedido, plato);
 
 	if(page == NULL){
 		t_page *plato_creado = asignar_frame(plato, cantidad);
 
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
+
+			/*Validarrrrr si se guardo*/
+			t_page *plato_enc = find_plato(pedido, plato);
+
 			result->msg = "[GUARDAR_PLATO] Exito";
 			result->hasError = false;
 			return result;

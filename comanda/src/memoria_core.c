@@ -7,6 +7,7 @@ t_restaurante *crear_restaurante(char *nombre_rest)
     restaurante->pedidos = list_create();
     log_comanda("Se creo un restaurante.");
     list_add(restaurantes, restaurante);
+	return restaurante;
 }
 
 t_pedidoc *crear_pedido(int id_pedido)
@@ -45,19 +46,31 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
 	return pedido;	
 }
 
+char* find_plato_in_memory(char *comida, int frame_number){
+	void* frame;
+
+	frame = MEMORIA[frame_number];
+
+	uint32_t cantidad;
+	memcpy(&cantidad, frame + (PAGE_SIZE * frame_number), sizeof(uint32_t));
+	uint32_t cantidad_lista;
+	memcpy(&cantidad_lista, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), sizeof(uint32_t));						
+	char *plato_encontrado = malloc(size_char);
+	memcpy(plato_encontrado, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), size_char);
+
+	return plato_encontrado; 
+}
+
 t_page* find_plato(t_pedidoc *pedido, char *plato){
 
 	int size = list_size(pedido->pages);
 	
 	if(size > 0){ //se fija si hay algun plato cargado
-		void* frame;
-
 		bool _find_plato(void* element){
-			t_page *x = element;
-			frame = MEMORIA[x->frame];
-			char *plato_encontrado;
-			memcpy(&plato_encontrado, frame + sizeof(uint32_t) + sizeof(uint32_t), 24);
-			return string_equals_ignore_case(plato_encontrado, plato);
+			t_page *x = (t_page*)element;
+			int frame_number = x->frame;
+			char *plato_a_encontrar = find_plato_in_memory(plato, frame_number);
+			return string_equals_ignore_case(plato, plato_a_encontrar);
 		}
 
 		t_page *plato = list_find(pedido->pages, &_find_plato);
@@ -82,13 +95,18 @@ t_page* asignar_frame (char *plato, int cantidad){
 	else{
 		//primero alloco en la memoria
 		frame = MEMORIA[frame_number];
-		t_frame *plato_insertar = malloc(sizeof(t_frame));
+		/*t_frame *plato_insertar = malloc(sizeof(t_frame)); --EXPERIMENTO 1 jej
 		plato_insertar->cantidad = cantidad;
 		plato_insertar->cantidad_lista = 0;
 		plato_insertar->comida = plato;
-		memcpy(frame, plato_insertar, sizeof(plato) + 1); //por las dudas ese /0
-		free(plato_insertar);
 
+		memcpy(frame, plato_insertar, sizeof(plato) + 1); //por las dudas ese /0
+		free(plato_insertar);*/
+		uint32_t value = 0;
+		memcpy(frame + (PAGE_SIZE * frame_number), &cantidad, sizeof(uint32_t));
+		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), &value, sizeof(uint32_t));
+		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), plato, size_char);
+		
 		//esta en memoria ahora asignar a la tabla de paginas/platos
 		t_page *new_plato = malloc(sizeof(t_page));
 		new_plato->frame = frame_number;

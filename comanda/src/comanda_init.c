@@ -40,7 +40,7 @@ void init_memory()
 		memset(new_frame, NULL, PAGE_SIZE);
 		*(MEMORIA + i) = new_frame;
 	}
-
+	size_char = MAX_LENGTH_COMIDA;
 	//print_structure();
 }
 

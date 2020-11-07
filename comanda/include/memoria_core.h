@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #define PAGE_SIZE 32 // por enunciado 
+#define MAX_LENGTH_COMIDA 24
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -36,6 +37,7 @@ char* SWAP_FILE;
 FILE *swap_file;
 char *ALGORITMO_REEMPLAZO;
 int frames;
+size_t size_char;
 
 typedef struct{
     char *nombre;

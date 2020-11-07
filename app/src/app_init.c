@@ -13,39 +13,6 @@ int getKeyAlgoritmo(char *key) {
     return ERROR;
 }
 
-/* Funciones para la planificación */
-
-double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
-	int x = posRepartidor->posX - posRest->posX;
-	int y = posRepartidor->posY - posRest->posY;
-	double distancia = sqrt(pow(x, 2) + pow(y, 2));
-	return distancia;
-}
-
-t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
-	t_repartidor *primerRepartidor = list_get(repartidoresDisponibles, 0);
-	double distMinima = getDistancia(primerRepartidor->posRepartidor, posRest);		
-		
-	bool esElMasCercano(void *actual) {
-		t_repartidor *repartidorActual = actual;
-		double distARest = getDistancia(repartidorActual->posRepartidor, posRest);
-		if (distARest < distMinima) {
-			distMinima = distARest;
-			return true;
-		}
-		return false;
-	};
-
-	t_repartidor *repartidorEncontrado = list_find(repartidoresDisponibles, &esElMasCercano);
-
-	// Se agrega al repartidor a la lista de Ocupados y se lo quita de la de Disponibles
-	t_repartidor *repartidorMasCercano = repartidorEncontrado == NULL ? primerRepartidor : repartidorMasCercano;
-	list_remove(repartidoresDisponibles, repartidorMasCercano->idRepartidor);
-	list_add(repartidoresOcupados, repartidorMasCercano);
-	
-	return repartidorMasCercano;
-}
-
 /* Getters */
 
 double getAlpha() {

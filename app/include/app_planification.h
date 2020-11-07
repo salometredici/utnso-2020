@@ -17,6 +17,11 @@ typedef enum {
     HACIA_RESTAURANTE = 2
 } tour_code;
 
+/* Funciones */
+
+t_repartidor *getRepartidorMasCercano(t_posicion *posRest);
+double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
+
 /* Generales */
 
 t_pcb *crearPcb(t_cliente *cliente, int idPedido);

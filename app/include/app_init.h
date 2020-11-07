@@ -52,7 +52,9 @@ int cantidadRepartidores; // Grado de multiprogramación o cantidad de instancia
 
 /* Repartidores */
 
+pthread_mutex_t mutexListaDisponibles;
 t_list *repartidoresDisponibles;
+pthread_mutex_t mutexListaOcupados;
 t_list *repartidoresOcupados;
 
 typedef struct {
@@ -92,7 +94,5 @@ typedef struct {
 } t_pcb;
 
 void planificarProximo(t_pcb *pcb, t_md *md);
-t_repartidor *getRepartidorMasCercano(t_posicion *posRest);
-double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
 
 #endif

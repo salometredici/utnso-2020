@@ -26,6 +26,38 @@ bool puedeEjecutarAlguno() {
 	return queue_size(qE) < gradoMultiprocesamiento;
 }
 
+/* Funciones */
+
+double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
+	int x = posRepartidor->posX - posRest->posX;
+	int y = posRepartidor->posY - posRest->posY;
+	double distancia = sqrt(pow(x, 2) + pow(y, 2));
+	return distancia;
+}
+
+t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
+	double distMinima = 0;
+	int indexRepartidor = 0;
+	for (int i = 0; i < list_size(repartidoresDisponibles); i++) {
+		t_repartidor *repActual = list_get(repartidoresDisponibles, i);
+		int distARest = getDistancia(repActual->posRepartidor, posRest);
+		if (distARest < distMinima) {
+			distMinima = distARest;
+			indexRepartidor = i;
+		}
+	}
+	t_repartidor *repartidorMasCercano = list_get(repartidoresDisponibles, indexRepartidor);
+	
+	pthread_mutex_lock(&mutexListaDisponibles);
+	list_remove(repartidoresDisponibles, indexRepartidor);
+	pthread_mutex_unlock(&mutexListaDisponibles);
+	
+	pthread_mutex_lock(&mutexListaOcupados);
+	list_add(repartidoresOcupados, repartidorMasCercano);	
+	pthread_mutex_unlock(&mutexListaOcupados);
+	
+	return repartidorMasCercano;
+}
 
 /* Avisos a COMANDA y CLIENTE */
 
@@ -155,22 +187,25 @@ t_pcb *crearPcb(t_cliente *cliente, int idPedido) {
 void agregarAQN(t_pcb *pcb) {
 	pthread_mutex_lock(&mutexQN);
 	queue_push(qN, pcb);
+	log_debug(logger, "[PLANIFICATION] PCB #%d added to NEW queue", pcb->pid);
 	pthread_mutex_unlock(&mutexQN);
 }
 
 void actualizarQRconQN() {
-	// Si hay repartidores disponibles y PCBs en NEW, los asigna y añade a READY
-	while (!list_is_empty(repartidoresDisponibles) && !queue_is_empty(qN)) {
-		
+	// Mientras haya repartidores disponibles y PCBs en NEW, los asigna y añade a READY
+	while (!list_is_empty(repartidoresDisponibles) && !queue_is_empty(qN)) {		
 		pthread_mutex_lock(&mutexQN);
-		t_pcb *nextInLine = queue_pop(qN); // Lo sacamos de la cola de NEW
+		t_pcb *nextInLine = queue_pop(qN);
+		log_debug(logger, "[PLANIFICATION] PCB #%d removed from NEW queue", nextInLine->pid);
 		pthread_mutex_unlock(&mutexQN);
 		
-		nextInLine->repartidor = getRepartidorMasCercano(nextInLine->posRest); // Asignamos el repartidor al PCB del pedido
+		nextInLine->repartidor = getRepartidorMasCercano(nextInLine->posRest);
+		log_debug(logger, "[PLANIFICATION] Repartidor #d assigned to PCB #%d", nextInLine->repartidor->idRepartidor, nextInLine->pid);
 		nextInLine->estado = ESPERANDO_EJECUCION;
 
 		pthread_mutex_lock(&mutexQR);
-		queue_push(qR, nextInLine); // Pasa a la cola de READY
+		queue_push(qR, nextInLine);
+		log_debug(logger, "[PLANIFICATION] PCB #%d added to READY queue", nextInLine->pid);
 		pthread_mutex_unlock(&mutexQR);
 	}
 }

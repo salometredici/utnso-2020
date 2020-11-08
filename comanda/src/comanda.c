@@ -30,9 +30,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case GUARDAR_PLATO:;
 				t_req_plato *requestgpl = recibirPayloadPaquete(header, socketCliente);
-
-				t_result *resultgpl = _guardar_plato(requestgpl->restaurante, requestgpl->idPedido, requestgpl->plato, requestgpl->cantidadPlato);
-				
+				t_result *resultgpl = _guardar_plato(requestgpl->restaurante, requestgpl->idPedido, requestgpl->plato, requestgpl->cantidadPlato);				
 				free(requestgpl);
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, resultgpl);
 				free(resultgpl);

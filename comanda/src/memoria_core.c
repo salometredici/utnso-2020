@@ -39,7 +39,7 @@ void add_pedido_to_restaurante(t_restaurante *restaurante, t_pedidoc *pedido){
 t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
     bool _find_pedido(void *elemento){
 		t_pedidoc *x = (t_pedidoc*) elemento;
-		return x->id_pedido = id;
+		return x->id_pedido == id;
 	}
 
 	t_pedidoc *pedido = list_find(restaurante->pedidos,&_find_pedido);
@@ -84,7 +84,7 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 	return NULL;
 }
 
-t_page* asignar_frame (char *plato, int cantidad){
+t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	pthread_mutex_lock(&mutex_asignar_pagina);
 	int frame_number = find_free_frame_memory();
 	void *frame;
@@ -93,19 +93,13 @@ t_page* asignar_frame (char *plato, int cantidad){
 		//Logica de area de swap
 	}
 	else{
-		//primero alloco en la memoria
+		//Aloco en la memoria es igual que serializar un mensaje
 		frame = MEMORIA[frame_number];
-		/*t_frame *plato_insertar = malloc(sizeof(t_frame)); --EXPERIMENTO 1 jej
-		plato_insertar->cantidad = cantidad;
-		plato_insertar->cantidad_lista = 0;
-		plato_insertar->comida = plato;
 
-		memcpy(frame, plato_insertar, sizeof(plato) + 1); //por las dudas ese /0
-		free(plato_insertar);*/
-		uint32_t value = 0;
-		memcpy(frame + (PAGE_SIZE * frame_number), &cantidad, sizeof(uint32_t));
-		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), &value, sizeof(uint32_t));
-		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), plato, size_char);
+		uint32_t cantidad_lista = 0;
+		memcpy(frame + (PAGE_SIZE * frame_number), &cantidad_pedida, sizeof(uint32_t));
+		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
+		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), nombre_plato, size_char);
 		
 		//esta en memoria ahora asignar a la tabla de paginas/platos
 		t_page *new_plato = malloc(sizeof(t_page));

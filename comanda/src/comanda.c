@@ -36,12 +36,12 @@ void *atenderConexiones(void *conexionNueva)
 				free(result_gpl);
 				break;
 			case OBTENER_PEDIDO:;
-				/*t_request *request_obp = recibirPayloadPaquete(header, socketCliente);
+				t_request *request_obp = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqObt, header->codigoOperacion);
 				t_pedido *pedido = _obtener_pedido(request_obp);
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
 				free(request_obp);
-				free(pedido); // creo que tengo que liberar lo que esta adentro*/
+				free(pedido); // creo que tengo que liberar lo que esta adentro
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);

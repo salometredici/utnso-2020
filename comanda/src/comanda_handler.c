@@ -27,12 +27,12 @@ t_result* _guardar_pedido(t_request *request){
 }
 
 /*
- * Primero Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion --done
- * Desp verificar si existe el segmento del pedido, tambien informar --done
- * verificar si existe el plato dentro de la tabla de paginas del pedido. en caso contrario, se debera asignar una nueva pagina al segmento
- * en caso de que la pagina no se encuentre cargada en la memoria principal se debe cargar la misma desde la swap (iniciando la eleccion de la victima de ser necesario)
- * se debera agregar el plato y anexar la cantidad que se tiene cocinar de dicho plato
- * responde el mensaje indicando si se puedo realizar
+ * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
+ * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
+ * 3° Verificar si existe el plato dentro de la tabla de paginas del pedido. En caso contrario, se debera asignar una nueva pagina al segmento. --> done
+ * 4° Si la pagina no se encuentra cargada en la memoria principal, se debe cargar la misma desde la swap (iniciando la eleccion de la victima de ser necesario)
+ * disclaimer: se debera agregar el plato y anexar la cantidad que se tiene cocinar de dicho plato
+ * disclaimer: responde el mensaje indicando si se puedo realizar
  */
 t_result* _guardar_plato(t_req_plato *request){
 	if(strlen(request->plato) + 1 > 24){
@@ -80,7 +80,28 @@ t_result* _guardar_plato(t_req_plato *request){
 	return result;
 }
 
+/*
+ * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
+ * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
+ * 3° Verificar si existe el plato dentro de la tabla de paginas del pedido. En caso contrario, se debera asignar una nueva pagina al segmento. --> done
+ * 4° Si la pagina no se encuentra cargada en la memoria principal, se debe cargar la misma desde la swap (iniciando la eleccion de la victima de ser necesario)
+ * 5° Eniviar si se pudo con la respuesta
+ */
 t_pedido* _obtener_pedido(t_request* request){
+	t_restaurante *rest = find_restaurante(request->restaurante);	
+
+	if(rest == NULL){
+		t_result * result = getTResult("[GUARDAR_PLATO] Fail. SEGFAULT. No existe el segmento", true);	
+		return result;
+	}
+	
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
+
+	if(pedido == NULL){
+		t_result * result = getTResult("[GUARDAR_PLATO] Fail. No existe el pedido", true);	
+		return result;
+	}
+
 	/*			t_pedido *pedido = malloc(sizeof(t_pedido)); t_list *platos = list_create();
 				t_plato *milanesa = malloc(sizeof(t_plato)); t_plato *empanadas = malloc(sizeof(t_plato)); t_plato *ensalada = malloc(sizeof(t_plato));
 
@@ -96,16 +117,38 @@ t_pedido* _obtener_pedido(t_request* request){
 	return NULL;
 }
 
-void _confirmar_pedido(char *nombre_rest, int id_pedido)
-{
+/*
+ * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
+ * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
+ * 3° Verificar que el pedido este en estado PENDIENTE, si no esta informar la situacion
+ * 4° Cambiar el estado PENDIENTE a CONFIRMADO
+ * 5° Responder el mensaje con Ok/Fail
+ */
+void _confirmar_pedido(char *nombre_rest, int id_pedido){
 
 }
 
+/*
+ * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
+ * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
+ * 3° Verificar si en MP sino tenes que traerlo de area de swap
+ * 3° Verificar que el pedido este en estado CONFIRMADO, si no esta informar la situacion
+ * 4° Se debera aumentar en uno la cantidad del plato. Si todos los platos estan terminados, se deberá cambiar el estado
+ * del pedido a TERMINADO
+ * 5° Responder el mensaje con Ok/Fail
+ */
 void _plato_listo(char *nombre_rest, int id_pedido, char *plato_listo)
 {
 
 }
 
+/*
+ * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
+ * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
+ * 3° Se elimina la paginas correspondientes a ese segmento
+ * 4° Se elimina el segmento
+ * 5° Responder el mensaje con Ok/Fail
+ */
 void _finalizar_pedido(char *nombre_rest, int id_pedido)
 {
 

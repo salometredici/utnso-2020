@@ -63,7 +63,7 @@ t_frame* find_frame_in_memory(int frame_number){
 	marco->cantidad_pedida = cantidad;
 	marco->cantidad_lista = cantidad_lista;
 	marco->comida = plato_encontrado;
-	return plato_encontrado; 
+	return marco; 
 }
 
 t_list* find_frames(t_pedidoc *pedido){
@@ -71,7 +71,7 @@ t_list* find_frames(t_pedidoc *pedido){
 
 	int size = list_size(pedido->pages);
 	for(int i = 0; i < size; i++){
-		t_page *page = list_get(pedido->pages, size);
+		t_page *page = list_get(pedido->pages, i);
 		t_frame *frame = find_frame_in_memory(page->frame);
 		list_add(platos, frame);
 	}

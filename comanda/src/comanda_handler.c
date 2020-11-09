@@ -88,7 +88,7 @@ t_result* _guardar_plato(t_req_plato *request){
  */
 t_pedido* _obtener_pedido(t_request* request){
 	
-	t_restaurante *rest = find_restaurante(request->restaurante);	
+	t_restaurante *rest = find_restaurante(request->nombre);	
 
 	if(rest == NULL){
 		t_result * result = getTResult("[GUARDAR_PLATO] Fail. SEGFAULT. No existe el segmento", true);	
@@ -117,11 +117,12 @@ t_pedido* _obtener_pedido(t_request* request){
 		list_add(platos, plato);
 	}
 
+	pedido_info->restaurante = request->nombre;
 	pedido_info->estado = pedido->estado;
 	pedido_info->platos = platos;
 	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
 
-	list_destroy_and_destroy_elements(frames, &free);
+	//list_destroy_and_destroy_elements(frames, &free);
 	return pedido_info;
 }
 
@@ -132,8 +133,8 @@ t_pedido* _obtener_pedido(t_request* request){
  * 4° Cambiar el estado PENDIENTE a CONFIRMADO
  * 5° Responder el mensaje con Ok/Fail
  */
-void _confirmar_pedido(char *nombre_rest, int id_pedido){
-	t_restaurante *rest = find_restaurante(request->restaurante);	
+t_result* _confirmar_pedido(t_request *request){
+	t_restaurante *rest = find_restaurante(request->nombre);	
 
 	if(rest == NULL){
 		t_result *result = getTResult("[CONFIRMAR_PEDIDO] Fail. SEGFAULT. No existe el segmento", true);	
@@ -147,10 +148,14 @@ void _confirmar_pedido(char *nombre_rest, int id_pedido){
 		return result;
 	}
 
-	if(pedido->estado == PENDIENTE){
-		t_result *result = getTResult("");
+	if(pedido->estado != PENDIENTE){
+		t_result *result = getTResult("[CONFIMAR_PEDIDO] Fail. No esta en estado pendiente", false);
+		return result;
 	}
 
+	pedido->estado = CONFIRMADO;
+	t_result* result = getTResult("[CONFIRMAR_PEDIDO] Ok.", false);
+	return result;
 }
 
 /*

@@ -37,21 +37,19 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *request_obp = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqObt, header->codigoOperacion);
+				logRequest(request_obp, header->codigoOperacion);
 				t_pedido *pedido = _obtener_pedido(request_obp);
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
 				free(request_obp);
 				free(pedido); // creo que tengo que liberar lo que esta adentro
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqConf, header->codigoOperacion);
-				free(reqConf);
-				t_result *rCP = malloc(sizeof(t_result));
-				rCP->msg = "[CONFIRMAR_PEDIDO] Ok";
-				rCP->hasError = false;
-				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, rCP);
-				free(rCP);
+				t_request *request_conf = recibirPayloadPaquete(header, socketCliente);
+				logRequest(request_conf, header->codigoOperacion);
+				t_result *result_conf = _confirmar_pedido(request_conf);
+				free(request_conf);
+				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, result_conf);
+				free(result_conf);
 				break;
 			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
 				break;

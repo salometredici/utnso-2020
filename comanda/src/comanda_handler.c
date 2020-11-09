@@ -83,11 +83,11 @@ t_result* _guardar_plato(t_req_plato *request){
 /*
  * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
  * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
- * 3° Verificar si existe el plato dentro de la tabla de paginas del pedido. En caso contrario, se debera asignar una nueva pagina al segmento. --> done
- * 4° Si la pagina no se encuentra cargada en la memoria principal, se debe cargar la misma desde la swap (iniciando la eleccion de la victima de ser necesario)
- * 5° Eniviar si se pudo con la respuesta
+ * 3° Si la pagina no se encuentra cargada en la memoria principal, se debe cargar la misma desde la swap (iniciando la eleccion de la victima de ser necesario)
+ * 4° Enviar si se pudo con la respuesta
  */
 t_pedido* _obtener_pedido(t_request* request){
+	
 	t_restaurante *rest = find_restaurante(request->restaurante);	
 
 	if(rest == NULL){
@@ -102,19 +102,27 @@ t_pedido* _obtener_pedido(t_request* request){
 		return result;
 	}
 
-	/*			t_pedido *pedido = malloc(sizeof(t_pedido)); t_list *platos = list_create();
-				t_plato *milanesa = malloc(sizeof(t_plato)); t_plato *empanadas = malloc(sizeof(t_plato)); t_plato *ensalada = malloc(sizeof(t_plato));
+	t_list *marcos = find_frames(pedido);
 
-				milanesa->plato = "Milanesa"; milanesa->precio = 200; milanesa->cantidadPedida = 2; milanesa->cantidadLista = 1;
-				empanadas->plato = "Empanadas"; empanadas->precio = 880; empanadas->cantidadPedida = 12; empanadas->cantidadLista = 6;
-				ensalada->plato = "Ensalada"; ensalada->precio = 120; ensalada->cantidadPedida = 1; ensalada->cantidadLista = 0;
-				list_add(platos, milanesa); list_add(platos, empanadas); list_add(platos, ensalada);
+	//realizo la struct para enviar
+	t_pedido *pedido_info = malloc(sizeof(t_pedido));
 
-				pedido->estado = PENDIENTE; pedido->platos = platos; pedido->precioTotal = calcularPrecioTotal(platos);
+	t_list *platos = list_create();
+	for(int i = 0; i < list_size(marcos); i++){
+		t_frame *marco = list_get(marcos, i);
+		t_plato *plato = malloc(sizeof(t_plato));
+		plato->plato = marco->comida;
+		plato->cantidadPedida = marco->cantidad_pedida;
+		plato->cantidadLista = marco->cantidad_lista;
+		list_add(platos, plato);
+	}
 
-				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
-				free(pedido); free(milanesa); free(empanadas); free(ensalada);*/
-	return NULL;
+	pedido_info->estado = pedido->estado;
+	pedido_info->platos = platos;
+	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
+
+	list_destroy_and_destroy_elements(frames, &free);
+	return pedido_info;
 }
 
 /*
@@ -125,6 +133,23 @@ t_pedido* _obtener_pedido(t_request* request){
  * 5° Responder el mensaje con Ok/Fail
  */
 void _confirmar_pedido(char *nombre_rest, int id_pedido){
+	t_restaurante *rest = find_restaurante(request->restaurante);	
+
+	if(rest == NULL){
+		t_result *result = getTResult("[CONFIRMAR_PEDIDO] Fail. SEGFAULT. No existe el segmento", true);	
+		return result;
+	}
+	
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
+
+	if(pedido == NULL){
+		t_result *result = getTResult("[GUARDAR_PLATO] Fail. No existe el pedido", true);	
+		return result;
+	}
+
+	if(pedido->estado == PENDIENTE){
+		t_result *result = getTResult("");
+	}
 
 }
 

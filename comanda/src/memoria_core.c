@@ -46,10 +46,12 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
 	return pedido;	
 }
 
-char* find_plato_in_memory(char *comida, int frame_number){
+t_frame* find_frame_in_memory(int frame_number){
 	void* frame;
 
 	frame = MEMORIA[frame_number];
+
+	t_frame *marco = malloc(sizeof(t_frame));
 
 	uint32_t cantidad;
 	memcpy(&cantidad, frame + (PAGE_SIZE * frame_number), sizeof(uint32_t));
@@ -58,7 +60,22 @@ char* find_plato_in_memory(char *comida, int frame_number){
 	char *plato_encontrado = malloc(size_char);
 	memcpy(plato_encontrado, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), size_char);
 
-	return plato_encontrado; 
+	marco->cantidad_pedida = cantidad;
+	marco->cantidad_lista = cantidad_lista;
+	marco->comida = plato_encontrado;
+	return marco; 
+}
+
+t_list* find_frames(t_pedidoc *pedido){
+	t_list* platos = list_create();
+
+	int size = list_size(pedido->pages);
+	for(int i = 0; i < size; i++){
+		t_page *page = list_get(pedido->pages, i);
+		t_frame *frame = find_frame_in_memory(page->frame);
+		list_add(platos, frame);
+	}
+	return platos;
 }
 
 t_page* find_plato(t_pedidoc *pedido, char *plato){
@@ -69,8 +86,8 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 		bool _find_plato(void* element){
 			t_page *x = (t_page*)element;
 			int frame_number = x->frame;
-			char *plato_a_encontrar = find_plato_in_memory(plato, frame_number);
-			return string_equals_ignore_case(plato, plato_a_encontrar);
+			t_frame *plato_a_encontrar = find_frame_in_memory(frame_number);
+			return string_equals_ignore_case(plato, plato_a_encontrar->comida);
 		}
 
 		t_page *plato = list_find(pedido->pages, &_find_plato);

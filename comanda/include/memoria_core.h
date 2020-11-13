@@ -45,7 +45,7 @@ typedef struct{
 } t_restaurante;
 
 typedef struct {
-    int estado;
+    t_estado estado;
     int id_pedido;
     t_list *pages; //paginas
 }t_pedidoc; // referencia a comanda c ver despues si se puede cambiar
@@ -59,7 +59,7 @@ typedef struct{
 
 /*Marco en la memoria*/
 typedef struct{
-    uint32_t cantidad;
+    uint32_t cantidad_pedida;
     uint32_t cantidad_lista;
     char *comida;
 } t_frame;
@@ -71,5 +71,5 @@ void add_pedido_to_restaurante(t_restaurante *restaurante, t_pedidoc *pedido);
 t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
 t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
-
+t_list* find_frames(t_pedidoc *pedido);
 #endif

@@ -216,3 +216,38 @@ void logConsultaPlatos(char *restaurante) {
 	printf("\tRestaurante: \033[1;35m%s\033[0m\n", restaurante);
 	log_info(logger, "\tRestaurante %s", restaurante);
 }
+
+/* Sindicato */
+
+// Bitmap
+
+void logBitmapFileError() {
+	printf(RED "[ERROR] Error al abrir el archivo Bitmap.bin" RESET BREAK);
+	log_error(logger, "Error al abrir el archivo Bitmap.bin");
+}
+
+void logBitmapError() {
+	printf(RED "[ERROR] Error al realizar mmap" RESET BREAK);
+	log_error(logger, "Error al realizar mmap");
+}
+
+void logInitialBitarrayInfo(t_bitarray *bitarray) {
+	int lastBit = bitarray_get_max_bit(bitarray);
+	printf("Tamaño del bitmap: %d" BREAK, lastBit);
+	printf("Valor del primer bit: %d" BREAK, bitarray_test_bit(bitarray, 0));
+	printf("Valor del último bit: %d" BREAK, bitarray_test_bit(bitarray, lastBit));
+	log_debug(logger, "Tamaño del bitmap: %d", lastBit);
+	log_debug(logger, "Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
+	log_debug(logger, "Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
+}
+
+void logBitmapInit() {
+	printf(BOLD "Creando Bitmap.bin..." RESET BREAK);
+	log_debug(logger, "Creando Bitmap.bin...");
+}
+
+void logBitmapSuccess() {
+	printf(BOLD "Archivo Bitmap.bin creado exitosamente" RESET BREAK);
+	log_debug(logger, "Archivo Bitmap.bin creado exitosamente");
+
+}

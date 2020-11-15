@@ -28,7 +28,7 @@ void recursiveCreateDir(char *path) {
 			log_debug(logger, "El directorio %s ya existe", route);
 		}
 		i++;
-	} while (dirs[i] != NULL);
+	} while (i < 10 && dirs[i] != NULL);
 }
 
 

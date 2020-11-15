@@ -2,8 +2,12 @@
 #define SHARED_LOGGING_H
 
 #include <stdio.h>
+#include <commons/bitarray.h>
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
+
+#define TAB "\t"
+#define BREAK "\n"
 
 #define ESCAPE "\033"
 #define BOLD "\033[1m"
@@ -39,5 +43,14 @@ void logInitDataCliente(t_cliente *cliente);
 
 // APP
 void logClientInfo(t_cliente *cliente);
+
+/* SINDICATO */
+
+// Bitmap
+void logBitmapFileError();
+void logBitmapError();
+void logInitialBitarrayInfo(t_bitarray *bitarray);
+void logBitmapInit();
+void logBitmapSuccess();
 
 #endif

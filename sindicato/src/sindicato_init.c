@@ -28,6 +28,7 @@ void setBaseDirs() {
 void setMetadata(t_config *metadata) {
 	blockSize = config_get_int_value(metadata, "BLOCK_SIZE");
 	blocksQuantity = config_get_int_value(metadata, "BLOCKS");
+	maxContentSize = blockSize - sizeof(uint32_t);
 }
 
 // Crea un directorio a partir del dirInicial
@@ -73,20 +74,59 @@ void initBlocks() {
 	}
 }
 
-void initBitMap() {
-	int bitmapSize = blocksQuantity * blockSize; // Tamaño del bitmap en bytes
-	char *bitmapPath = string_new();
-	string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
+/* Bitmap */
 
-	if (!fdExists(bitmapPath)) {
-		FILE *fp = fopen(bitmapPath, "wb+"); // Y si no existe logueamos algo? 
-		ftruncate(fp, bitmapSize);
-		char *bitmap = mmap(NULL, bitmapSize, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
-		bitarray = bitarray_create_with_mode(bitmap, blocksQuantity/8, LSB_FIRST); // Falta revisar que sea siempre múltiplo de 8
-		fclose(fp);
+// Retorna el bitarray inicial con todos los bits en cero
+t_bitarray *getInitialBitarray(char *bitmap, int size) {
+	t_bitarray *bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
+	for (int i = 0; i < bitarray_get_max_bit(bitarray); i++) {
+		bitarray_clean_bit(bitarray, i);
 	}
-
+	logInitialBitarrayInfo(bitarray);
+	return bitarray;
 }
+
+char *getBitmap(int size, int fd) {
+	char *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (bitmap == MAP_FAILED) {
+		logBitmapError();
+		exit(EXIT_FAILURE);
+	} else {
+		return bitmap;
+	}
+}
+
+int getBitmapFile(char *path) {
+	int fd = open(path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+	if (fd == ERROR) {
+		logBitmapFileError();
+		exit(EXIT_FAILURE);
+	} else {
+		return fd;
+	}
+}
+
+void initBitMap() {
+	int bitmapSize = (blocksQuantity / 8) + 1; // Sólo va a tener de tamaño la cantidad de bloques en bits + 1
+	char *bitmapPath = string_new(); string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
+	if (!fdExists(bitmapPath)) {
+		logBitmapInit();
+		// Crear archivo
+		int bitmapFile = getBitmapFile(bitmapPath);
+		ftruncate(bitmapFile, bitmapSize);
+		// Crear bitmap
+		char *bitmap = getBitmap(bitmapSize, bitmapFile);
+		// Crear bitarray
+		t_bitarray *bitarray = getInitialBitarray(bitmap, bitmapSize);
+		// Actualizamos el archivo y borramos el bitarray
+		msync(bitmap, bitmapFile, MS_SYNC);
+		bitarray_destroy(bitarray);
+		close(bitmapFile);
+		logBitmapSuccess();
+	}
+}
+
+/* Init */
 
 void init() {
 	initVariables();

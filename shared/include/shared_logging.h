@@ -46,11 +46,18 @@ void logClientInfo(t_cliente *cliente);
 
 /* SINDICATO */
 
+void logFSFull(int cantReq, int cantDisp);
+void logRestInfoAFIP(char *rest, int initialBlock);
+
 // Bitmap
 void logBitmapFileError();
 void logBitmapError();
 void logInitialBitarrayInfo(t_bitarray *bitarray);
 void logBitmapInit();
 void logBitmapSuccess();
+
+// CREAR_RESTAURANTE
+
+void logCrearRestauranteData(char **params);
 
 #endif

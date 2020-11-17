@@ -219,6 +219,16 @@ void logConsultaPlatos(char *restaurante) {
 
 /* Sindicato */
 
+void logFSFull(int cantReq, int cantDisp) {
+	printf(RED "[ERROR] No hay bloques suficientes para realizar la operación. " RESET BOLDRED "[Cant. requerida: %d] - [Cant. disponible: %d]" RESET BREAK, cantReq, cantDisp);
+	log_error(logger, "No hay bloques suficientes para realizar la operación. Cant. requerida: %d. Cant. disponible: %d", cantReq, cantDisp);
+}
+
+void logRestInfoAFIP(char *rest, int initialBlock) {
+	printf("Creando el archivo Info.AFIP para el restaurante " BOLDMAGENTA "[%d]" RESET " con " BOLD "[Initial_Block: %d]" RESET BREAK, rest, initialBlock);
+	log_debug(logger, "Creando el archivo Info.AFIP para el restaurante [%d] con [Initial_Block: %d]", rest, initialBlock);
+}
+
 // Bitmap
 
 void logBitmapFileError() {
@@ -249,5 +259,15 @@ void logBitmapInit() {
 void logBitmapSuccess() {
 	printf(BOLD "Archivo Bitmap.bin creado exitosamente" RESET BREAK);
 	log_debug(logger, "Archivo Bitmap.bin creado exitosamente");
+}
 
+// CREAR_RESTAURANTE
+
+void logCrearRestauranteData(char **params) {
+	printf("Creando el archivo Info.AFIP para el restaurante " BOLDMAGENTA "[%S]" RESET " con los siguientes datos:" BREAK, params[1]);
+	printf(TAB "Cant_cocineros: %s, Posicion: %s, Afinidades: %s" BREAK, params[2], params[3], params[4]);
+	printf(TAB "Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s" BREAK, params[5], params[6], params[6], params[8]);
+	log_info(logger, "Creando el archivo Info.AFIP para el restaurante " BOLDMAGENTA "[%S]" RESET " con los siguientes datos:", params[1]);
+	log_info(logger, TAB "Cant_cocineros: %s, Posicion: %s, Afinidades: %s", params[2], params[3], params[4]);
+	log_info(logger, TAB "Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s", params[5], params[6], params[6], params[8]);
 }

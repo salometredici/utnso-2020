@@ -52,15 +52,4 @@ static t_keys diccionarioConsola[] = {
 
 #define CONSOLENKEYS (sizeof(diccionarioConsola)/sizeof(t_keys))
 
-int sindicatoOptionToKey(char *key) {
-    t_keys *diccionario = diccionarioConsola;
-    for (int i = 0; i < CONSOLENKEYS; i++) {
-        t_keys sym = diccionario[i];
-        if (strcmp(sym.key, key) == 0) {
-            return sym.valor;
-        }
-    }
-    return ERROR;
-}
-
 #endif

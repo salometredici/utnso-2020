@@ -77,8 +77,8 @@ void initBlocks() {
 /* Bitmap */
 
 // Retorna el bitarray inicial con todos los bits en cero
-t_bitarray *getInitialBitarray(char *bitmap, int size) {
-	t_bitarray *bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
+void getInitialBitarray(char *bitmap, int size) {
+	bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
 	for (int i = 0; i < bitarray_get_max_bit(bitarray); i++) {
 		bitarray_clean_bit(bitarray, i);
 	}
@@ -115,12 +115,12 @@ void initBitMap() {
 		int bitmapFile = getBitmapFile(bitmapPath);
 		ftruncate(bitmapFile, bitmapSize);
 		// Crear bitmap
-		char *bitmap = getBitmap(bitmapSize, bitmapFile);
+		bitmap = getBitmap(bitmapSize, bitmapFile);
 		// Crear bitarray
-		t_bitarray *bitarray = getInitialBitarray(bitmap, bitmapSize);
+		getInitialBitarray(bitmap, bitmapSize);
 		// Actualizamos el archivo y borramos el bitarray
 		msync(bitmap, bitmapFile, MS_SYNC);
-		bitarray_destroy(bitarray);
+		//bitarray_destroy(bitarray);
 		close(bitmapFile);
 		logBitmapSuccess();
 	}

@@ -44,10 +44,24 @@ void init_memory()
 	//print_structure();
 }
 
-void init_virtual() {
+void* create_swap(){
+	int fd = open(RUTASWAP, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 
-	swap_file = fopen(SWAP_FILE, "wb+");
-	
+	if(fd == ERROR){
+		exit(EXIT_FAILURE);
+	}
+	int truncate_result = ftruncate(fd, SWAP_SIZE);
+	void * archivo_data = mmap(NULL, SWAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	memset(archivo_data, 0, SWAP_SIZE);
+	msync(archivo_data, SWAP_SIZE, MS_SYNC);
+	return archivo_data;
+}
+
+void init_virtual() {
+	//swap_file = fopen(SWAP_FILE, "wb+");
+	//la ruta del swap va a la config desp vemos
+	archivo_swap = create_swap();
+
 	int swap_frames = SWAP_SIZE / PAGE_SIZE;
 	int swap_bitmap_size_in_bytes = ceil((double) swap_frames / 8);
 	swap_bitmap_pointer = malloc(swap_bitmap_size_in_bytes);

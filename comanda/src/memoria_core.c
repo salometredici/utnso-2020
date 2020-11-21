@@ -46,6 +46,28 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
 	return pedido;	
 }
 
+void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, int page_swap){
+	int offset = 0;
+
+	void *contenido = malloc(PAGE_SIZE);
+	memcpy(contenido, &cantidad_pedida, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(contenido + offset, &cantidad_lista, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(contenido + offset, nombre_plato, size_char);
+
+	int offset_swap = page_swap * PAGE_SIZE;
+	memcpy(archivo_swap + offset_swap, contenido, PAGE_SIZE);
+	msync(archivo_swap, PAGE_SIZE, MS_SYNC);
+}
+
+void* get_content(int frame){
+	void* contenido = malloc(PAGE_SIZE);
+	int offset = frame * PAGE_SIZE;
+	memcpy(contenido, archivo_swap + offset, PAGE_SIZE);
+	return contenido;
+}
+
 t_frame* find_frame_in_memory(int frame_number){
 	void* frame;
 
@@ -72,8 +94,31 @@ t_list* find_frames(t_pedidoc *pedido){
 	int size = list_size(pedido->pages);
 	for(int i = 0; i < size; i++){
 		t_page *page = list_get(pedido->pages, i);
-		t_frame *frame = find_frame_in_memory(page->frame);
-		list_add(platos, frame);
+
+		if(page->flag == 1){
+			t_frame *frame = find_frame_in_memory(page->frame);
+			list_add(platos, frame);
+		}
+		else{
+			void* buffer = get_content(page->frame);
+			int desplazamiento = 0;
+
+			uint32_t cantidad;
+			memcpy(&cantidad, buffer, sizeof(uint32_t));
+			uint32_t cantidad_lista;
+			desplazamiento += sizeof(uint32_t);
+			memcpy(&cantidad_lista, buffer + desplazamiento, sizeof(uint32_t));
+			desplazamiento += sizeof(uint32_t);						
+			char *plato_encontrado = malloc(size_char);
+			memcpy(plato_encontrado, buffer + desplazamiento, size_char);
+		
+			t_frame *marco = malloc(sizeof(t_frame));
+			marco->cantidad_pedida = cantidad;
+			marco->cantidad_lista = cantidad_lista;
+			marco->comida = plato_encontrado;
+
+			list_add(platos, marco);
+		}
 	}
 	return platos;
 }
@@ -105,9 +150,17 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	pthread_mutex_lock(&mutex_asignar_pagina);
 	int frame_number = find_free_frame_memory();
 	void *frame;
-	if(frame_number == -1){
+	if(1){
 		log_comanda("No hay espacio en la memoria.. hacer swap");
-		//Logica de area de swap
+		int swap_frame = find_free_swap_frame();
+		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
+
+		t_page *new_plato = malloc(sizeof(t_page));
+		new_plato->frame = frame_number;
+		new_plato->in_use = 0;
+		new_plato->flag = 0;
+		new_plato->modified = 0;
+		pthread_mutex_unlock(&mutex_asignar_pagina);
 	}
 	else{
 		//Aloco en la memoria es igual que serializar un mensaje
@@ -122,7 +175,7 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 		t_page *new_plato = malloc(sizeof(t_page));
 		new_plato->frame = frame_number;
 		new_plato->in_use = 0;
-		new_plato->flag = 1;
+		new_plato->flag = 0;
 		new_plato->modified = 0;
 
 		bitarray_set_bit(frame_usage_bitmap, frame_number);	
@@ -153,6 +206,13 @@ int find_free_frame() {
 	int free_bit = find_free_bit(frame_usage_bitmap, MEMORY_SIZE / PAGE_SIZE);
 	pthread_mutex_unlock(&memory_frames_bitarray);
 	return free_bit;
+}
+
+int find_free_swap_frame(){
+	pthread_mutex_lock(&swap_frames_bitarray);
+	int free_bit = find_free_bit(swap_usage_bitmap, MEMORY_SIZE / PAGE_SIZE);
+	pthread_mutex_unlock(&swap_frames_bitarray);
+	return free_bit;	
 }
 
 void clear_bitmap(t_bitarray* bitmap, int bits) {

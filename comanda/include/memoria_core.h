@@ -10,9 +10,16 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdio.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 
 #define PAGE_SIZE 32 // por enunciado 
 #define MAX_LENGTH_COMIDA 24
+#define RUTASWAP "/home/utnso/swap.txt"
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -29,6 +36,8 @@ void* bitmap_pointer;
 
 t_bitarray *swap_usage_bitmap;
 void* swap_bitmap_pointer;
+void* archivo_swap;
+int fd_swap;
 
 void **MEMORIA;
 int MEMORY_SIZE;
@@ -55,6 +64,7 @@ typedef struct{
 	bool in_use; 
 	bool modified;
     bool flag; //1 en memoria principal
+    int timestamp;
 }t_page; //plato conflict types
 
 /*Marco en la memoria*/
@@ -72,4 +82,5 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
 t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
 t_list* find_frames(t_pedidoc *pedido);
+
 #endif

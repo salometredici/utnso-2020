@@ -2,7 +2,7 @@
 
 /* Consola */
 
-void* threadLecturaConsola(void * args) {
+void* thread_lectura_consola(void * args) {
     printf("Iniciando la consola ..."BREAK);
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'."BREAK);
 
@@ -22,17 +22,17 @@ void* threadLecturaConsola(void * args) {
 			mensaje = parametros[0];
 			logConsoleInput(comandoLeido);
 
-			opcion = validateConsoleCommand(mensaje, parametros);
+			opcion = validate_console_command(mensaje, parametros);
 
 			switch (opcion) {
 				case OPT_CREAR_RESTAURANTE:
-					crearRestaurante(parametros);
+					crear_restaurante(parametros);
 					break;
 				case OPT_CREAR_RECETA:
-					//crearReceta(parametros);
+					crear_receta(parametros);
 					break;
 				case OPT_AIUDA:
-					mostrarComandosValidos();
+					show_valid_commands();
 					break;
 				case OPT_BAI:
 					printf("adiosss (๑♡3♡๑)!"BREAK);
@@ -42,7 +42,7 @@ void* threadLecturaConsola(void * args) {
 					break;
 				case ERROR:
 				default:
-					showInvalidMsg();
+					show_invalid_command_msg();
 					break;
 			}
 
@@ -60,7 +60,7 @@ void* threadLecturaConsola(void * args) {
 
 /* Conexiones */
 
-void *atenderConexiones(void *conexionNueva)
+void *atender_conexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 	init();
 
 	// Inicio del hilo de la consola y su lectura
-	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
+	pthread_create(&threadConsola, NULL, (void *)thread_lectura_consola, NULL);
     pthread_detach(threadConsola);
 
 	int fd;
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
 			// Creo un nuevo hilo para la conexión aceptada
 			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
 			t_data->socketThread = fd;
-			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
+			pthread_create(&threadConexiones, NULL, (void*)atender_conexiones, t_data);
 			pthread_detach(threadConexiones);
 			logNewClientConnection(fd);
 		} else {

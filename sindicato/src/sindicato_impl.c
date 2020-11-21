@@ -1,10 +1,10 @@
 #include "../include/sindicato_impl.h"
 
-int getBloquesNecesarios(int contentSize) {
+int get_required_blocks_number(int contentSize) {
 	return (contentSize/maxContentSize) + (contentSize % maxContentSize != 0);
 }
 
-int getCantBloquesDisp() {
+int get_available_blocks_number() {
 	int cont = 0;
 	pthread_mutex_lock(&mutexBitmap);
 	for (int i = 0; i < blocksQuantity; i++) {
@@ -14,7 +14,7 @@ int getCantBloquesDisp() {
 	return cont;
 }
 
-bool hayBloquesSuficientes(int bloquesReq) {
+bool enough_blocks_available(int bloquesReq) {
 	return bloquesReq <= getCantBloquesDisp();
 }
 
@@ -101,7 +101,7 @@ void guardarEnBloques(char *rest, char *fileContent, int bloquesReq) {
 
 /* CREAR_RESTAURANTE */
 
-char *getCrearRestauranteData(char **params) {
+char *get_CrearRestaurante_Data(char **params) {
 	char *fileContent = string_new();
 	string_append_with_format(&fileContent, "CANTIDAD_COCINEROS=%s\n", params[2]);
 	string_append_with_format(&fileContent, "POSICION=%s\n", params[3]);
@@ -114,23 +114,49 @@ char *getCrearRestauranteData(char **params) {
 	return fileContent;
 }
 
-void crearDirRestaurante(char *restaurante) {
+void create_rest_dir(char *restaurante) {
 	char *newRestPath = string_new();
 	string_append_with_format(&newRestPath, "%s%s", RESTAURANTES_PATH, restaurante);
 	initFromBaseDir(newRestPath);
 }
 
-void crearRestaurante(char **params) {
-	char *rest = params[1]; crearDirRestaurante(rest);
-	char *fileContent = getCrearRestauranteData(params);
-	int bloquesReq = getBloquesNecesarios(strlen(fileContent));
-	if (hayBloquesSuficientes(bloquesReq)) {
-		// 1. Ocupar los bloques en el bitmap
-		// 2. Tener los números para ir grabándolos en info.bin y cada bloque
+/* CREAR_RECETA */
 
-		guardarEnBloques(rest, fileContent, bloquesReq);
+char *get_CrearReceta_Data(char **params) {
+	char *fileContent = string_new();
+	string_append_with_format(&fileContent, "PASOS=%s\n", params[1]);
+	string_append_with_format(&fileContent, "TIEMPO_PASOS=%s\n", params[2]);
+	return fileContent;
+}
+
+/* Funcionalidades */
+
+void check_and_save(char *object, char *content, int reqBlocks) {
+	if (enough_blocks_available(reqBlocks)) {
+		save_in_blocks(object, content, reqBlocks);
 	} else {
-		logFSFull(bloquesReq, getCantBloquesDisp());
+		logFullFS(reqBlocks, get_available_blocks_number());
 		exit(EXIT_FAILURE);
-	}	
+	}
+}
+
+void crear_restaurante(char **params) {
+	char *rest = params[1]; create_rest_dir(rest);
+	char *fileContent = get_CrearRestaurante_Data(params);
+	int reqBlocks = get_required_blocks_number(strlen(fileContent));
+	check_and_save(rest, fileContent, reqBlocks);
+}
+
+void crear_receta(char **params) {
+	char *plato = params[1]; crearDirReceta(plato);
+	char *fileContent = get_CrearReceta_Data(params);
+	int reqBlocks = get_required_blocks_number(strlen(fileContent));
+	check_and_save(plato, fileContent, reqBlocks);
+}
+
+void crear_pedido(char **params) {
+	char *plato = params[1]; crearDirReceta(plato);
+	char *fileContent = get_CrearReceta_Data(params);
+	int reqBlocks = get_required_blocks_number(strlen(fileContent));
+	check_and_save(plato, fileContent, reqBlocks);
 }

@@ -9,8 +9,9 @@
 #include "../../shared/include/shared_serialization.h"
 #include "tests.h"
 
-void mostrarComandosValidos();
-void showInvalidMsg();
+int validate_console_command(char *msg, char **parameters);
+void show_valid_commands();
+void show_invalid_command_msg();
 
 // Mensajes correspondientes a m_code que Sindicato puede recibir por socket
 

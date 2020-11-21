@@ -1,6 +1,6 @@
 #include "../include/sindicato_console.h"
 
-int sindicatoOptionToKey(char *key) {
+int sindicato_option_to_key(char *key) {
     t_keys *diccionario = diccionarioConsola;
     for (int i = 0; i < CONSOLENKEYS; i++) {
         t_keys sym = diccionario[i];
@@ -11,7 +11,7 @@ int sindicatoOptionToKey(char *key) {
     return ERROR;
 }
 
-void mostrarComandosValidos() {
+void show_valid_commands() {
     printf("-------------------Comandos Válidos-------------------"BREAK);
 	printf("Ejemplo: AIUDA"BREAK);
 	printf("Ejemplo: CLEAR"BREAK);
@@ -23,7 +23,7 @@ void mostrarComandosValidos() {
     printf("------------------------------------------------------"BREAK);
 }
 
-void showCommandErrorMsg(char *msg) {
+void show_command_error_msg(char *msg) {
 	printf("-----------------------[ERROR]------------------------"BREAK);
 	printf(BOLDRED"Faltan uno o más parámetros."RESET BREAK);
 	printf("El formato aceptado para el comando "YELLOW"[%s]"RESET" es el siguiente:"BREAK, msg);
@@ -31,13 +31,13 @@ void showCommandErrorMsg(char *msg) {
 }
 
 
-int validateConsoleCommand(char *msg, char **parameters) {
-	int option = sindicatoOptionToKey(msg);
+int validate_console_command(char *msg, char **parameters) {
+	int option = sindicato_option_to_key(msg);
 	switch (option) {
 		case OPT_CREAR_RESTAURANTE:
 			if (!parameters[1] || !parameters[2] || !parameters[3] || !parameters[4] || !parameters[5] ||
 			    !parameters[6] || !parameters[7] || !parameters[8]) {
-				showCommandErrorMsg(msg);
+				show_command_error_msg(msg);
 				printf(BOLDYELLOW"CREAR_RESTAURANTE [NOMBRE] [CANT_COCINEROS] [POSICION] [AFINIDADES] [PLATOS] [PRECIOS] [CANT_HORNOS] [CANT_PEDIDOS]"RESET BREAK);
 				printf("[!] Ejemplo: "BOLDCYAN"CREAR_RESTAURANTE BurguerKing 3 [1,4] [PapasAlHorno] [PapasAlHorno,Milanesas] [32,50] 2 1"RESET BREAK);
 				printf(TAB "[!] "BOLD"[NOMBRE]: char*"RESET BREAK);
@@ -53,7 +53,7 @@ int validateConsoleCommand(char *msg, char **parameters) {
 			break;
 		case OPT_CREAR_RECETA:
 			if (!parameters[1] || !parameters[2] || !parameters[3]) {
-				showCommandErrorMsg(msg);
+				show_command_error_msg(msg);
 				printf(BOLDYELLOW "CREAR_RECETA [NOMBRE_RECETA] [PASOS] [TIEMPO_PASOS]"RESET BREAK);
 				printf("[!] Ejemplo: "BOLDCYAN"CREAR_RECETA PapasAlHorno [Trocear,Hornear] [2,3]"RESET BREAK);
 				printf(TAB "[!] " BOLD "[NOMBRE_RECETA]: char*"RESET BREAK);
@@ -68,7 +68,7 @@ int validateConsoleCommand(char *msg, char **parameters) {
 	return option;
 }
 
-void showInvalidMsg() {
+void show_invalid_command_msg() {
 	printf("------------------------------------------------------"BREAK);
 	printf("Comando no válido. Escriba 'AIUDA' para ver los formatos aceptados ◔_◔"BREAK);
 	printf("------------------------------------------------------"BREAK);

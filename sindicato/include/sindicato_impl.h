@@ -11,6 +11,10 @@
 
 pthread_mutex_t mutexBitmap;
 
+void crear_restaurante(char **params);
+void crear_receta(char **params);
+void crear_pedido(char **params);
+
 // crear archivo
 // borrar archivo
 // validar archivo

@@ -219,7 +219,7 @@ void logConsultaPlatos(char *restaurante) {
 
 /* Sindicato */
 
-void logFSFull(int cantReq, int cantDisp) {
+void log_full_FS(int cantReq, int cantDisp) {
 	printf(RED"[ERROR] No hay bloques suficientes para realizar la operación. "RESET BOLDRED "[Cant. requerida: %d] - [Cant. disponible: %d]"RESET BREAK, cantReq, cantDisp);
 	log_error(logger, "No hay bloques suficientes para realizar la operación. Cant. requerida: %d. Cant. disponible: %d", cantReq, cantDisp);
 }

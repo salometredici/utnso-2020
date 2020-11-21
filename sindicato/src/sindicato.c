@@ -1,76 +1,10 @@
 #include "../include/sindicato.h"
 
-int sindicatoOptionToKey(char *key) {
-    t_keys *diccionario = diccionarioConsola;
-    for (int i = 0; i < CONSOLENKEYS; i++) {
-        t_keys sym = diccionario[i];
-        if (strcmp(sym.key, key) == 0) {
-            return sym.valor;
-        }
-    }
-    return ERROR;
-}
-
-void mostrarComandosValidos() {
-    printf("-------------------Comandos Válidos-------------------\n");
-	printf("Ejemplo: AIUDA\n");
-	printf("Ejemplo: CLEAR\n");
-	printf("Ejemplo: BAI\n");
-    printf("Formato: [MENSAJE] [PARAMETROS]\n");
-	printf("Ejemplo: CREAR_RESTAURANTE [NOMBRE] [CANTIDAD_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANTIDAD_HORNOS]\n");
-	printf("Ejemplo: CREAR_RECETA [NOMBRE] [PASOS] [TIEMPO_PASOS] \n");
-    printf("------------------------------------------------------\n");
-}
-
-void showCommandErrorMsg(char *msg) {
-	printf("-----------------------[ERROR]------------------------\n");
-	printf("\033[1;31mFaltan uno o más parámetros.\033[0m\n");
-	printf("El formato aceptado para el comando \033[0;33m[%s]\033[0m es el siguiente:\n", msg);
-	log_error(logger, "Faltan uno o más parámetros para el comando [%s]", msg);
-}
-
-
-int validateConsoleCommand(char *msg, char **parameters) {
-	int option = sindicatoOptionToKey(msg);
-	switch (option) {
-		case OPT_CREAR_RESTAURANTE:
-			if (!parameters[8]) {
-				showCommandErrorMsg(msg);
-				printf(BOLDYELLOW "CREAR_RESTAURANTE [NOMBRE] [CANT_COCINEROS] [POSICION] [AFINIDADES] [PLATOS] [PRECIOS] [CANT_HORNOS] [CANT_PEDIDOS]" RESET BREAK);
-				printf("[!] Ejemplo: " MAGENTA "CREAR_RESTAURANTE BurguerKing 3 [1,4] [PapasAlHorno] [PapasAlHorno,Milanesas] [32,50] 2 1" RESET BREAK);
-				printf(TAB "[!] " BOLD "[NOMBRE]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[CANT_COCINEROS]: int" RESET BREAK);
-				printf(TAB "[!] " BOLD "[POSICION]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[AFINIDADES]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[PLATOS]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[PRECIOS]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[CANT_HORNOS]: int" RESET BREAK);
-				printf(TAB "[!] " BOLD "[CANT_PEDIDOS]: int" RESET BREAK);
-				return ERROR;
-			}
-			break;
-		case OPT_CREAR_RECETA:
-			if (!parameters[3]) {
-				showCommandErrorMsg(msg);
-				printf(BOLDYELLOW "CREAR_RECETA [NOMBRE_RECETA] [PASOS] [TIEMPO_PASOS]" RESET BREAK);
-				printf("[!] Ejemplo: " MAGENTA "CREAR_RECETA PapasAlHorno [Trocear,Hornear] [2,3]" RESET BREAK);
-				printf(TAB "[!] " BOLD "[NOMBRE_RECETA]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[PASOS]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[POSICION]: char*" RESET BREAK);
-				return ERROR;
-			}
-			break;
-		default:
-			return option;
-	}
-	return option;
-}
-
 /* Consola */
 
 void* threadLecturaConsola(void * args) {
-    printf("Iniciando la consola ...\n");
-	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
+    printf("Iniciando la consola ..."BREAK);
+	printf("Para ver los comandos válidos, ingrese 'AIUDA'."BREAK);
 
 	char **parametros;
 	char *mensaje;
@@ -88,7 +22,6 @@ void* threadLecturaConsola(void * args) {
 			mensaje = parametros[0];
 			logConsoleInput(comandoLeido);
 
-			//opcion = sindicatoOptionToKey(mensaje);
 			opcion = validateConsoleCommand(mensaje, parametros);
 
 			switch (opcion) {
@@ -96,20 +29,20 @@ void* threadLecturaConsola(void * args) {
 					crearRestaurante(parametros);
 					break;
 				case OPT_CREAR_RECETA:
-					printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
+					//crearReceta(parametros);
 					break;
 				case OPT_AIUDA:
 					mostrarComandosValidos();
 					break;
 				case OPT_BAI:
-					printf("adiosss (๑♡3♡๑)!\n");
+					printf("adiosss (๑♡3♡๑)!"BREAK);
 					break;
 				case OPT_CLEAR:
 					limpiarPantalla();
 					break;
 				case ERROR:
 				default:
-					printf("Comando no válido. Escriba 'AIUDA' para ver los formatos aceptados ◔_◔\n");
+					showInvalidMsg();
 					break;
 			}
 
@@ -124,6 +57,8 @@ void* threadLecturaConsola(void * args) {
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
+
+/* Conexiones */
 
 void *atenderConexiones(void *conexionNueva)
 {

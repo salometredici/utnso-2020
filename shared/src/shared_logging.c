@@ -224,9 +224,19 @@ void logFSFull(int cantReq, int cantDisp) {
 	log_error(logger, "No hay bloques suficientes para realizar la operación. Cant. requerida: %d. Cant. disponible: %d", cantReq, cantDisp);
 }
 
-void logRestInfoAFIP(char *rest, int initialBlock) {
+void logInfoAFIP(char *rest, int initialBlock) {
 	printf("Creando el archivo Info.AFIP para el restaurante "BOLDMAGENTA"[%d]"RESET" con "BOLD"[Initial_Block: %d]"RESET BREAK, rest, initialBlock);
 	log_debug(logger, "Creando el archivo Info.AFIP para el restaurante [%d] con [Initial_Block: %d]", rest, initialBlock);
+}
+
+void logPedidoAFIP(int nroPedido, char *rest, int initialBlock) {
+	printf("Creando el archivo "BOLD"Pedido%d.AFIP"RESET" para el restaurante "BOLDMAGENTA"[%d]"RESET" con "BOLD"[Initial_Block: %d]"RESET BREAK, rest, initialBlock);
+	log_debug(logger, "Creando el archivo Pedido%d.AFIP para el restaurante [%d] con [Initial_Block: %d]", nroPedido, rest, initialBlock);
+}
+
+void logRecetaAFIP(char *receta, char *rest, int initialBlock) {
+	printf("Creando el archivo %s.AFIP para el restaurante "BOLDMAGENTA"[%d]"RESET" con "BOLD"[Initial_Block: %d]"RESET BREAK, receta, rest, initialBlock);
+	log_debug(logger, "Creando el archivo %s.AFIP para el restaurante [%d] con [Initial_Block: %d]", receta, rest, initialBlock);
 }
 
 // Bitmap
@@ -259,6 +269,23 @@ void logBitmapInit() {
 void logBitmapSuccess() {
 	printf(BOLD"Archivo Bitmap.bin creado exitosamente"RESET BREAK);
 	log_debug(logger, "Archivo Bitmap.bin creado exitosamente");
+}
+
+// Bitmap updates
+
+void logBitState(int pos, int bit) {
+	printf("El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
+	log_debug(logger, "El bit [%d] se encuentra en estado %d", pos, bit);
+}
+
+void logBitUpdate(int pos, t_bitarray *bitarray) {
+	printf("Ahora el bit %d se encuentra en estado %d"BREAK, pos, bitarray_test_bit(bitarray, pos));
+	log_debug(logger, "Ahora el bit %d se encuentra en estado %d", pos, bitarray_test_bit(bitarray, pos));
+}
+
+void logUnavailableBit(int pos) {
+	printf("El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
+	log_debug(logger, "El bit [%d] está ocupado, buscando al siguiente...", pos);
 }
 
 // CREAR_RESTAURANTE

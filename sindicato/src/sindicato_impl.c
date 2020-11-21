@@ -18,25 +18,35 @@ bool hayBloquesSuficientes(int bloquesReq) {
 	return bloquesReq <= getCantBloquesDisp();
 }
 
-int buscarYOcuparBloque() {
+// Actualizar bitmap.bin
+
+int buscar_bloque_libre_y_ocupar() {
     for (int i = 0; i < blocksQuantity; i++) {
-		int estadocurrent = bitarray_test_bit(bitarray,i);
-		printf("El bit [%d] se encuentra en estado %d\n", i, estadocurrent);
-        if (estadocurrent == 0) {
-            bitarray_set_bit(bitarray, i);
-			printf("Ahora el bit %d se encuentra en estado %d\n", i, bitarray_test_bit(bitarray,i));
-            if (bitarray_test_bit(bitarray, i) == 1) {return i;}
+		int currentBit = bitarray_test_bit(bitarray, i); logBitState(i, currentBit);
+        if (!currentBit) {
+            bitarray_set_bit(bitarray, i); // Si no está ocupado, lo reservamos
+			logBitUpdate(i, bitarray);
+            return i;
         } else {
-			printf("El bit [%d] estaba ocupado, buscando al siguiente...\n", i);
+			logUnavailableBit(i);
 		}
     }
 }
 
-char *getContentInfoAFIP(char *rest, int fullSize, int initialBlock) {
+void asignar_bloques(uint32_t *bloquesAsignados, int bloquesReq) {
+	for (int i = 0; i < bloquesReq; i++) {
+		pthread_mutex_lock(&mutexBitmap);
+		bloquesAsignados[i] = buscar_bloque_libre_y_ocupar(); // Reservamos los bloques que vamos a ocupar
+		pthread_mutex_unlock(&mutexBitmap);
+	}
+}
+
+// Generalizar para recetas y pedidos
+char *getAFIPFileContent(char *rest, int fullSize, int initialBlock) {
 	char *fileContent = string_new();
 	string_append_with_format(&fileContent, "SIZE=%d\n", fullSize);
 	string_append_with_format(&fileContent, "INITIAL_BLOCK=%d\n", initialBlock);
-	logRestInfoAFIP(rest, initialBlock);
+	logInfoAFIP(rest, initialBlock);
 	return fileContent;
 }
 
@@ -47,16 +57,12 @@ void guardarEnBloques(char *rest, char *fileContent, int bloquesReq) {
 	int contentSize = strlen(fileContent);
 	int nextBlockContentSize = contentSize < maxContentSize ? contentSize : maxContentSize;
 
+	// Creamos el array para guardar los números de bloques asignados
 	uint32_t bloquesAsignados[bloquesReq];
+	asignar_bloques(bloquesAsignados, bloquesReq);
 
-	for (int i = 0; i < bloquesReq; i++) {
-		pthread_mutex_lock(&mutexBitmap);
-		bloquesAsignados[i] = buscarYOcuparBloque(); // Reservamos los bloques que vamos a ocupar
-		pthread_mutex_unlock(&mutexBitmap);
-	}
-
-	// Obtenemos el contenido que vamos a grabar en Info.AFIP
-	char *infoAFIPContent = getContentInfoAFIP(rest, contentSize, bloquesAsignados[0]);
+	// Obtenemos el contenido que vamos a grabar en Info.AFIP/#.AFIP/unaReceta.AFIP
+	char *AFIPFileContent = getAFIPFileContent(rest, contentSize, bloquesAsignados[0]);
 	
 	// Si no existe el archivo, lo creamos
 	char *infoAFIPPath = string_new();
@@ -66,7 +72,7 @@ void guardarEnBloques(char *rest, char *fileContent, int bloquesReq) {
 	if (!fdExists(infoAFIPPath)) {
 		FILE *fp = fopen(infoAFIPPath, "w+");
 		if (fp != NULL) {
-			fputs(infoAFIPContent, fp);
+			fputs(AFIPFileContent, fp);
 			fclose(fp);
 		}
 	}

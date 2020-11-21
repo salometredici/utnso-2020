@@ -55,6 +55,10 @@ void logBitmapError();
 void logInitialBitarrayInfo(t_bitarray *bitarray);
 void logBitmapInit();
 void logBitmapSuccess();
+// Bitmap updates
+void logBitState(int pos, int bit);
+void logBitUpdate(int pos, t_bitarray *bitarray);
+void logUnavailableBit(int pos);
 
 // CREAR_RESTAURANTE
 

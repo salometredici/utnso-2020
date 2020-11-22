@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 
 
 #define PAGE_SIZE 32 // por enunciado 
@@ -61,10 +62,11 @@ typedef struct {
 
 typedef struct{
     int frame; 
+    int frame_mv; //el frame que esta en el area de swap
 	bool in_use; 
 	bool modified;
     bool flag; //1 en memoria principal
-    int timestamp;
+    double timestamp;
 }t_page; //plato conflict types
 
 /*Marco en la memoria*/

@@ -54,6 +54,7 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
+	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces
 	t_page *page = find_plato(pedido, request->plato);
 
 	if(page == NULL){

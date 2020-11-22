@@ -61,6 +61,11 @@ bool only_strings_list(char *input) {
 	return true;
 }
 
+bool valid_position(char *pos) {
+	int values_quantity = getValuesQuantity(pos);
+	return values_quantity == 2;
+}
+
 bool list_sizes_match(char *list1, char *list2) {
 	char *items_l1 = string_substring(list1, 1, strlen(list1) - 2);
 	char *items_l2 = string_substring(list2, 1, strlen(list2) - 2);

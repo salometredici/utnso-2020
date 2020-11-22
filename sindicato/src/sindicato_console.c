@@ -83,7 +83,7 @@ void show_valid_commands() {
 	printf("Ejemplo: BAI"BREAK);
     printf("-----------------------Opciones-----------------------"BREAK);
 	printf("Formato: "BOLDYELLOW"[MENSAJE]"RESET" [PARAMETROS] ~~旦_(･o･;)"BREAK);
-	printf(YELLOW"CREAR_RESTAURANTE"RESET" [NOMBRE] [CANTIDAD_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANTIDAD_HORNOS]"BREAK);
+	printf(YELLOW"CREAR_RESTAURANTE"RESET" [NOMBRE] [CANTI_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANT_HORNOS] [CANT_PEDIDOS]"BREAK);
 	printf(YELLOW"CREAR_RECETA"RESET" [NOMBRE] [PASOS] [TIEMPO_PASOS]"BREAK);
     printf("------------------------------------------------------"BREAK);
 }

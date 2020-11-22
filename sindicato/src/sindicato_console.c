@@ -93,7 +93,7 @@ void show_command_error_msg(char *msg) {
 void show_invalid_position_error_msg() {
 	printf("-----------------------[ERROR]------------------------"BREAK);
 	printf(BOLDRED"Formato incorrecto para la posición del restaurante"RESET BREAK);
-	printf("El formato aceptado para el comando "YELLOW"[%s]"RESET" es el siguiente:"BREAK);
+	printf("El parámetro "YELLOW"[POSICIÓN]"RESET" debe ser una lista de dos números. Ejemplo: [3,4]"BREAK);
 	log_error(logger, "El formato para la posición del restaurante era incorrecto");
 }
 

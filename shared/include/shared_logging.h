@@ -56,12 +56,16 @@ void logInitialBitarrayInfo(t_bitarray *bitarray);
 void logBitmapInit();
 void logBitmapSuccess();
 // Bitmap updates
-void logBitState(int pos, int bit);
-void logBitUpdate(int pos, t_bitarray *bitarray);
-void logUnavailableBit(int pos);
+void log_bit_state(int pos, int bit);
+void log_bit_update(int pos, t_bitarray *bitarray);
+void log_unavailable_bit(int pos);
 
 // CREAR_RESTAURANTE
 
-void logCrearRestauranteData(char **params);
+void log_CrearRestaurante_Data(char **params);
+
+// CREAR_RECETA
+
+void log_CrearReceta_Data(char **params);
 
 #endif

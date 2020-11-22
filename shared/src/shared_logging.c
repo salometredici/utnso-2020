@@ -273,28 +273,39 @@ void logBitmapSuccess() {
 
 // Bitmap updates
 
-void logBitState(int pos, int bit) {
-	printf("El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
+void log_bit_state(int pos, int bit) {
+	printf(BOLD"→"RESET" El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
 	log_debug(logger, "El bit [%d] se encuentra en estado %d", pos, bit);
 }
 
-void logBitUpdate(int pos, t_bitarray *bitarray) {
-	printf("Ahora el bit %d se encuentra en estado %d"BREAK, pos, bitarray_test_bit(bitarray, pos));
+void log_bit_update(int pos, t_bitarray *bitarray) {
+	printf(BOLD"→"RESET" Ahora el bit %d se encuentra en estado %d"BREAK, pos, bitarray_test_bit(bitarray, pos));
 	log_debug(logger, "Ahora el bit %d se encuentra en estado %d", pos, bitarray_test_bit(bitarray, pos));
 }
 
-void logUnavailableBit(int pos) {
-	printf("El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
+void log_unavailable_bit(int pos) {
+	printf(TAB BOLD"→"RESET" El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
 	log_debug(logger, "El bit [%d] está ocupado, buscando al siguiente...", pos);
 }
 
 // CREAR_RESTAURANTE
 
-void logCrearRestauranteData(char **params) {
+void log_CrearRestaurante_Data(char **params) {
 	printf("Creando el archivo Info.AFIP para el restaurante "BOLDMAGENTA"[%s]"RESET" con los siguientes datos:"BREAK, params[1]);
 	printf(TAB"Cant_cocineros: %s, Posicion: %s, Afinidades: %s"BREAK, params[2], params[3], params[4]);
 	printf(TAB"Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s"BREAK, params[5], params[6], params[6], params[8]);
 	log_info(logger, "Creando el archivo Info.AFIP para el restaurante [%s] con los siguientes datos:", params[1]);
 	log_info(logger,TAB "Cant_cocineros: %s, Posicion: %s, Afinidades: %s", params[2], params[3], params[4]);
-	log_info(logger,TAB "Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s", params[5], params[6], params[6], params[8]);
+	log_info(logger,TAB "Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s", params[5], params[6], params[7], params[8]);
 }
+
+// CREAR_RECETA
+
+void log_CrearReceta_Data(char **params) {
+	printf("Creando el archivo "BOLDYELLOW"%s.AFIP"RESET" con los siguientes datos:"BREAK, params[1]);
+	printf(TAB"Pasos: %s, Tiempo_pasos: %s"BREAK, params[2], params[3]);
+	log_info(logger, "Creando el archivo "BOLDYELLOW"%s.AFIP"RESET" con los siguientes datos:", params[1]);
+	log_info(logger, TAB"Pasos: %s, Tiempo_pasos: %s", params[2], params[3]);
+}
+
+// CREAR_PEDIDO

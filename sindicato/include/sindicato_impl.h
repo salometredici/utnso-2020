@@ -9,6 +9,10 @@
 #include "../include/sindicato_init.h"
 #include "tests.h"
 
+#define RESTAURANTE 1
+#define RECETA 2
+#define PEDIDO 3
+
 pthread_mutex_t mutexBitmap;
 
 void crear_restaurante(char **params);

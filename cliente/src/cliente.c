@@ -116,7 +116,7 @@ void *threadLecturaConsola(void *args) {
 							obtenerRestaurante(parametro1);
 							break;
 						case CONSULTAR_PLATOS:
-							consultarPlatos("");
+							consultarPlatos(parametro1);
 							break;
 						case GUARDAR_PEDIDO:
 							guardarPedido(parametro1, atoi(parametro2));

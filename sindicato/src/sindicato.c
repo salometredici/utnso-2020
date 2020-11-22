@@ -83,7 +83,7 @@ void *atender_conexiones(void *conexionNueva)
 				break;
 			case OBTENER_RESTAURANTE:;
 				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
-				logMetadataRequest(nombreRestaurante);
+				log_metadata_request(nombreRestaurante);
 
 				t_md *md = malloc(sizeof(t_md));
 
@@ -107,21 +107,23 @@ void *atender_conexiones(void *conexionNueva)
 				free(md);
 				break;
 			case CONSULTAR_PLATOS:;
-				char *restConsulta = recibirPayloadPaquete(header, socketCliente);
-				logConsultaPlatos(restConsulta);
-				free(restConsulta);
+				char *rest_consulta = recibirPayloadPaquete(header, socketCliente);
+				log_ConsultarPlatos(rest_consulta);
+
+				t_list *platos_restaurante = list_create();
+				if (!existe_restaurante(rest_consulta)) {
+					list_add(platos_restaurante, "EL RESTAURANTE NO EXISTE");
+				} else {
+					t_list* we = obtener_platos_restaurante(rest_consulta);
+				}
 
 				// TODO:
 				// 1. Verificar si R existe en FS, buscando en dir Restaurantes si existe un subdir con R - Si no existe informarlo
 				// 2. Obtener los platos que puede preparar R del archivo info.AFIP
 				// 3. Responder indicando los platos que puede preparar R
 				
-				t_list *platosRest = list_create();
-				list_add(platosRest, "Ensalada");
-				list_add(platosRest, "Lasagna");
-				list_add(platosRest, "Helado");
-				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
-				free(platosRest);
+				//enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
+				//free(platosRest);
 				break;
 			case GUARDAR_PEDIDO:;
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);

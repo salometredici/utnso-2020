@@ -15,6 +15,9 @@
 
 pthread_mutex_t mutexBitmap;
 
+char *get_restaurant_path(char *restaurante);
+bool existe_restaurante(char *restaurante);
+
 void crear_restaurante(char **params);
 void crear_receta(char **params);
 void crear_pedido(char **params);

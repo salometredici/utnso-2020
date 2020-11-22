@@ -155,11 +155,6 @@ void logMessageSent(m_code codigoOperacion) {
 	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
 }
 
-void logMetadataRequest(char *nombreRestaurante) {
-	printf(TAB"Metadata requested by "MAGENTA"%s"RESET BREAK, nombreRestaurante);
-	log_info(logger, "Metadada requested by %s", nombreRestaurante);
-}
-
 /* t_request */
 
 void logReqRestaurante(t_request *reqRestaurante) {
@@ -212,12 +207,21 @@ void logRequestPlato(t_req_plato *plato) {
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
 }
 
-void logConsultaPlatos(char *restaurante) {
+/* Sindicato */
+
+// Atender conexiones
+
+void log_metadata_request(char *nombreRestaurante) {
+	printf(TAB"Metadata requested by "MAGENTA"%s"RESET BREAK, nombreRestaurante);
+	log_info(logger, "Metadada requested by %s", nombreRestaurante);
+}
+
+void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 	printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, restaurante);
 	log_info(logger, TAB"Restaurante %s", restaurante);
 }
 
-/* Sindicato */
+// Consola e inicialización
 
 void log_full_FS(int cantReq, int cantDisp) {
 	printf(RED"[ERROR] No hay bloques suficientes para realizar la operación. "RESET BOLDRED "[Cant. requerida: %d] - [Cant. disponible: %d]"RESET BREAK, cantReq, cantDisp);

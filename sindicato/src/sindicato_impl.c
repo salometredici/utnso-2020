@@ -18,6 +18,74 @@ bool enough_blocks_available(int bloquesReq) {
 	return bloquesReq <= get_available_blocks_number();
 }
 
+char *get_restaurant_path(char *restaurante) {
+	char *restPath = string_new();
+	string_append_with_format(&restPath, "%s%s", RESTAURANTES_PATH, restaurante);
+	return restPath;
+}
+
+char *get_full_rest_path(char *restaurante) {
+	char *full_path = string_new();
+	string_append_with_format(&full_path, "%s%s", dirInicial, get_restaurant_path(restaurante));
+	return full_path;
+}
+
+char *get_InfoAFIP_path(char *restaurante) {
+	char *InfoAFIP_path = string_new();
+	string_append_with_format(&InfoAFIP_path, "%s%s", get_full_rest_path(restaurante), "/Info.AFIP");
+	return InfoAFIP_path;
+}
+
+bool existe_restaurante(char *rest) {
+	char *path = get_full_rest_path(rest);
+	return fdExists(path);
+}
+
+int find_char_index(char *string, char caracter) {
+	char *found_char = strchr(string, caracter);
+	if (found_char != NULL) {
+		return found_char - string + 1;
+	} else {
+		return ERROR;
+	}
+}
+
+// Info.AFIP - Receta.AFIP - PedidoN.AFIP
+
+char *get_content_from_AFIP_file(int option, char *object) {	
+	char *AFIP_file_path = string_new();
+	switch (option) {
+		case RESTAURANTE:
+			AFIP_file_path = get_InfoAFIP_path(object);
+			break;
+		case RECETA:
+			break;
+		case PEDIDO:
+			break;
+	}
+
+	char *file_content = string_new();
+	char *current_line = NULL;
+	FILE *fp = fopen(AFIP_file_path, "r");
+	if (fp != NULL) {
+		int line_count = 0;
+		ssize_t line_size;
+		size_t line_buf_size = 0;
+		for (int i = 0; i < 2; i++) {
+			line_size = getline(&current_line, &line_buf_size, fp); 
+			string_append_with_format(&file_content, "%s", current_line);
+			line_count++;
+			printf("Linea: [%03d], Chars=%03d, Buf_size=%03zu, Contenido: %s\n", line_count, line_size, line_buf_size, current_line);
+			log_debug(logger, "Linea: [%03d], Chars=%03d, Buf_size=%03zu, Contenido: %s", line_count, line_size, line_buf_size, current_line);
+		}
+		close(fp);
+	} else {
+		return NULL;
+	}
+
+	return file_content;
+}
+
 // Actualizar bitmap.bin
 
 int buscar_bloque_libre_y_ocupar() {
@@ -53,7 +121,7 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 	switch (option) {
 		case RESTAURANTE:
 			string_append_with_format(&AFIP_file_path, "%s%s%s%s", dirInicial, RESTAURANTES_PATH, object, "/Info.AFIP");
-			log_info_AFIP(object);
+			log_Info_AFIP(object);
 			break;
 		case RECETA:
 			string_append_with_format(&AFIP_file_path, "%s%s%s%s", dirInicial, RECETAS_PATH, object, ".AFIP");
@@ -126,8 +194,7 @@ char *get_CrearRestaurante_Data(char **params) {
 }
 
 void create_rest_dir(char *restaurante) {
-	char *newRestPath = string_new();
-	string_append_with_format(&newRestPath, "%s%s", RESTAURANTES_PATH, restaurante);
+	char *newRestPath = get_restaurant_path(restaurante);
 	initFromBaseDir(newRestPath);
 }
 

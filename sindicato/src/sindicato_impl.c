@@ -53,9 +53,11 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 	switch (option) {
 		case RESTAURANTE:
 			string_append_with_format(&AFIP_file_path, "%s%s%s%s", dirInicial, RESTAURANTES_PATH, object, "/Info.AFIP");
+			log_info_AFIP(object);
 			break;
 		case RECETA:
 			string_append_with_format(&AFIP_file_path, "%s%s%s%s", dirInicial, RECETAS_PATH, object, ".AFIP");
+			log_Receta_AFIP(object);
 			break;
 		case PEDIDO:
 			break;
@@ -70,7 +72,7 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 }
 
 void save_content(int reqBlocks, char *fileContent, uint32_t *bloquesAsignados) {
-	int start = 0; //next_block_number;
+	int start = 0;
 	char *aux = string_new();
 	int content_size = strlen(fileContent);
 	int next_block_content_size = content_size < maxContentSize ? content_size : maxContentSize; 
@@ -99,10 +101,10 @@ void save_in_blocks(int option, char *object, char *fileContent, int bloquesReq)
 	// Creamos el array para guardar los números de bloques asignados
 	uint32_t bloquesAsignados[bloquesReq];
 	asignar_bloques(bloquesAsignados, bloquesReq);
-	// Obtenemos el contenido que vamos a grabar en:
-	// Restaurante: Info.AFIP
-	// Receta: nombreReceta.AFIP
-	// Pedido: Pedido#.AFIP
+	/* Obtenemos el contenido que vamos a grabar en:
+		Restaurante: Info.AFIP
+		Receta: nombreReceta.AFIP
+		Pedido: Pedido#.AFIP */
 	char *AFIP_file_content = get_AFIP_file_content(contentSize, bloquesAsignados[0]);
 	check_AFIP_file(option, AFIP_file_content, object);
 	save_content(bloquesReq, fileContent, bloquesAsignados);

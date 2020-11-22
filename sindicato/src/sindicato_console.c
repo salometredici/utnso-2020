@@ -159,7 +159,7 @@ void show_not_a_strings_list_error_msg(int option) {
 
 void show_incorrect_list_sizes_error_msg(int option) {
 	printf("-----------------------[ERROR]------------------------"BREAK);
-	printf(BOLDRED"La cantidad de parámetros en las listas no coincide"BREAK);
+	printf(BOLDRED"La cantidad de parámetros en las listas no coincide"RESET BREAK);
 	switch (option) {
 		case OPT_CREAR_RESTAURANTE:
 			printf("Los parámetros "YELLOW"[PLATOS]"RESET" y "YELLOW"[PRECIOS]"RESET" deben ser listas con la misma cantidad de valores"BREAK);

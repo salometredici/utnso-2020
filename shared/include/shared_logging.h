@@ -47,7 +47,9 @@ void logClientInfo(t_cliente *cliente);
 /* SINDICATO */
 
 void log_full_FS(int cantReq, int cantDisp);
-void logRestInfoAFIP(char *rest, int initialBlock);
+void log_Info_AFIP(char *rest);
+void log_Pedido_AFIP(int nroPedido);
+void log_Receta_AFIP(char *receta);
 
 // Bitmap
 void logBitmapFileError();

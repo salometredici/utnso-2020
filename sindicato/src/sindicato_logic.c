@@ -14,14 +14,14 @@ t_list *get_list_from_string(char *info, int line_number, int start_index) {
 	t_list *new_list = list_create();
 	char **lines = string_split(info, "\n");
 	char *line_to_use = lines[line_number];
-	char *wtf = string_substring(line_to_use, start_index, strlen(line_to_use)-2); // Revisar, ahora me obliga a hacerlo así o trae el último ']'
-	char *string_list = string_substring_until(wtf, strlen(wtf)-1);
+	char *list = strrchr(line_to_use, '[');
+	char *string_list = string_substring(list, 1, strlen(list)-2);
 	int values_quantity = getValuesQuantity(string_list);
 	char **values = string_split(string_list, ",");
 	for (int i = 0; i < values_quantity; i ++) {
 		list_add(new_list, values[i]);
 	}
-	free(lines); free(line_to_use); free(wtf); free(string_list); free(values);
+	free(lines); free(line_to_use); free(string_list); free(values);
 	return new_list;
 }
 
@@ -35,5 +35,3 @@ t_list *obtener_platos_restaurante(char *restaurante) {
 	list_add_all(platos_restaurante, get_platos_restaurante(info_restaurante));
 	return platos_restaurante;
 }
-
-// crear_restaurante bk 1 [1,2] [hamburguesas] [hamburguesas,papas] [135,78] 1 0

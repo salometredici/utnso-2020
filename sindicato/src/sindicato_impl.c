@@ -6,16 +6,6 @@ int get_required_blocks_number(int contentSize) {
 	return (contentSize/maxContentSize) + (contentSize % maxContentSize != 0);
 }
 
-int get_available_blocks_number() {
-	int cont = 0;
-	pthread_mutex_lock(&mutexBitmap);
-	for (int i = 0; i < blocksQuantity; i++) {
-		if (bitarray_test_bit(bitarray, i) == 0) { cont++; }
-	}
-	pthread_mutex_unlock(&mutexBitmap);
-	return cont;
-}
-
 bool enough_blocks_available(int bloquesReq) {
 	return bloquesReq <= get_available_blocks_number();
 }

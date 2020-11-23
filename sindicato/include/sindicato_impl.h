@@ -13,8 +13,6 @@
 #define RECETA 2
 #define PEDIDO 3
 
-pthread_mutex_t mutexBitmap;
-
 char *get_restaurant_path(char *restaurante);
 bool existe_restaurante(char *restaurante);
 

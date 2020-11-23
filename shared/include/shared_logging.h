@@ -59,7 +59,7 @@ void log_Receta_AFIP(char *receta);
 // Bitmap
 void logBitmapFileError();
 void logBitmapError();
-void logInitialBitarrayInfo(t_bitarray *bitarray);
+void log_bitarray_info(t_bitarray *bitarray, int available_blocks);
 void logBitmapInit();
 void logBitmapSuccess();
 // Bitmap updates

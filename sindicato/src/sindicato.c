@@ -116,23 +116,24 @@ void *atender_conexiones(void *conexionNueva)
 					list_add_all(platos_restaurante, obtener_platos_restaurante(rest_consulta));
 				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platos_restaurante);
-				free(platos_restaurante);
+				free(rest_consulta); free(platos_restaurante);
 				break;
 			case GUARDAR_PEDIDO:;
-				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqGuardarPedido, header->codigoOperacion);
-				free(reqGuardarPedido);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar cuál fue el último pedido y crear un nuevo archivo Pedido y ContPedidos++, de ser el 1ero, crear el archivo Pedido1
-				// 3. Responder el mensaje con Ok/fail
-				
-				t_result *resGP = malloc(sizeof(t_result));
-				resGP->msg = "[GUARDAR_PEDIDO] OK";
-				resGP->hasError = false;
-				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, resGP);
-				free(resGP);		
+				t_request *req_guardar_pedido = recibirPayloadPaquete(header, socketCliente);
+				logRequest(req_guardar_pedido, header->codigoOperacion);
+				t_result *result_guardar_pedido;
+				if (!existe_restaurante(req_guardar_pedido->nombre)) {
+					 result_guardar_pedido = getTResult(REST_NO_EXISTE, true);
+				} else {
+					if (!existe_pedido(req_guardar_pedido)) {
+						crear_pedido(req_guardar_pedido);
+						result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
+					} else {
+						result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
+					}
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, result_guardar_pedido);
+				free(req_guardar_pedido); free(result_guardar_pedido);	
 				break;
 			case GUARDAR_PLATO:;
 				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);

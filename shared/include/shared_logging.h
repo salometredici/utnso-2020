@@ -76,4 +76,8 @@ void log_CrearRestaurante_Data(char **params);
 
 void log_CrearReceta_Data(char **params);
 
+// CREAR_PEDIDO
+
+void log_CrearPedido_Data(t_request *request);
+
 #endif

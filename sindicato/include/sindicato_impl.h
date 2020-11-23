@@ -18,7 +18,7 @@ bool existe_restaurante(char *restaurante);
 
 void crear_restaurante(char **params);
 void crear_receta(char **params);
-void crear_pedido(char **params);
+void crear_pedido(t_request *request);
 
 // crear archivo
 // borrar archivo

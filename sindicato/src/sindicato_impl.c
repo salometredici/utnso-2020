@@ -39,9 +39,26 @@ char *get_InfoAFIP_path(char *restaurante) {
 	return InfoAFIP_path;
 }
 
+char *get_filename_pedido(int idPedido) {
+	char *filename = string_new();
+	string_append_with_format(&filename, "Pedido%d.AFIP", idPedido);
+	return filename;
+}
+
+char *get_full_pedido_path(t_request *request) { // Retorna la ruta absoluta, por ejemplo: /home/utnso/afip/Files/Restaurantes/BK/Pedido3.AFIP
+	char *full_path = string_new();
+	string_append_with_format(&full_path, "%s/Pedido%d.AFIP", get_full_rest_path(request->nombre), request->idPedido);
+	return full_path;
+}
+
 bool existe_restaurante(char *rest) {
 	char *path = get_full_rest_path(rest);
 	return fdExists(path);
+}
+
+bool existe_pedido(t_request *request) {
+	char *path_pedido = get_full_pedido_path(request);
+	return fdExists(path_pedido);	
 }
 
 // Actualizar bitmap.bin
@@ -76,6 +93,11 @@ char *new_AFIP_file_content(int fullSize, int initialBlock) {
 	return fileContent;
 }
 
+void save_empty_AFIP_file(char *path_pedido) {
+	char *AFIP_file_content = new_AFIP_file_content(0,ERROR);
+	check_AFIP_file(PEDIDO, AFIP_file_content, path_pedido);
+}	
+
 void check_AFIP_file(int option, char *fileContent, char *object) {
 	char *AFIP_file_path = string_new();
 	switch (option) {
@@ -88,6 +110,7 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 			log_Receta_AFIP(object);
 			break;
 		case PEDIDO:
+			string_append_with_format(&AFIP_file_path, "%s", object);
 			break;
 	}
 	if (!fdExists(AFIP_file_path)) { // Hace falta revisar esto?
@@ -262,6 +285,24 @@ char *get_CrearReceta_Data(char **params) {
 	return fileContent;
 }
 
+/* CREAR_PEDIDO */
+
+char *get_CrearPedido_Data(t_request *request) {
+	char *fileContent = string_new();
+	// string_append_with_format(&fileContent, "ESTADO_PEDIDO=%s\n", getStringEstadoPedido(PENDIENTE));
+	// string_append_with_format(&fileContent, "LISTA_PLATOS=%s\n", "[]");
+	// string_append_with_format(&fileContent, "CANTIDAD_PLATOS=%s\n", "[]");
+	// string_append_with_format(&fileContent, "CANTIDAD_LISTA=%s\n", "[]");
+	// string_append_with_format(&fileContent, "PRECIO_TOTAL=%s\n", 0);
+	log_CrearPedido_Data(request);
+	return fileContent;
+}
+
+void create_pedido_dir(t_request *request) {
+	char *new_pedido_path = get_full_pedido_path(request);
+	createDirectory(new_pedido_path);
+}
+
 /* Funcionalidades */
 
 void check_and_save(int option, char *object, char *content, int reqBlocks) {
@@ -287,9 +328,13 @@ void crear_receta(char **params) {
 	check_and_save(RECETA, plato, fileContent, reqBlocks);
 }
 
-void crear_pedido(char **params) {
-	char *plato = params[1];
-	char *fileContent = get_CrearReceta_Data(params);
-	int reqBlocks = get_required_blocks_number(strlen(fileContent));
-	check_and_save(PEDIDO, plato, fileContent, reqBlocks);
+void crear_pedido(t_request *request) {
+	create_pedido_dir(request);
+	save_empty_AFIP_file(get_full_pedido_path(request));
+	log_CrearPedido_Data(request);
+	//-------------Comentado porque no defini si asignarle bloques al principio o no, por ahora solo creo su archivo afip
+	
+	//  char *fileContent = get_CrearPedido_Data(request);
+	// int reqBlocks = get_required_blocks_number(strlen(fileContent));
+	// check_and_save(PEDIDO, pedido, fileContent, reqBlocks);
 }

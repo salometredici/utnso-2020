@@ -215,17 +215,15 @@ void crearPedido() {
 }
 
 void guardarPedido(char *nombreRestaurante, int idPedido) {
-	t_request *reqGuardarPedido = malloc(sizeof(t_request));
-	reqGuardarPedido->nombre = nombreRestaurante;
-	reqGuardarPedido->idPedido = idPedido;
+	t_request *req_guardar_pedido = getTRequest(idPedido, nombreRestaurante);
 
-	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, reqGuardarPedido);
+	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, req_guardar_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(reqGuardarPedido);
+	free(req_guardar_pedido);
 
-	t_result *resultGP = recibirPayloadPaquete(header, conexion);
-	logTResult(resultGP);
-	free(resultGP);
+	t_result *result_guardar_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_GuardarPedido(result_guardar_pedido);
+	free(result_guardar_pedido);
 	free(header);
 }
 

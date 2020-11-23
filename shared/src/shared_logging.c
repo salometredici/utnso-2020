@@ -146,8 +146,12 @@ void logSeleccionarRestaurante(t_selecc_rest *seleccion) {
 /* t_result */
 
 void logTResult(t_result *result) {
-	printf("Resultado "BOLD"[%s]"RESET": %s"BREAK, result->hasError ? "FAILED" : "SUCCESS", result->msg);
-	log_info(logger, "Resultado [%s]: %s", result->hasError ? "FAILED" : "SUCCESS", result->msg);
+	if (result->hasError) {
+		printf("Resultado: "BOLDRED"[%s]"RESET" - "RED"%s"RESET BREAK, "FAILED", result->msg);
+	} else {
+		printf("Resultado: "BOLDGREEN"[%s]"RESET" - "BOLD"%s"RESET BREAK, "SUCCESS", result->msg);
+	}
+	log_info(logger, "Resultado: [%s] - %s", result->hasError ? "FAILED" : "SUCCESS", result->msg);
 }
 
 void logHeader(m_code codigoOperacion, p_code procesoOrigen) {
@@ -232,6 +236,10 @@ void log_rta_ConsultarPlatos(t_list *platos) {
 	}
 }
 
+void log_rta_GuardarPedido(t_result *result) {
+	logTResult(result);
+}
+
 /* Sindicato */
 
 // Atender conexiones
@@ -284,7 +292,7 @@ void log_Info_AFIP(char *rest) {
 }
 
 void log_Pedido_AFIP(int nroPedido) {
-	printf("Creando el archivo "BOLD"Pedido%d.AFIP"RESET"..." BREAK, nroPedido);
+	printf("Creando el archivo "BOLD".AFIP"RESET"..." BREAK, nroPedido);
 	log_debug(logger, "Creando el archivo Pedido%d.AFIP...", nroPedido);
 }
 
@@ -366,3 +374,8 @@ void log_CrearReceta_Data(char **params) {
 }
 
 // CREAR_PEDIDO
+
+void log_CrearPedido_Data(t_request *request) {
+	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
+	log_info(logger, "Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
+}

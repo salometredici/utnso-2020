@@ -10,9 +10,9 @@
 #include "../../shared/include/shared_serialization.h"
 #include "../include/sindicato_console.h"
 #include "../include/sindicato_init.h"
+#include "../include/sindicato_impl.h"
+#include "../include/sindicato_logic.h"
 #include "tests.h"
-
-#define REST_NO_EXISTE "EL RESTAURANTE NO EXISTE EN EL FS"
 
 int socketServidor;
 pthread_t threadConsola;

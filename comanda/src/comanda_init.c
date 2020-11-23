@@ -10,23 +10,11 @@ void init_restaurantes() {
 	restaurantes = list_create();
 }
 
-void print_structure()
-{	
-	for(int i = 0; i < frames; i++){
-		if(*(char*)(MEMORIA + i)!='\0'){
-			printf("%c",*(char*)(MEMORIA + i));
-		}
-	}
-	printf("\n");
-	fflush(stdout);	
-}
-
 void log_comanda(char *text){
 	log_info(logger, text);
 }
 
-void init_memory()
-{
+void init_memory(){
 	frames = MEMORY_SIZE / PAGE_SIZE;
 	int bitmap_size_in_bytes = ceil((double) frames / 8);
 	
@@ -34,14 +22,14 @@ void init_memory()
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
 
 	MEMORIA = calloc(frames, PAGE_SIZE);
-	int i;
-	for(i = 0; i < frames; i++) {
+	
+	for(int i = 0; i < frames; i++) {
 		void* new_frame = malloc(PAGE_SIZE);
 		memset(new_frame, NULL, PAGE_SIZE);
 		*(MEMORIA + i) = new_frame;
 	}
+
 	size_char = MAX_LENGTH_COMIDA;
-	//print_structure();
 }
 
 void* create_swap(){
@@ -56,6 +44,7 @@ void* create_swap(){
 	
 	memset(archivo_data, 0, SWAP_SIZE);
 	msync(archivo_data, SWAP_SIZE, MS_SYNC);
+	
 	return archivo_data;
 }
 
@@ -63,7 +52,7 @@ void init_virtual() {
 	//la ruta del swap va a la config desp vemos
 	archivo_swap = create_swap();
 
-	int swap_frames = SWAP_SIZE / PAGE_SIZE;
+	swap_frames = SWAP_SIZE / PAGE_SIZE;
 	int swap_bitmap_size_in_bytes = ceil((double) swap_frames / 8);
 	swap_bitmap_pointer = malloc(swap_bitmap_size_in_bytes);
 	swap_usage_bitmap = bitarray_create_with_mode(swap_bitmap_pointer, swap_bitmap_size_in_bytes, LSB_FIRST);

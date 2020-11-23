@@ -13,6 +13,4 @@
 #include "tests.h"
 
 void init_sructures();
-void print_structure();
-
 #endif

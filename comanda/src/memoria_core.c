@@ -63,7 +63,7 @@ t_page* create_page(int frame_in_mp, int frame_swap){
 	t_page *new_plato = malloc(sizeof(t_page));
 	new_plato->frame = frame_in_mp;
 	new_plato->in_use = 1;
-	new_plato->flag = 0;
+	new_plato->flag = 1;
 	new_plato->modified = 0;
 	new_plato->timestamp = get_current_time();
 	new_plato->frame_mv = frame_swap;
@@ -163,6 +163,20 @@ t_frame* get_frame_from_swap(int frame_swap){
 	marco->comida = plato_encontrado;
 
 	return marco;
+}
+
+void print_swap(){
+	for(int i = 0; i < swap_frames; i++){
+		t_frame* swap_frame = get_frame_from_swap(i);
+		printf("|Nombre del plato %s |Cantidad pedido %d | Cantidad lista %d \n", swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+	}
+}
+
+void print_swap(){
+	for(int i = 0; i < frames; i++){
+		t_frame* swap_frame = get_frame_from_memory(i);
+		printf("Indice: &d |Nombre del plato: %s |Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+	}
 }
 
 //tengo que recorrer la tabla de paginas 

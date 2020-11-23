@@ -49,6 +49,7 @@ char* SWAP_FILE;
 FILE *swap_file;
 char *ALGORITMO_REEMPLAZO;
 int frames;
+int swap_frames;
 size_t size_char;
 
 typedef struct{
@@ -86,5 +87,6 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
 t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
 t_list* find_frames(t_pedidoc *pedido);
+void print_swap();
 
 #endif

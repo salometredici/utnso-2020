@@ -222,7 +222,6 @@ void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 }
 
 void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_line) { // Revisar
-	printf("Chars=%03d, Buf_size=%03zu, Contenido: %s\n", line_size, line_buf_size, current_line);
 	log_debug(logger, "Chars=%03d, Buf_size=%03zu, Contenido: %s", line_size, line_buf_size, current_line);
 }
 

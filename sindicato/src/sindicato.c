@@ -109,21 +109,14 @@ void *atender_conexiones(void *conexionNueva)
 			case CONSULTAR_PLATOS:;
 				char *rest_consulta = recibirPayloadPaquete(header, socketCliente);
 				log_ConsultarPlatos(rest_consulta);
-
 				t_list *platos_restaurante = list_create();
 				if (!existe_restaurante(rest_consulta)) {
-					list_add(platos_restaurante, "EL RESTAURANTE NO EXISTE");
+					list_add(platos_restaurante, REST_NO_EXISTE);
 				} else {
-					t_list* we = obtener_platos_restaurante(rest_consulta);
+					list_add_all(platos_restaurante, obtener_platos_restaurante(rest_consulta));
 				}
-
-				// TODO:
-				// 1. Verificar si R existe en FS, buscando en dir Restaurantes si existe un subdir con R - Si no existe informarlo
-				// 2. Obtener los platos que puede preparar R del archivo info.AFIP
-				// 3. Responder indicando los platos que puede preparar R
-				
-				//enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
-				//free(platosRest);
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platos_restaurante);
+				free(platos_restaurante);
 				break;
 			case GUARDAR_PEDIDO:;
 				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);

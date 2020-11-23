@@ -12,6 +12,8 @@
 #include "../include/sindicato_init.h"
 #include "tests.h"
 
+#define REST_NO_EXISTE "EL RESTAURANTE NO EXISTE EN EL FS"
+
 int socketServidor;
 pthread_t threadConsola;
 pthread_t threadConexiones;

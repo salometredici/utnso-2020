@@ -18,6 +18,36 @@ t_pedidoc *crear_pedido(int id_pedido){
 	return pedido;
 }
 
+int find_free_bit(t_bitarray* bitmap, int limit) {
+	for (int var = 0; var < limit; ++var) {
+		bool is_used = bitarray_test_bit(bitmap, var);
+		if (!is_used) {
+			return var;
+		}
+	}
+	return -1;
+}
+
+int find_free_frame_memory() {
+	pthread_mutex_lock(&memory_frames_bitarray);
+	int free_bit = find_free_bit(frame_usage_bitmap, MEMORY_SIZE / PAGE_SIZE);
+	pthread_mutex_unlock(&memory_frames_bitarray);
+	return free_bit;
+}
+
+int find_free_swap_frame(){
+	pthread_mutex_lock(&swap_frames_bitarray);
+	int free_bit = find_free_bit(swap_usage_bitmap, SWAP_SIZE / PAGE_SIZE);
+	pthread_mutex_unlock(&swap_frames_bitarray);
+	return free_bit;	
+}
+
+void clear_bitmap(t_bitarray* bitmap, int bits) {
+	for (int var = 0; var < bits; var++) {
+		bitarray_clean_bit(bitmap, var);
+	}
+}
+
 t_frame* get_frame_from_memory(int frame_number){
 	void* frame;
 
@@ -109,6 +139,8 @@ void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, 
 	int offset_swap = page_swap * PAGE_SIZE;
 	memcpy(archivo_swap + offset_swap, contenido, PAGE_SIZE);
 	msync(archivo_swap, PAGE_SIZE, MS_SYNC);
+
+	bitarray_set_bit(swap_usage_bitmap, page_swap);
 }
 
 void* get_content(int frame){
@@ -166,7 +198,7 @@ t_frame* get_frame_from_swap(int frame_swap){
 }
 
 void print_swap(){
-	printf("--------------------------------MEMORIA VIRTUAL--------------------------------\n");	
+	printf("-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
 		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
@@ -175,7 +207,7 @@ void print_swap(){
 }
 
 void print_memory(){
-	printf("--------------------------------MEMORIA PRINCIPAL--------------------------------\n");
+	printf("-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
 	for(int i = 0; i < frames; i++){
 		t_frame* mp_frame = get_frame_from_memory(i);
 		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
@@ -187,12 +219,13 @@ void print_memory(){
 //primero fijarme si hay un espacio libre en la mp
 t_page* find_frame_victim(){
 	t_page* victim_page = malloc(sizeof(t_page));
+	victim_page->timestamp = 0;
 
 	t_list* memory_pages = paginas_en_memoria();
 
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
-		if(page->flag == 1 && page->timestamp == 0 || page->timestamp > victim_page->timestamp){
+		if(page->flag == 1 && page->timestamp == 0 || page->timestamp < victim_page->timestamp){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
 			victim_page->flag = page->flag;//deberia de estar en memoria principal
@@ -242,30 +275,8 @@ t_list* find_frames(t_pedidoc *pedido){
 	for(int i = 0; i < size; i++){
 		t_page *page = list_get(pedido->pages, i);
 
-		if(page->flag == 1){
-			t_frame *frame = find_frame_in_memory(page);
-			list_add(platos, frame);
-		}
-		else{
-			void* buffer = get_content(page->frame);
-			int desplazamiento = 0;
-
-			uint32_t cantidad;
-			memcpy(&cantidad, buffer, sizeof(uint32_t));
-			uint32_t cantidad_lista;
-			desplazamiento += sizeof(uint32_t);
-			memcpy(&cantidad_lista, buffer + desplazamiento, sizeof(uint32_t));
-			desplazamiento += sizeof(uint32_t);						
-			char *plato_encontrado = malloc(size_char);
-			memcpy(plato_encontrado, buffer + desplazamiento, size_char);
-		
-			t_frame *marco = malloc(sizeof(t_frame));
-			marco->cantidad_pedida = cantidad;
-			marco->cantidad_lista = cantidad_lista;
-			marco->comida = plato_encontrado;
-
-			list_add(platos, marco);
-		}
+		t_frame* frame = find_frame_in_memory(page);
+		list_add(platos, frame);
 	}
 	return platos;
 }
@@ -292,6 +303,14 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 	return NULL;
 }
 
+int get_available_blocks_number() {
+    int cont = 0;
+    for (int i = 0; i < swap_frames; i++) {
+        if (bitarray_test_bit(swap_usage_bitmap, i) == 0) { cont++; }
+    }
+    return cont;
+}
+
 //este metodo se utiliza para un frame nuevo
 t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	pthread_mutex_lock(&mutex_asignar_pagina);
@@ -313,48 +332,38 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 		t_page* page = create_page(frame_in_mp, swap_frame);
 
 		bitarray_set_bit(swap_usage_bitmap, swap_frame);
+		int available_blocks = get_available_blocks_number();
+		int lastBit = bitarray_get_max_bit(swap_usage_bitmap);
+    	printf("Tamaño del bitmap: %d"BREAK, lastBit);
+    	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
+    	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
+    	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBit));
 		pthread_mutex_unlock(&mutex_asignar_pagina);
 		return page;
 	}
 	else{
+		int available_blockss = get_available_blocks_number();
+		int lastBitt = bitarray_get_max_bit(swap_usage_bitmap);
+    	printf("Tamaño del bitmap: %d"BREAK, lastBitt);
+    	printf("Cant. de bloques disponibles: %d"BREAK, available_blockss);
+    	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
+    	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBitt));
+
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
 		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_number);
 
 		t_page* new_page = create_page(frame_number, swap_frame);
 
-		bitarray_set_bit(swap_usage_bitmap, swap_frame);
-		bitarray_set_bit(frame_usage_bitmap, frame_number);	
+		bitarray_set_bit(frame_usage_bitmap, frame_number);
+
+		int available_blocks = get_available_blocks_number();
+		int lastBit = bitarray_get_max_bit(swap_usage_bitmap);
+    	printf("Tamaño del bitmap: %d"BREAK, lastBit);
+    	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
+    	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
+    	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBit));
 		pthread_mutex_unlock(&mutex_asignar_pagina);
 		return new_page;
 	}
 }
 
-int find_free_bit(t_bitarray* bitmap, int limit) {
-	for (int var = 0; var < limit; ++var) {
-		bool is_used = bitarray_test_bit(bitmap, var);
-		if (!is_used) {
-			return var;
-		}
-	}
-	return -1;
-}
-
-int find_free_frame_memory() {
-	pthread_mutex_lock(&memory_frames_bitarray);
-	int free_bit = find_free_bit(frame_usage_bitmap, frames);
-	pthread_mutex_unlock(&memory_frames_bitarray);
-	return free_bit;
-}
-
-int find_free_swap_frame(){
-	pthread_mutex_lock(&swap_frames_bitarray);
-	int free_bit = find_free_bit(swap_usage_bitmap, swap_frames);
-	pthread_mutex_unlock(&swap_frames_bitarray);
-	return free_bit;	
-}
-
-void clear_bitmap(t_bitarray* bitmap, int bits) {
-	for (int var = 0; var < bits; var++) {
-		bitarray_clean_bit(bitmap, var);
-	}
-}

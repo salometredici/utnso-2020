@@ -39,6 +39,7 @@ void* bitmap_pointer;
 
 t_bitarray *swap_usage_bitmap;
 void* swap_bitmap_pointer;
+
 void* archivo_swap;
 int fd_swap;
 

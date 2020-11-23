@@ -16,8 +16,8 @@ void log_comanda(char *text){
 
 void init_memory(){
 	frames = MEMORY_SIZE / PAGE_SIZE;
-	int bitmap_size_in_bytes = ceil((double) frames / 8);
 	
+	int bitmap_size_in_bytes = ceil((double) frames / 8);
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
 	clear_bitmap(frame_usage_bitmap, frames);
@@ -42,7 +42,7 @@ void* create_swap(){
 	
 	int truncate_result = ftruncate(fd, SWAP_SIZE);
 	void * archivo_data = mmap(NULL, SWAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	
+		
 	memset(archivo_data, 0, SWAP_SIZE);
 	msync(archivo_data, SWAP_SIZE, MS_SYNC);
 	
@@ -51,13 +51,14 @@ void* create_swap(){
 
 void init_virtual() {
 	//la ruta del swap va a la config desp vemos
+	swap_frames = SWAP_SIZE / PAGE_SIZE;
+
 	archivo_swap = create_swap();
 
-	swap_frames = SWAP_SIZE / PAGE_SIZE;
 	int swap_bitmap_size_in_bytes = ceil((double) swap_frames / 8);
+	printf("swap %d", swap_bitmap_size_in_bytes);
 	swap_bitmap_pointer = malloc(swap_bitmap_size_in_bytes);
 	swap_usage_bitmap = bitarray_create_with_mode(swap_bitmap_pointer, swap_bitmap_size_in_bytes, LSB_FIRST);
-
 	clear_bitmap(swap_usage_bitmap, swap_frames);
 }
 

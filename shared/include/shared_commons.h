@@ -25,6 +25,8 @@
 #define LOGS_PATH "/home/utnso/logs/"
 #define ERROR -1
 
+#define REST_NO_EXISTE "EL RESTAURANTE NO EXISTE EN EL FS"
+
 typedef enum {
 	APP = 1,
 	CLIENTE = 2,

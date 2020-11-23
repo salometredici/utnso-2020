@@ -1,5 +1,14 @@
 #include "../include/shared_logging.h"
 
+void log_lista_strings(t_list *lista_strings) {
+	int cant_elementos = list_size(lista_strings);
+	for (int i = 0; i < cant_elementos; i++) {
+		char *palabra = list_get(lista_strings, i);
+		printf(TAB"[%d] - %s"BREAK, i, palabra);
+		log_info(logger, TAB"[%d] - %s", i, palabra);
+	}
+}
+
 /* APP */
 
 void logClientInfo(t_cliente *cliente) {
@@ -205,6 +214,22 @@ void logRequestPlato(t_req_plato *plato) {
 	printf(TAB"Plato: ["BOLD"%s]"RESET BREAK, plato->plato);
 	printf(TAB"Cantidad plato: "BOLD"%d"RESET BREAK, plato->cantidadPlato);
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
+}
+
+
+/* Cliente */
+
+void log_rta_ConsultarPlatos(t_list *platos) {
+	if (list_is_empty(platos)) {
+		printf("El restaurante no posee platos"BREAK);
+		log_info(logger, "El restaurante no posee platos");
+	} else if (list_size(platos) == 1 &&
+			   string_equals_ignore_case(list_get(platos, 0), REST_NO_EXISTE)) {
+		printf(TAB RED"[ERROR] %s"RESET BREAK, REST_NO_EXISTE);
+		log_error(logger, "%s", REST_NO_EXISTE);
+	} else {
+		log_lista_strings(platos);
+	}
 }
 
 /* Sindicato */

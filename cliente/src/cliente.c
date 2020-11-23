@@ -196,11 +196,11 @@ void obtenerRestaurante(char *nombreRestaurante) {
 	free(header);
 }
 
-void consultarPlatos(char *nombreRestaurante) { // Es un string vacío
+void consultarPlatos(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_list *platos = recibirPayloadPaquete(header, conexion);
-	mostrarListaStrings(platos);
+	log_rta_ConsultarPlatos(platos);
 	free(platos);
 	free(header);
 }

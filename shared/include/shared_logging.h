@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <commons/bitarray.h>
+#include <commons/collections/list.h>
 #include "../include/shared_commons.h"
 #include "../include/shared_core.h"
 

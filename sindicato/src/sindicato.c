@@ -9,7 +9,7 @@ void* thread_lectura_consola(void * args) {
 	char **parametros;
 	char *mensaje;
 	int opcion;
-    char *comandoLeido = readline("(=^.^=)~>");
+    char *comandoLeido = readline(CYAN"(=^.^=)~>"RESET);
 
     while (1) {
 		if (!string_is_empty(comandoLeido)) {
@@ -51,7 +51,7 @@ void* thread_lectura_consola(void * args) {
 			free(comandoLeido);
 			if (opcion == OPT_BAI) { break; }
 		}
-		comandoLeido = readline("(=^.^=)~>");
+		comandoLeido = readline(CYAN"(=^.^=)~>"RESET);
 	}
 
     pthread_exit(EXIT_SUCCESS);

@@ -221,6 +221,11 @@ void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 	log_info(logger, TAB"Restaurante %s", restaurante);
 }
 
+void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_line) { // Revisar
+	printf("Chars=%03d, Buf_size=%03zu, Contenido: %s\n", line_size, line_buf_size, current_line);
+	log_debug(logger, "Chars=%03d, Buf_size=%03zu, Contenido: %s", line_size, line_buf_size, current_line);
+}
+
 // Consola e inicialización
 
 void log_full_FS(int cantReq, int cantDisp) {
@@ -228,9 +233,30 @@ void log_full_FS(int cantReq, int cantDisp) {
 	log_error(logger, "No hay bloques suficientes para realizar la operación. Cant. requerida: %d. Cant. disponible: %d", cantReq, cantDisp);
 }
 
+void log_blocks_assignment() {
+	printf("Iniciando la reserva de bloques..."BREAK);
+	log_debug(logger, "Iniciando la reserva de bloques...");
+}
+
+// Files content
+
+void log_full_blocks_content(char *content) {
+	log_debug(logger, "El contenido del archivo obtenido fue:");
+	log_debug(logger, "--------------------------------------------------");
+	log_debug(logger, BREAK"%s", content);
+	log_debug(logger, "--------------------------------------------------");
+}
+
+// .AFIP files
+
+void log_no_AFIP_content() {
+	printf(RED"[ERROR] El archivo .AFIP no tenía contenido. No es posible recuperar la información de los bloques."RESET BREAK);
+	log_error(logger, "El archivo .AFIP no tenía contenido. No es posible recuperar la información de los bloques.");
+}
+
 void log_Info_AFIP(char *rest) {
-	printf("Creando el archivo "BOLD"Info.AFIP"RESET" para el restaurante "BOLDMAGENTA"[%d]"RESET"..." BREAK, rest);
-	log_debug(logger, "Creando el archivo Info.AFIP para el restaurante [%d]...", rest);
+	printf("Creando el archivo "BOLD"Info.AFIP"RESET" para el restaurante "BOLDMAGENTA"[%s]"RESET"..." BREAK, rest);
+	log_debug(logger, "Creando el archivo Info.AFIP para el restaurante [%s]...", rest);
 }
 
 void log_Pedido_AFIP(int nroPedido) {
@@ -278,27 +304,28 @@ void logBitmapSuccess() {
 // Bitmap updates
 
 void log_bit_state(int pos, int bit) {
-	printf(BOLD"→"RESET" El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
+	printf(TAB BOLD"→"RESET" El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
 	log_debug(logger, "El bit [%d] se encuentra en estado %d", pos, bit);
 }
 
 void log_bit_update(int pos, t_bitarray *bitarray) {
-	printf(BOLD"→"RESET" Ahora el bit %d se encuentra en estado %d"BREAK, pos, bitarray_test_bit(bitarray, pos));
-	log_debug(logger, "Ahora el bit %d se encuentra en estado %d", pos, bitarray_test_bit(bitarray, pos));
+	printf(TAB BOLD"→"RESET" Ahora el bit %d se encuentra en estado %d"BREAK, pos, bitarray_test_bit(bitarray, pos));
+	log_debug(logger, TAB"Ahora el bit %d se encuentra en estado %d", pos, bitarray_test_bit(bitarray, pos));
 }
 
 void log_unavailable_bit(int pos) {
-	printf(TAB BOLD"→"RESET" El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
-	log_debug(logger, "El bit [%d] está ocupado, buscando al siguiente...", pos);
+	printf(TAB TAB BOLD"→"RESET" El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
+	log_debug(logger, TAB TAB"El bit [%d] está ocupado, buscando al siguiente...", pos);
 }
 
 // CREAR_RESTAURANTE
 
 void log_CrearRestaurante_Data(char **params) {
-	printf("Creando el archivo "BOLDYELLOW"Info.AFIP"RESET" para el restaurante "BOLDMAGENTA"[%s]"RESET" con los siguientes datos:"BREAK, params[1]);
+	printf("Iniciando la creación del archivo "BOLDYELLOW"Info.AFIP"RESET" para "BOLDMAGENTA"[%s]"RESET" con los siguientes datos:"BREAK, params[1]);
 	printf(TAB"Cant_cocineros: %s, Posicion: %s, Afinidades: %s"BREAK, params[2], params[3], params[4]);
-	printf(TAB"Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s"BREAK, params[5], params[6], params[7], params[8]);
-	log_info(logger, "Creando el archivo Info.AFIP para el restaurante [%s] con los siguientes datos:", params[1]);
+	printf(TAB"Platos: %s, Precios: %s"BREAK, params[5], params[6]);
+	printf(TAB"Cant_hornos: %s, Cant_pedidos: %s"BREAK, params[7], params[8]);
+	log_info(logger, "Iniciando la creación del archivo Info.AFIP para [%s] con los siguientes datos:", params[1]);
 	log_info(logger,TAB "Cant_cocineros: %s, Posicion: %s, Afinidades: %s", params[2], params[3], params[4]);
 	log_info(logger,TAB "Platos: %s, Precios: %s, Cant_hornos: %s, Cant_pedidos: %s", params[5], params[6], params[7], params[8]);
 }
@@ -306,9 +333,9 @@ void log_CrearRestaurante_Data(char **params) {
 // CREAR_RECETA
 
 void log_CrearReceta_Data(char **params) {
-	printf("Creando el archivo "BOLDYELLOW"%s.AFIP"RESET" con los siguientes datos:"BREAK, params[1]);
+	printf("Iniciando la creación del archivo "BOLDYELLOW"%s.AFIP"RESET" con los siguientes datos:"BREAK, params[1]);
 	printf(TAB"Pasos: %s, Tiempo_pasos: %s"BREAK, params[2], params[3]);
-	log_info(logger, "Creando el archivo %s.AFIP con los siguientes datos:", params[1]);
+	log_info(logger, "Iniciando la creación del archivo %s.AFIP con los siguientes datos:", params[1]);
 	log_info(logger, TAB"Pasos: %s, Tiempo_pasos: %s", params[2], params[3]);
 }
 

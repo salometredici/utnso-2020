@@ -47,9 +47,11 @@ void logClientInfo(t_cliente *cliente);
 // Conexiones
 void log_metadata_request(char *nombreRestaurante);
 void log_ConsultarPlatos(char *restaurante);
+void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_line);
 
 // Consola
 void log_full_FS(int cantReq, int cantDisp);
+void log_no_AFIP_content();
 void log_Info_AFIP(char *rest);
 void log_Pedido_AFIP(int nroPedido);
 void log_Receta_AFIP(char *receta);

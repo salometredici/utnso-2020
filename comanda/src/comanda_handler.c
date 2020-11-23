@@ -54,7 +54,7 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
-	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces
+	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces tiene que sacarlo a mp 
 	t_page *page = find_plato(pedido, request->plato);
 
 	if(page == NULL){
@@ -75,6 +75,9 @@ t_result* _guardar_plato(t_req_plato *request){
 				return result;
 			}
 		}
+	}
+	else{
+		//deberia de incrementar en la cantidad pedida 
 	}
 
 	t_result *result = getTResult("[GUARDAR_PLATO] Este plato ya existe en memoria", false);

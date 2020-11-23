@@ -50,15 +50,16 @@ void* create_swap(){
 	if(fd == ERROR){
 		exit(EXIT_FAILURE);
 	}
+	
 	int truncate_result = ftruncate(fd, SWAP_SIZE);
 	void * archivo_data = mmap(NULL, SWAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	
 	memset(archivo_data, 0, SWAP_SIZE);
 	msync(archivo_data, SWAP_SIZE, MS_SYNC);
 	return archivo_data;
 }
 
 void init_virtual() {
-	//swap_file = fopen(SWAP_FILE, "wb+");
 	//la ruta del swap va a la config desp vemos
 	archivo_swap = create_swap();
 

@@ -1,7 +1,6 @@
 #include "../include/memoria_core.h"
 
-t_restaurante *crear_restaurante(char *nombre_rest)
-{
+t_restaurante *crear_restaurante(char *nombre_rest){
     t_restaurante *restaurante = malloc(sizeof(restaurante));
     restaurante->nombre = nombre_rest;
     restaurante->pedidos = list_create();
@@ -10,8 +9,7 @@ t_restaurante *crear_restaurante(char *nombre_rest)
 	return restaurante;
 }
 
-t_pedidoc *crear_pedido(int id_pedido)
-{
+t_pedidoc *crear_pedido(int id_pedido){
 	t_pedidoc *pedido = malloc(sizeof(t_pedidoc));
 	pedido->id_pedido = id_pedido;
 	pedido->pages = list_create();
@@ -20,8 +18,60 @@ t_pedidoc *crear_pedido(int id_pedido)
 	return pedido;
 }
 
-t_restaurante* find_restaurante(char *nombre){
-	
+t_frame* get_frame_from_memory(int frame_number){
+	void* frame;
+
+	frame = MEMORIA[frame_number];
+
+	t_frame *marco = malloc(sizeof(t_frame));
+
+	uint32_t cantidad;
+	memcpy(&cantidad, frame + (PAGE_SIZE * frame_number), sizeof(uint32_t));
+	uint32_t cantidad_lista;
+	memcpy(&cantidad_lista, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), sizeof(uint32_t));						
+	char *plato_encontrado = malloc(size_char);
+	memcpy(plato_encontrado, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), size_char);
+
+	marco->cantidad_pedida = cantidad;
+	marco->cantidad_lista = cantidad_lista;
+	marco->comida = plato_encontrado;		
+
+	return marco;
+}
+
+t_frame* find_frame_in_memory(t_page* page){
+	if(page->flag == IN_MEMORY){
+		t_frame *frame = get_frame_from_memory(page->frame);	
+		return frame; 
+	}
+	else{
+		int frame_victim = find_victim_and_bring_it_to_mp(page);
+
+		page->flag = 1;
+		page->timestamp = get_current_time();
+		page->in_use = 1;
+		page->modified = 0;
+		page->frame = frame_victim;
+		
+		t_frame* frame = find_frame_in_memory(page->frame);
+		
+		return frame;
+	}
+}
+
+t_page* create_page(int frame_in_mp, int frame_swap){
+	t_page *new_plato = malloc(sizeof(t_page));
+	new_plato->frame = frame_in_mp;
+	new_plato->in_use = 1;
+	new_plato->flag = 0;
+	new_plato->modified = 0;
+	new_plato->timestamp = get_current_time();
+	new_plato->frame_mv = frame_swap;
+
+	return new_plato;		
+}
+
+t_restaurante* find_restaurante(char *nombre){	
     bool es_restaurante_buscado(void *elemento){
 		t_restaurante *x = (t_restaurante*) elemento;
 		return string_equals_ignore_case(x->nombre, nombre);
@@ -44,14 +94,6 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
 
 	t_pedidoc *pedido = list_find(restaurante->pedidos,&_find_pedido);
 	return pedido;	
-}
-
-double get_current_time(){
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	unsigned long long result = (((unsigned long long)tv.tv_sec) * 1000 + ((unsigned long long)tv.tv_usec) / 1000);
-	double a = result;
-	return a;
 }
 
 void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, int page_swap){
@@ -82,10 +124,11 @@ t_list* paginas_en_memoria() {
 		t_page* pagina;
 
 		for(int i = 0; i < list_size(restaurante->pedidos); i++){
-			t_pedidoc* pedido = list_get(restaurante->pedidos);
+			t_pedidoc* pedido = list_get(restaurante->pedidos, i);
 
 			for(int j = 0; j < list_size(pedido->pages); j++){
 				t_page* page = list_get(pedido->pages, j);
+				
 				if(page->flag == 1){
 					list_add(paginas, page);
 				}
@@ -101,57 +144,77 @@ t_list* paginas_en_memoria() {
 	return paginas;
 }
 
+t_frame* get_frame_from_swap(int frame_swap){
+	void* buffer = get_content(frame_swap);
+	int desplazamiento = 0;
+
+	uint32_t cantidad;
+	memcpy(&cantidad, buffer, sizeof(uint32_t));
+	uint32_t cantidad_lista;
+	desplazamiento += sizeof(uint32_t);
+	memcpy(&cantidad_lista, buffer + desplazamiento, sizeof(uint32_t));
+	desplazamiento += sizeof(uint32_t);						
+	char *plato_encontrado = malloc(size_char);
+	memcpy(plato_encontrado, buffer + desplazamiento, size_char);
+		
+	t_frame *marco = malloc(sizeof(t_frame));
+	marco->cantidad_pedida = cantidad;
+	marco->cantidad_lista = cantidad_lista;
+	marco->comida = plato_encontrado;
+
+	return marco;
+}
+
+//tengo que recorrer la tabla de paginas 
+//primero fijarme si hay un espacio libre en la mp
 t_page* find_frame_victim(){
-	//tengo que recorrer la tabla de paginas 
-	//primero fijarme si hay un espacio libre en la mp
 	t_page* victim_page = malloc(sizeof(t_page));
 
-	for(int i = 0; i < list_size(restaurantes); i++){
-		t_restaurante* x = list_get(restaurantes, i);
-		
-		for(int j = 0; j < list_size(x->pedidos); j++){
-			t_pedidoc* pedido = list_get(x->pedidos, j);
-			
-			for(int h = 0; h < list_size(pedido->pages); h++){
-				t_page* page = list_get(pedido->pages, h);
-				if(page->flag == 1 && page->timestamp == 0 || page->timestamp > victim_page->timestamp){
-					victim_page->frame = page->frame;
-					victim_page->frame_mv = page->frame_mv;
-					victim_page->flag = page->flag;//deberia de estar en memoria principal
-					victim_page->in_use = page->in_use;
-					victim_page->modified = page->modified;
-					victim_page->timestamp = page->timestamp;
-				}
-			}
-		}
-	}
+	t_list* memory_pages = paginas_en_memoria();
 
+	for(int i = 0; i < list_size(memory_pages); i++){
+		t_page* page = list_get(memory_pages, i);
+		if(page->flag == 1 && page->timestamp == 0 || page->timestamp > victim_page->timestamp){
+			victim_page->frame = page->frame;
+			victim_page->frame_mv = page->frame_mv;
+			victim_page->flag = page->flag;//deberia de estar en memoria principal
+			victim_page->in_use = page->in_use;
+			victim_page->modified = page->modified;
+			victim_page->timestamp = page->timestamp;
+		}			
+	}
 	return victim_page;
 }
 
-t_frame* find_frame_in_memory(t_page* page){
+void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantidad_lista, int frame_number){
+	void* frame = MEMORIA[frame_number];
 
-	if(page->flag == 1){
-		void* frame;
+	memcpy(frame + (PAGE_SIZE * frame_number), &cantidad_pedida, sizeof(uint32_t));
+	memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
+	memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
+}
 
-		frame = MEMORIA[page->frame];
+//te devuelve el nro de victima para setearlo al que lo necesita
+int find_victim_and_bring_it_to_mp(t_page* page){
+	t_page* victim_page = find_frame_victim();
+	t_frame* frame_victim = find_frame_in_memory(victim_page);
+	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
 
-		t_frame *marco = malloc(sizeof(t_frame));
+	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
+	victim_page->flag = 0;
+	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
 
-		uint32_t cantidad;
-		memcpy(&cantidad, frame + (PAGE_SIZE * page->frame), sizeof(uint32_t));
-		uint32_t cantidad_lista;
-		memcpy(&cantidad_lista, frame + (PAGE_SIZE * page->frame) + sizeof(uint32_t), sizeof(uint32_t));						
-		char *plato_encontrado = malloc(size_char);
-		memcpy(plato_encontrado, frame + (PAGE_SIZE * page->frame) + sizeof(uint32_t) + sizeof(uint32_t), size_char);
+	return victim_page->frame;
+}
 
-		marco->cantidad_pedida = cantidad;
-		marco->cantidad_lista = cantidad_lista;
-		marco->comida = plato_encontrado;	
-		return marco; 
-	}else{
-		t_page* frame_victima = find_frame_victim();
-	}
+int find_victim_and_update_swap(){
+	t_page* victim_page = find_frame_victim();
+	t_frame* frame_victim = find_frame_in_memory(victim_page);
+
+	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
+	victim_page->flag = 0;
+
+	return victim_page->frame;	
 }
 
 t_list* find_frames(t_pedidoc *pedido){
@@ -190,14 +253,13 @@ t_list* find_frames(t_pedidoc *pedido){
 }
 
 t_page* find_plato(t_pedidoc *pedido, char *plato){
-
 	int size = list_size(pedido->pages);
 	
 	if(size > 0){ //se fija si hay algun plato cargado
 		bool _find_plato(void* element){
 			t_page *x = (t_page*)element;
 			int frame_number = x->frame;
-			t_frame *plato_a_encontrar = find_frame_in_memory(frame_number, x->flag);
+			t_frame *plato_a_encontrar = find_frame_in_memory(x);
 			return string_equals_ignore_case(plato, plato_a_encontrar->comida);
 		}
 
@@ -212,44 +274,40 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 	return NULL;
 }
 
+//este metodo se utiliza para un frame nuevo
 t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	pthread_mutex_lock(&mutex_asignar_pagina);
 	int frame_number = find_free_frame_memory();
-	void *frame;
-	if(1){
+	int swap_frame = find_free_swap_frame();
+	
+	if(frame_number == -1){
 		log_comanda("No hay espacio en la memoria.. hacer swap");
-		int swap_frame = find_free_swap_frame();
+
+		if(swap_frame == -1){
+			log_comanda("No hay espacio en swap");
+			return NULL;
+		}
+
+		int frame_in_mp = find_victim_and_update_swap();
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
+		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_in_mp);
 
-		t_page *new_plato = malloc(sizeof(t_page));
-		new_plato->frame = frame_number;
-		new_plato->in_use = 0;
-		new_plato->flag = 0;
-		new_plato->modified = 0;
-		new_plato->timestamp = get_current_time();
-		new_plato->frame_mv = swap_frame;
+		t_page* page = create_page(frame_in_mp, swap_frame);
 
+		bitarray_set_bit(swap_usage_bitmap, swap_frame);
 		pthread_mutex_unlock(&mutex_asignar_pagina);
+		return page;
 	}
 	else{
-		//Aloco en la memoria es igual que serializar un mensaje
-		frame = MEMORIA[frame_number];
+		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
+		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_number);
 
-		uint32_t cantidad_lista = 0;
-		memcpy(frame + (PAGE_SIZE * frame_number), &cantidad_pedida, sizeof(uint32_t));
-		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
-		memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), nombre_plato, size_char);
-		
-		//esta en memoria ahora asignar a la tabla de paginas/platos
-		t_page *new_plato = malloc(sizeof(t_page));
-		new_plato->frame = frame_number;
-		new_plato->in_use = 0;
-		new_plato->flag = 0;
-		new_plato->modified = 0;
+		t_page* new_page = create_page(frame_number, swap_frame);
 
+		bitarray_set_bit(swap_usage_bitmap, swap_frame);
 		bitarray_set_bit(frame_usage_bitmap, frame_number);	
 		pthread_mutex_unlock(&mutex_asignar_pagina);
-		return new_plato;
+		return new_page;
 	}
 }
 

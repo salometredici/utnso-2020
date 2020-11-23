@@ -21,6 +21,8 @@
 #define PAGE_SIZE 32 // por enunciado 
 #define MAX_LENGTH_COMIDA 24
 #define RUTASWAP "/home/utnso/swap.txt"
+#define IN_MEMORY 1
+#define IN_SWAP 0
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;

@@ -20,7 +20,8 @@ void init_memory(){
 	int bitmap_size_in_bytes = ceil((double) frames / 8);
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
-	clear_bitmap(frame_usage_bitmap, frames);
+	printf("Bitmap RAM (aka MEMORIA_PRINCIPAL)\n");
+	clear_bitmap(frame_usage_bitmap, bitarray_get_max_bit(frame_usage_bitmap));
 
 	MEMORIA = calloc(frames, PAGE_SIZE);
 	
@@ -56,10 +57,11 @@ void init_virtual() {
 	archivo_swap = create_swap();
 
 	int swap_bitmap_size_in_bytes = ceil((double) swap_frames / 8);
-	printf("swap %d", swap_bitmap_size_in_bytes);
+	printf("SWAP SIZE: %d\n", swap_bitmap_size_in_bytes);
 	swap_bitmap_pointer = malloc(swap_bitmap_size_in_bytes);
 	swap_usage_bitmap = bitarray_create_with_mode(swap_bitmap_pointer, swap_bitmap_size_in_bytes, LSB_FIRST);
-	clear_bitmap(swap_usage_bitmap, swap_frames);
+	printf("Bitmap disco (aka MEMORIA_VIRTUAL\n");
+	clear_bitmap(swap_usage_bitmap, bitarray_get_max_bit(swap_usage_bitmap));
 }
 
 void init_comanda() {

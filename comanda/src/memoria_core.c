@@ -46,6 +46,13 @@ void clear_bitmap(t_bitarray* bitmap, int bits) {
 	for (int var = 0; var < bits; var++) {
 		bitarray_clean_bit(bitmap, var);
 	}
+
+	// int available_blocks = get_available_blocks_number();
+	// int lastBit = bitarray_get_max_bit(bitmap);
+	// printf("Tamaño del bitmap: %d"BREAK, lastBit);
+	// printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
+	// printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(bitmap, 0));
+	// printf("Valor del último bit: %d"BREAK, bitarray_test_bit(bitmap, lastBit));
 }
 
 t_frame* get_frame_from_memory(int frame_number){
@@ -140,7 +147,23 @@ void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, 
 	memcpy(archivo_swap + offset_swap, contenido, PAGE_SIZE);
 	msync(archivo_swap, PAGE_SIZE, MS_SYNC);
 
+	// printf("---------------------Escrimos en disco\n");
+	// int available_blocks = get_available_blocks_number();
+	// int lastBit = bitarray_get_max_bit(swap_usage_bitmap);
+	// printf("Tamaño del bitmap: %d"BREAK, lastBit);
+	// printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
+	// printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
+	// printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBit));
+
 	bitarray_set_bit(swap_usage_bitmap, page_swap);
+
+	// int available_blockss = get_available_blocks_number();
+	// int lastBitt = bitarray_get_max_bit(swap_usage_bitmap);
+	// printf("Tamaño del bitmap: %d"BREAK, lastBitt);
+	// printf("Cant. de bloques disponibles: %d"BREAK, available_blockss);
+	// printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
+	// printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBitt));
+
 }
 
 void* get_content(int frame){
@@ -331,23 +354,17 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 
 		t_page* page = create_page(frame_in_mp, swap_frame);
 
-		bitarray_set_bit(swap_usage_bitmap, swap_frame);
-		int available_blocks = get_available_blocks_number();
-		int lastBit = bitarray_get_max_bit(swap_usage_bitmap);
-    	printf("Tamaño del bitmap: %d"BREAK, lastBit);
-    	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
-    	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
-    	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBit));
 		pthread_mutex_unlock(&mutex_asignar_pagina);
 		return page;
 	}
 	else{
-		int available_blockss = get_available_blocks_number();
-		int lastBitt = bitarray_get_max_bit(swap_usage_bitmap);
-    	printf("Tamaño del bitmap: %d"BREAK, lastBitt);
-    	printf("Cant. de bloques disponibles: %d"BREAK, available_blockss);
-    	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
-    	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBitt));
+		// printf("----------------------Escribo en RAM\n");
+		// int available_blocksss = get_available_blocks_number();
+		// int lastBittt = bitarray_get_max_bit(frame_usage_bitmap);
+    	// printf("Tamaño del bitmap: %d"BREAK, lastBittt);
+    	// printf("Cant. de bloques disponibles: %d"BREAK, available_blocksss);
+    	// printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(frame_usage_bitmap, 0));
+    	// printf("Valor del último bit: %d"BREAK, bitarray_test_bit(frame_usage_bitmap, lastBittt));
 
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
 		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_number);
@@ -356,12 +373,14 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 
 		bitarray_set_bit(frame_usage_bitmap, frame_number);
 
-		int available_blocks = get_available_blocks_number();
-		int lastBit = bitarray_get_max_bit(swap_usage_bitmap);
-    	printf("Tamaño del bitmap: %d"BREAK, lastBit);
-    	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
-    	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, 0));
-    	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(swap_usage_bitmap, lastBit));
+		// printf("------------------------Update RAM\n");
+		// int available_blockssss = get_available_blocks_number();
+		// int lastBitttt = bitarray_get_max_bit(frame_usage_bitmap);
+    	// printf("Tamaño del bitmap: %d"BREAK, lastBitttt);
+    	// printf("Cant. de bloques disponibles: %d"BREAK, available_blockssss);
+    	// printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(frame_usage_bitmap, 0));
+    	// printf("Valor del último bit: %d"BREAK, bitarray_test_bit(frame_usage_bitmap, lastBitttt));
+
 		pthread_mutex_unlock(&mutex_asignar_pagina);
 		return new_page;
 	}

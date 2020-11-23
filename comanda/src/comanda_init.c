@@ -20,6 +20,7 @@ void init_memory(){
 	
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
+	clear_bitmap(frame_usage_bitmap, frames);
 
 	MEMORIA = calloc(frames, PAGE_SIZE);
 	

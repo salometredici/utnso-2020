@@ -166,16 +166,20 @@ t_frame* get_frame_from_swap(int frame_swap){
 }
 
 void print_swap(){
+	printf("--------------------------------MEMORIA VIRTUAL--------------------------------\n");	
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
-		printf("|Nombre del plato %s |Cantidad pedido %d | Cantidad lista %d \n", swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		free(swap_frame);
 	}
 }
 
-void print_swap(){
+void print_memory(){
+	printf("--------------------------------MEMORIA PRINCIPAL--------------------------------\n");
 	for(int i = 0; i < frames; i++){
-		t_frame* swap_frame = get_frame_from_memory(i);
-		printf("Indice: &d |Nombre del plato: %s |Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		t_frame* mp_frame = get_frame_from_memory(i);
+		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
+		free(mp_frame);
 	}
 }
 
@@ -325,13 +329,6 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	}
 }
 
-int find_free_frame_memory() {
-	pthread_mutex_lock(&memory_frames_bitarray);
-	int free_bit = find_free_bit(frame_usage_bitmap, MEMORY_SIZE / PAGE_SIZE);
-	pthread_mutex_unlock(&memory_frames_bitarray);
-	return free_bit;
-}
-
 int find_free_bit(t_bitarray* bitmap, int limit) {
 	for (int var = 0; var < limit; ++var) {
 		bool is_used = bitarray_test_bit(bitmap, var);
@@ -342,16 +339,16 @@ int find_free_bit(t_bitarray* bitmap, int limit) {
 	return -1;
 }
 
-int find_free_frame() {
+int find_free_frame_memory() {
 	pthread_mutex_lock(&memory_frames_bitarray);
-	int free_bit = find_free_bit(frame_usage_bitmap, MEMORY_SIZE / PAGE_SIZE);
+	int free_bit = find_free_bit(frame_usage_bitmap, frames);
 	pthread_mutex_unlock(&memory_frames_bitarray);
 	return free_bit;
 }
 
 int find_free_swap_frame(){
 	pthread_mutex_lock(&swap_frames_bitarray);
-	int free_bit = find_free_bit(swap_usage_bitmap, MEMORY_SIZE / PAGE_SIZE);
+	int free_bit = find_free_bit(swap_usage_bitmap, swap_frames);
 	pthread_mutex_unlock(&swap_frames_bitarray);
 	return free_bit;	
 }

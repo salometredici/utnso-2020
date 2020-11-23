@@ -88,5 +88,5 @@ t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
 t_list* find_frames(t_pedidoc *pedido);
 void print_swap();
-
+void print_memory();
 #endif

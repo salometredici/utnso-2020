@@ -220,7 +220,7 @@ char *get_info(int option, char *object) {
 			int snd_equal_i = find_char_index(snd_line, '=');
 		/* Parseamos cada string a int */
 		int total_size = get_int_file_value(afip_content, fst_equal_i, fst_endl_i);
-		int fst_block_number = get_int_file_value(afip_content, snd_equal_i, strlen(afip_content)-2);
+		int fst_block_number = get_int_file_value(snd_line, snd_equal_i, strlen(snd_line)-2);
 		
 		char *content = get_full_blocks_content(total_size, fst_block_number);
 		log_full_blocks_content(content);

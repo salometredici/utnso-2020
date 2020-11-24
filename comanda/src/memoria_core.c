@@ -3,7 +3,7 @@
 t_restaurante *crear_restaurante(char *nombre_rest){
     t_restaurante *restaurante = malloc(sizeof(restaurante));
     restaurante->nombre = nombre_rest;
-    restaurante->pedidos = list_create();
+    restaurante->pedidos = NULL;
     log_comanda("Se creo un restaurante.");
     list_add(restaurantes, restaurante);
 	return restaurante;
@@ -208,6 +208,8 @@ t_frame* get_frame_from_swap(int frame_swap){
 	marco->cantidad_lista = cantidad_lista;
 	marco->comida = plato_encontrado;
 
+	free(plato_encontrado);
+	free(buffer);
 	return marco;
 }
 
@@ -279,7 +281,9 @@ int find_victim_and_update_swap(){
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
 	victim_page->flag = 0;
 
-	return victim_page->frame;	
+	int frame_victim_nro = victim_page->frame;
+	free(frame_victim);
+	return frame_victim_nro;	
 }
 
 t_list* find_frames(t_pedidoc *pedido){

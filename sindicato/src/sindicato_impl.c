@@ -39,6 +39,8 @@ char *get_InfoAFIP_path(char *restaurante) {
 	return InfoAFIP_path;
 }
 
+/* Utils Pedidos */
+
 char *get_filename_pedido(int idPedido) {
 	char *filename = string_new();
 	string_append_with_format(&filename, "Pedido%d.AFIP", idPedido);
@@ -51,8 +53,23 @@ char *get_full_pedido_path(t_request *request) { // Retorna la ruta absoluta, po
 	return full_path;
 }
 
+/* Utils Recetas */
+
+char *get_full_recipe_path(char *receta) { // Retorna la ruta absoluta, por ejemplo: /home/utnso/afip/Files/Recetas/PapasAlHorno.AFIP
+	char *full_path = string_new();
+	string_append_with_format(&full_path, "%s%s/%s.AFIP", dirInicial, RECETAS_PATH, receta);
+	return full_path;
+}
+
+/* Existencia */
+
 bool existe_restaurante(char *rest) {
 	char *path = get_full_rest_path(rest);
+	return fdExists(path);
+}
+
+bool existe_receta(char *receta) {
+	char *path = get_full_recipe_path(receta);
 	return fdExists(path);
 }
 
@@ -129,6 +146,7 @@ char *get_content_from_AFIP_file(int option, char *object) {
 			AFIP_file_path = get_InfoAFIP_path(object);
 			break;
 		case RECETA:
+			AFIP_file_path = get_full_recipe_path(object);
 			break;
 		case PEDIDO:
 			break;
@@ -199,7 +217,7 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 	int bloques_a_leer[total_blocks_number]; bloques_a_leer[0] = fst_block_number;
 	int curr_block_size = total_size < maxContentSize ? total_size : maxContentSize;
 
-	char *full_content = malloc(total_size + 1);
+	char *full_content = string_new();//malloc(total_size + 1);
 
 	for (int i = 0; i < total_blocks_number; i++) {
 		

@@ -240,6 +240,29 @@ void log_rta_GuardarPedido(t_result *result) {
 	logTResult(result);
 }
 
+void log_receta_e_instrucciones(t_receta *receta) {
+	t_list *instrucciones = list_create();
+	list_add_all(instrucciones, receta->instrucciones);
+	int size = list_size(instrucciones);
+	printf("Receta: "BOLDMAGENTA"[%s]"RESET BREAK, receta->plato);
+	log_info(logger, "Receta: [%s]", receta->plato);
+	for (int i = 0; i < size; i++) {
+		t_instrucciones_receta *current_inst = list_get(instrucciones, i);
+		printf("[Paso #%d]: "BOLD"%s"RESET", Tiempo: %d" BREAK, i, current_inst->paso, current_inst->qPaso);
+		log_info(logger, "[Paso #%d]: %s, Tiempo: %d", i, current_inst->paso, current_inst->qPaso);
+	}
+
+}
+
+void log_rta_ObtenerReceta(t_receta *receta) {
+	if (string_equals_ignore_case(receta->plato, RECETA_NO_EXISTE)) {
+		printf(TAB RED"[ERROR] %s"RESET BREAK, RECETA_NO_EXISTE);
+		log_error(logger, "%s", RECETA_NO_EXISTE);
+	} else {
+		log_receta_e_instrucciones(receta);
+	}
+}
+
 /* Sindicato */
 
 // Atender conexiones
@@ -252,6 +275,11 @@ void log_metadata_request(char *nombreRestaurante) {
 void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 	printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, restaurante);
 	log_info(logger, TAB"Restaurante %s", restaurante);
+}
+
+void log_ObtenerReceta(char *receta_solicitada) {
+	printf(TAB"Receta solicitada: "BOLDMAGENTA"%s"RESET BREAK, receta_solicitada);
+	log_info(logger, TAB"Receta solicitada %s", receta_solicitada);
 }
 
 void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_line) { // Revisar

@@ -6,6 +6,7 @@
 #include <commons/string.h>
 #include <readline/history.h>
 #include <readline/readline.h>
+#include <commons/collections/list.h>
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
@@ -33,6 +34,7 @@ void confirmarPedido(int idPedido, char *nombreRestaurante);
 void platoListo(char *nombreRestaurante, int idPedido, char *nombreComida);
 void consultarPedido(int idPedido);
 void obtenerPedido(char *nombreRestaurante, int idPedido);
+void obtener_receta(char *receta_a_buscar);
 
 //Listas 
  t_list *listaRestaurantes;

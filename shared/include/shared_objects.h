@@ -7,5 +7,7 @@
 
 t_request *getTRequest(int idPedido, char *nombre);
 t_result *getTResult(char *msg, bool hasError);
+t_receta *getEmptyRecipe();
+t_instrucciones_receta *getTPaso(char *paso, int qPaso);
 
 #endif

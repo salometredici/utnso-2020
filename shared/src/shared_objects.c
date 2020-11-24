@@ -13,3 +13,27 @@ t_result *getTResult(char *msg, bool hasError) {
     result->hasError = hasError;
     return result;
 }
+
+t_receta *getEmptyRecipe() {
+    t_receta *receta = malloc(sizeof(t_receta));
+    receta->plato = RECETA_NO_EXISTE;
+    receta->instrucciones = list_create();
+    return receta;
+}
+
+t_receta *getTReceta() { // Revisar
+    t_receta *receta = malloc(sizeof(t_receta));
+    receta->plato = "";
+    receta->instrucciones = list_create();
+    t_instrucciones_receta *paso1 = malloc(sizeof(t_instrucciones_receta));
+    paso1->paso ="";
+    paso1->qPaso = 0;
+    return receta;
+}
+
+t_instrucciones_receta *getTPaso(char *paso, int qPaso) {
+    t_instrucciones_receta *inst = malloc(sizeof(t_instrucciones_receta));
+    inst->paso = paso;
+    inst->qPaso = qPaso;
+    return inst;
+}

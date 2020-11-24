@@ -132,7 +132,10 @@ void *threadLecturaConsola(void *args) {
 							break;
 						case OBTENER_PEDIDO:
 							obtenerPedido(parametro1, atoi(parametro2));
-							break;		
+							break;
+						case OBTENER_RECETA:
+							obtener_receta(parametro1);
+							break;
 						case ERROR:
 						default:
 							showInvalidCommandMsg(SINDICATO);
@@ -202,6 +205,15 @@ void consultarPlatos(char *nombreRestaurante) {
 	t_list *platos = recibirPayloadPaquete(header, conexion);
 	log_rta_ConsultarPlatos(platos);
 	free(platos);
+	free(header);
+}
+
+void obtener_receta(char *receta_a_buscar) {
+	enviarPaquete(conexion, CLIENTE, OBTENER_RECETA, receta_a_buscar);
+	t_header *header = recibirHeaderPaquete(conexion);
+	t_receta *receta = recibirPayloadPaquete(header, conexion);
+	log_rta_ObtenerReceta(receta);
+	free(receta);
 	free(header);
 }
 

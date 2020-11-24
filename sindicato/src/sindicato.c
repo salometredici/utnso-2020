@@ -194,21 +194,21 @@ void *atender_conexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				free(pedido); free(milanesa); free(empanadas); free(ensalada);
 				break;
-			case PLATO_LISTO: // TODO
+			case PLATO_LISTO:; // TODO
 				break;
-			case TERMINAR_PEDIDO: // TODO: Recibe idPedido y restaurante, retorna Ok/fail
+			case TERMINAR_PEDIDO:; // TODO: Recibe idPedido y restaurante, retorna Ok/fail
 				break;
-			case OBTENER_RECETA: // TODO: Recibe plato y retorna receta
-				// t_list *instrucciones = list_create();
-
-				// char* ej[] = { "PREPARAR", "SERVIR" };
-				// for(int i = 0; i < 4; i++){
-				// 	t_instrucciones_receta *instruccion = malloc(sizeof(t_instrucciones_receta));
-				// 	instruccion->paso = ej[i];
-				// 	instruccion->qPaso = 2;
-				// 	list_add(instrucciones, instruccion);
-				// }
-				// enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RECETA, instrucciones);
+			case OBTENER_RECETA:;
+				char *receta_a_buscar = recibirPayloadPaquete(header, socketCliente);
+				log_ObtenerReceta(receta_a_buscar);
+				t_receta *receta;
+				if (!existe_receta(receta_a_buscar)) {
+					receta = getEmptyRecipe();
+				} else {
+					receta = obtener_receta(receta_a_buscar);
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RECETA_2, receta);
+				free(receta_a_buscar); free(receta);
 				break;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

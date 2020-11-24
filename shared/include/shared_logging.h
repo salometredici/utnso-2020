@@ -40,6 +40,14 @@ void logTResult(t_result *result);
 void logConsultarPedido(t_pedido *pedidoCons, int idPedido);
 void logInitDataCliente(t_cliente *cliente);
 
+/* Mensajes */
+
+void log_rta_GuardarPedido(t_result *result);
+void log_ConsultarPlatos(char *restaurante);
+void log_rta_ConsultarPlatos(t_list *platos);
+void log_ObtenerReceta(char *receta_solicitada);
+void log_rta_ObtenerReceta(t_receta *receta);
+
 // APP
 void logClientInfo(t_cliente *cliente);
 
@@ -47,7 +55,6 @@ void logClientInfo(t_cliente *cliente);
 
 // Conexiones
 void log_metadata_request(char *nombreRestaurante);
-void log_ConsultarPlatos(char *restaurante);
 void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_line);
 
 // Consola

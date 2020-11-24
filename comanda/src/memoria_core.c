@@ -19,7 +19,7 @@ t_pedidoc *crear_pedido(int id_pedido){
 }
 
 int find_free_bit(t_bitarray* bitmap, int limit) {
-	for (int var = 0; var < limit; ++var) {
+	for (int var = 0; var < limit; var++) {
 		bool is_used = bitarray_test_bit(bitmap, var);
 		if (!is_used) {
 			return var;
@@ -149,6 +149,7 @@ void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, 
 	int offset_swap = page_swap * PAGE_SIZE;
 	memcpy(archivo_swap + offset_swap, contenido, PAGE_SIZE);
 	msync(archivo_swap, PAGE_SIZE, MS_SYNC);
+	free(contenido);
 
 	// printf("---------------------Escrimos en disco\n");
 	//print_status_bitmap(swap_usage_bitmap);

@@ -1,9 +1,14 @@
 #include "../include/memoria_core.h"
 
+t_list* create_list(){
+	t_list* aux = list_create();
+	return aux;
+}
+
 t_restaurante *crear_restaurante(char *nombre_rest){
     t_restaurante *restaurante = malloc(sizeof(restaurante));
     restaurante->nombre = nombre_rest;
-    restaurante->pedidos = NULL;
+    restaurante->pedidos = create_list();
     log_comanda("Se creo un restaurante.");
     list_add(restaurantes, restaurante);
 	return restaurante;
@@ -12,7 +17,7 @@ t_restaurante *crear_restaurante(char *nombre_rest){
 t_pedidoc *crear_pedido(int id_pedido){
 	t_pedidoc *pedido = malloc(sizeof(t_pedidoc));
 	pedido->id_pedido = id_pedido;
-	pedido->pages = list_create();
+	pedido->pages = create_list();
     pedido->estado = PENDIENTE; //veo si agrego otro estado 
 	log_info(logger, "Se cre la tabla de Paginas para id_pedido-(%d) creado.", id_pedido);
 	return pedido;

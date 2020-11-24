@@ -13,6 +13,7 @@ t_result* _guardar_pedido(t_request *request){
 			return result;
 		}
 		t_pedidoc *pedido = crear_pedido(request->idPedido);
+
 		add_pedido_to_restaurante(restaurante_creado, pedido);
 
 		t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);		

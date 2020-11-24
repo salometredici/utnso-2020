@@ -14,7 +14,12 @@
 #define PEDIDO 3
 
 char *get_restaurant_path(char *restaurante);
+char *get_content_from_AFIP_file(int option, char *object);
+char *get_info(int option, char *object);
+
 bool existe_restaurante(char *restaurante);
+bool existe_receta(char *receta);
+bool existe_pedido(t_request *request);
 
 void crear_restaurante(char **params);
 void crear_receta(char **params);

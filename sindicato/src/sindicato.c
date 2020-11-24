@@ -82,29 +82,16 @@ void *atender_conexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PROCESO, SINDICATO);
 				break;
 			case OBTENER_RESTAURANTE:;
-				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
-				log_metadata_request(nombreRestaurante);
-
-				t_md *md = malloc(sizeof(t_md));
-
-				t_list *afinidades = list_create();
-				list_add(afinidades, "Milanesas");
-				md->afinidades = afinidades;
-
-				t_list *platosMd = list_create();
-				t_md_receta *r1 = malloc(sizeof(t_md_receta)); t_md_receta *r2 = malloc(sizeof(t_md_receta));
-				r1->plato = "Milanesas"; r1->precio = 150;
-				r2->plato = "Pizza"; r2->precio = 220;
-				list_add(platosMd, r1); list_add(platosMd, r2);
-				md->platos = platosMd;
-
-				md->posX = 5; md->posY = 7;
-				md->cantidadCocineros = 5; md->cantidadHornos = 2; md->cantidadPedidos = 1;
-
+				char *nombre_restaurante = recibirPayloadPaquete(header, socketCliente);
+				log_ObtenerRestaurante(nombre_restaurante);
+				t_md *md;
+				if (!existe_restaurante(nombre_restaurante)) {
+					md = getEmptyMd();
+				} else {
+					md = obtener_restaurante(nombre_restaurante);
+				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, md);
-				free(r1); free(r2); free(platosMd);
-				free(afinidades);
-				free(md);
+				free(nombre_restaurante); free(md);
 				break;
 			case CONSULTAR_PLATOS:;
 				char *rest_consulta = recibirPayloadPaquete(header, socketCliente);
@@ -211,7 +198,7 @@ void *atender_conexiones(void *conexionNueva)
 				free(receta_a_buscar); free(receta);
 				break;
 			default:
-				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
+				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)"BREAK, header->codigoOperacion);
 				break;
 		}
 		free(header);

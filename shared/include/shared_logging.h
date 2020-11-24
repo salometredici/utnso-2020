@@ -47,6 +47,8 @@ void log_ConsultarPlatos(char *restaurante);
 void log_rta_ConsultarPlatos(t_list *platos);
 void log_ObtenerReceta(char *receta_solicitada);
 void log_rta_ObtenerReceta(t_receta *receta);
+void log_ObtenerRestaurante(char *restaurante);
+void log_rta_ObtenerRestaurante(t_md *md);
 
 // APP
 void logClientInfo(t_cliente *cliente);

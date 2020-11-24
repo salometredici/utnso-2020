@@ -190,11 +190,12 @@ void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
 	free(header);
 }
 
-void obtenerRestaurante(char *nombreRestaurante) {
-	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombreRestaurante);
+void obtenerRestaurante(char *nombre_restaurante) {
+	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombre_restaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_md *md = recibirPayloadPaquete(header, conexion);
-	logMetadata(md);
+	log_rta_ObtenerRestaurante(md);
+	free(nombre_restaurante);
 	free(md);
 	free(header);
 }

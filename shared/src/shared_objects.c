@@ -37,3 +37,17 @@ t_instrucciones_receta *getTPaso(char *paso, int qPaso) {
     inst->qPaso = qPaso;
     return inst;
 }
+
+t_md *getEmptyMd() {
+    t_md *md = malloc(sizeof(t_md));
+    t_list *platos = list_create();
+    t_list *afinidades = list_create();
+    md->posX = ERROR;
+    md->posY = ERROR;
+    md->cantidadHornos = ERROR;
+    md->cantidadPedidos = ERROR;
+    md->cantidadCocineros = ERROR;
+    md->platos = platos;
+    md->afinidades = afinidades;
+    return md;
+}

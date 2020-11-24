@@ -220,21 +220,6 @@ typedef struct { // Ir actualizando con erratas del TP! No debería tener el id 
 } t_pedido;
 
 typedef struct {
-	char *plato;
-	int precio;
-} t_md_receta;
-
-typedef struct { // cantidad de cocineros y sus afinidades, posicino del restaurante, recetas con sus precios y cantidad de hornos, cantidad de pedidos
-	int posX;
-	int posY;
-	int cantidadHornos;
-	int cantidadPedidos;
-	int cantidadCocineros;
-	t_list *platos; // lista de t_md_receta
-	t_list *afinidades; // lista de strings
-} t_md;
-
-typedef struct {
 	char *idCliente; // Instancias de CLIENTE: CLIENTE_ID, Instancias de RESTAURANTE: NOMBRE_RESTAURANTE
 	int socketCliente;
 	bool esRestaurante;
@@ -243,6 +228,32 @@ typedef struct {
 	char *restSeleccionado;
 	t_posicion *posRest;
 } t_cliente;
+
+// METADATA RESTAURANTE
+
+typedef struct {
+	char *plato;
+	int precio;
+} t_md_receta;
+
+/* Mapea todos los datos indicados a partir del archivo Info.AFIP del restaurante con el formato de la API
+ 	1. Lista de afinidades
+	2. PosX
+	3. PosY
+	4. Lista de los platos con sus precios
+	5. Cantidad de hornos
+	6. Cantidad de pedidos
+	7. Cantidad de cocineros
+*/
+typedef struct {
+	int posX;
+	int posY;
+	int cantidadHornos;
+	int cantidadPedidos;
+	int cantidadCocineros;
+	t_list *platos; // Es una lista de t_md_receta. Ej.: [{PapasAlHorno,55},{Lasagna,147}]
+	t_list *afinidades; // Es una lista de strings. Ej.: [Milanesas]
+} t_md;
 
 /* Funciones */
 

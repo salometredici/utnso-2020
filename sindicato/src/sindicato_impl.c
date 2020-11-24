@@ -217,7 +217,7 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 	int bloques_a_leer[total_blocks_number]; bloques_a_leer[0] = fst_block_number;
 	int curr_block_size = total_size < maxContentSize ? total_size : maxContentSize;
 
-	char *full_content = string_new();//malloc(total_size + 1);
+	char *full_content = string_new();
 
 	for (int i = 0; i < total_blocks_number; i++) {
 		

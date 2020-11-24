@@ -10,4 +10,8 @@
 #include "../include/sindicato_init.h"
 #include "tests.h"
 
+t_list *obtener_platos_restaurante(char *restaurante);
+t_list *obtener_receta(char *receta_a_buscar);
+t_md *obtener_restaurante(char *restaurante);
+
 #endif

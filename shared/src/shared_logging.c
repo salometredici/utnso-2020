@@ -1,5 +1,7 @@
 #include "../include/shared_logging.h"
 
+/* Utils */
+
 void log_lista_strings(t_list *lista_strings) {
 	int cant_elementos = list_size(lista_strings);
 	for (int i = 0; i < cant_elementos; i++) {
@@ -27,7 +29,7 @@ void logRtaConsultarPlatos(t_list *platosEnviados) {
 	}
 }
 
-/* Formatted logs */
+/* Commons */
 
 void logInitializedProcess() {
 	printf(BOLD"Proceso "RESET BOLDBLUE"%s"RESET BOLD" iniciado..."RESET BREAK, getStringKeyValue(process, PROCNKEYS));
@@ -78,6 +80,20 @@ void logNewClientConnection(int socket) {
 	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
 }
 
+void logHeader(m_code codigoOperacion, p_code procesoOrigen) {
+	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET BREAK,
+		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
+		getStringKeyValue(procesoOrigen, PROCNKEYS));
+	log_info(logger, "[HEADER] Received %s from %s",
+		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
+		getStringKeyValue(procesoOrigen, PROCNKEYS));
+}
+
+void logMessageSent(m_code codigoOperacion) {
+	printf("Message "YELLOW"%s"RESET" sent"BREAK, getStringKeyValue(codigoOperacion, COMMANDNKEYS));
+	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
+}
+
 /* Serialization logs */
 
 void logListaRecetas(t_list *listaRecetas) {
@@ -89,6 +105,18 @@ void logListaRecetas(t_list *listaRecetas) {
 		printf(TAB"Precio: "BOLD"$%d"RESET BREAK, recetaActual->precio);
 		log_info(logger, "Receta [%d] - Plato: [%s], Precio: $%d", i, recetaActual->plato, recetaActual->precio);
 		free(recetaActual);
+	}
+}
+
+/* Lista de t_md_receta */
+
+void log_list_t_md_receta(t_list *lista_platos) {
+	int cant_platos = list_size(lista_platos);
+	for (int i = 0; i < cant_platos; i++) {
+		t_md_receta *plato_actual = list_get(lista_platos, i);
+		printf(TAB "[Plato #%d] -"BOLD"[%s]"RESET", Precio: "BOLD"$%d"RESET BREAK, i, plato_actual->plato, plato_actual->precio);
+		log_info(logger, "[Plato #%d] - [%s], Precio: $%d", i, plato_actual->plato, plato_actual->precio);
+		free(plato_actual);
 	}
 }
 
@@ -118,9 +146,9 @@ void logInitDataCliente(t_cliente *cliente) {
 	log_info("Cliente %s iniciado, PosX: %d, PosY: %d", cliente->idCliente, cliente->posCliente->posX, cliente->posCliente->posY);
 }
 
-/* t_md */
+/* t_md */ //!!! 
 
-void logMetadata(t_md *md) {
+void logMetadata(t_md *md) { // ahora log_rta_obtenerrestaurante
 	printf(BOLD"[Metadata del restaurante]:"RESET BREAK);
 	log_info(logger, "Metadata del restaurante:");
 	printf(TAB"Cantidad de cocineros: "BOLD"%d"RESET BREAK, md->cantidadCocineros);
@@ -152,20 +180,6 @@ void logTResult(t_result *result) {
 		printf("Resultado: "BOLDGREEN"[%s]"RESET" - "BOLD"%s"RESET BREAK, "SUCCESS", result->msg);
 	}
 	log_info(logger, "Resultado: [%s] - %s", result->hasError ? "FAILED" : "SUCCESS", result->msg);
-}
-
-void logHeader(m_code codigoOperacion, p_code procesoOrigen) {
-	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET BREAK,
-		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
-		getStringKeyValue(procesoOrigen, PROCNKEYS));
-	log_info(logger, "[HEADER] Received %s from %s",
-		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
-		getStringKeyValue(procesoOrigen, PROCNKEYS));
-}
-
-void logMessageSent(m_code codigoOperacion) {
-	printf("Message "YELLOW"%s"RESET" sent"BREAK, getStringKeyValue(codigoOperacion, COMMANDNKEYS));
-	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
 }
 
 /* t_request */
@@ -220,8 +234,42 @@ void logRequestPlato(t_req_plato *plato) {
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
 }
 
+/* Mensajes */
 
-/* Cliente */
+// OBTENER_RESTAURANTE
+
+void log_ObtenerRestaurante(char *restaurante) {
+	printf(TAB"Metadata requested by "BOLDMAGENTA"[%s]"RESET BREAK, restaurante);
+	log_info(logger, "Metadata requested by %s", restaurante);
+}
+
+void log_rta_ObtenerRestaurante(t_md *md) {
+	if (md->cantidadCocineros == ERROR){
+		printf(TAB RED"[ERROR] %s"RESET BREAK, REST_NO_EXISTE);
+		log_error(logger, "%s", REST_NO_EXISTE);
+	} else {
+		printf(BOLD"[Metadata del restaurante]:"RESET BREAK);
+		log_info(logger, "Metadata del restaurante:");
+		printf(TAB"Cantidad de cocineros: "BOLD"%d"RESET BREAK, md->cantidadCocineros);
+		printf(TAB"Cantidad de hornos: "BOLD"%d"RESET BREAK, md->cantidadHornos);
+		printf(TAB"Cantidad de pedidos: "BOLD"%d"RESET BREAK, md->cantidadPedidos);
+		printf(TAB"Posición del restaurante: "BOLD"[%d,%d]"RESET BREAK, md->posX, md->posY);
+		log_info(logger, TAB"Cant. de cocineros: %d, Cant. de hornos: %d, Cant. de pedidos: %d", md->cantidadCocineros, md->cantidadHornos, md->cantidadPedidos);
+		log_info(logger, TAB"Posición del restaurante: [%d,%d]", md->posX, md->posY);
+		printf(TAB BOLD"Afinidades:"RESET BREAK);
+		log_info(logger, TAB"Afinidades:");
+		log_lista_strings(md->afinidades);
+		printf(TAB BOLD"Recetas:"RESET BREAK);
+		log_list_t_md_receta(md->platos);
+	}
+}
+
+// CONSULTAR_PLATOS
+
+void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
+	printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, restaurante);
+	log_info(logger, TAB"Restaurante %s", restaurante);
+}
 
 void log_rta_ConsultarPlatos(t_list *platos) {
 	if (list_is_empty(platos)) {
@@ -236,8 +284,17 @@ void log_rta_ConsultarPlatos(t_list *platos) {
 	}
 }
 
+// GUARDAR_PEDIDO
+
 void log_rta_GuardarPedido(t_result *result) {
 	logTResult(result);
+}
+
+// OBTENER_RECETA
+
+void log_ObtenerReceta(char *receta_solicitada) {
+	printf(TAB"Receta solicitada: "BOLDMAGENTA"%s"RESET BREAK, receta_solicitada);
+	log_info(logger, TAB"Receta solicitada %s", receta_solicitada);
 }
 
 void log_receta_e_instrucciones(t_receta *receta) {
@@ -267,19 +324,9 @@ void log_rta_ObtenerReceta(t_receta *receta) {
 
 // Atender conexiones
 
-void log_metadata_request(char *nombreRestaurante) {
+void log_metadata_request(char *nombreRestaurante) { // ahora log_obtener_restaurante
 	printf(TAB"Metadata requested by "MAGENTA"%s"RESET BREAK, nombreRestaurante);
 	log_info(logger, "Metadada requested by %s", nombreRestaurante);
-}
-
-void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
-	printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, restaurante);
-	log_info(logger, TAB"Restaurante %s", restaurante);
-}
-
-void log_ObtenerReceta(char *receta_solicitada) {
-	printf(TAB"Receta solicitada: "BOLDMAGENTA"%s"RESET BREAK, receta_solicitada);
-	log_info(logger, TAB"Receta solicitada %s", receta_solicitada);
 }
 
 void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_line) { // Revisar

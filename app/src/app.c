@@ -123,7 +123,6 @@ void *atenderConexiones(void *conexionNueva)
 				cliente->socketCliente = socketCliente;
 				logClientInfo(cliente);
 				actualizarClientesConectados(cliente);
-				free(cliente);
 				break;
         	case CONSULTAR_RESTAURANTES:;
 				if (list_is_empty(restaurantesConectados)) {

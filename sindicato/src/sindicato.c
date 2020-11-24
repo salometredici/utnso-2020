@@ -111,34 +111,39 @@ void *atender_conexiones(void *conexionNueva)
 				t_result *result_guardar_pedido;
 				if (!existe_restaurante(req_guardar_pedido->nombre)) {
 					 result_guardar_pedido = getTResult(REST_NO_EXISTE, true);
+				} else if (!existe_pedido(req_guardar_pedido)) {
+					crear_pedido(req_guardar_pedido);
+					result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
 				} else {
-					if (!existe_pedido(req_guardar_pedido)) {
-						crear_pedido(req_guardar_pedido);
-						result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
-					} else {
-						result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
-					}
+					result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
 				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, result_guardar_pedido);
 				free(req_guardar_pedido); free(result_guardar_pedido);	
 				break;
 			case GUARDAR_PLATO:;
-				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
-				logRequestPlato(reqGuardarPlato);
-				free(reqGuardarPlato);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
-				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
-				// 4. Verificar si Pl existe en el archivo. CantActual + CantEnviada - Si no existe agregar Pl a lista de Pls y anexar Cant + aumentar precio total del Pedido
-				// 5. Responder el mensaje con Ok/fail
-				
-				t_result *resGPlato = malloc(sizeof(t_result));
-				resGPlato->msg = "[GUARDAR_PLATO] OK";
-				resGPlato->hasError = false;
-				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, resGPlato);
-				free(resGPlato);
+				t_req_plato *req_guardar_plato = recibirPayloadPaquete(header, socketCliente);
+				log_GuardarPlato(req_guardar_plato);
+				t_result *result_guardar_plato;
+				if (!existe_restaurante(req_guardar_plato->restaurante)) {
+					result_guardar_plato = getTResult(REST_NO_EXISTE, true);
+				} else {
+					t_request *req_pedido_buscado = getTRequest(req_guardar_plato->idPedido, req_guardar_plato->restaurante);
+					if (!existe_pedido(req_pedido_buscado)) {
+						result_guardar_plato = getTResult(PEDIDO_NO_EXISTE, true);
+					} else {
+						t_pedido *pedido_guardar_plato = obtener_pedido(req_pedido_buscado);
+						if (pedido_guardar_plato->estado != PENDIENTE) {
+							result_guardar_plato = getTResult(ESTADO_AVANZADO, true);
+						} else {
+							agregar_plato_a_pedido(req_guardar_plato);
+							result_guardar_plato = getTResult(PEDIDO_ACTUALIZADO, false);
+						}
+						free(pedido_guardar_plato);
+					}
+					free(req_pedido_buscado);
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, result_guardar_plato);
+				free(req_guardar_pedido); free(result_guardar_plato);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
@@ -158,28 +163,18 @@ void *atender_conexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
 				break;
 			case OBTENER_PEDIDO:;
-				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqObt, header->codigoOperacion);
-				free(reqObt);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
-				// 3. Responder indicando si se pudo realizar junto con la información del pedido de ser así
-
-				t_pedido *pedido = malloc(sizeof(t_pedido)); t_list *platos = list_create();
-				t_plato *milanesa = malloc(sizeof(t_plato)); t_plato *empanadas = malloc(sizeof(t_plato)); t_plato *ensalada = malloc(sizeof(t_plato));
-
-				milanesa->plato = "Milanesa"; milanesa->precio = 200; milanesa->cantidadPedida = 2; milanesa->cantidadLista = 1;
-				empanadas->plato = "Empanadas"; empanadas->precio = 880; empanadas->cantidadPedida = 12; empanadas->cantidadLista = 6;
-				ensalada->plato = "Ensalada"; ensalada->precio = 120; ensalada->cantidadPedida = 1; ensalada->cantidadLista = 0;
-				list_add(platos, milanesa); list_add(platos, empanadas); list_add(platos, ensalada);
-
-				pedido->restaurante = string_new(); pedido->estado = PENDIENTE;
-				pedido->platos = platos; pedido->precioTotal = calcularPrecioTotal(platos);
-
+				t_request *req_obtener_pedido = recibirPayloadPaquete(header, socketCliente);
+				log_ObtenerPedido(req_obtener_pedido, header->codigoOperacion);
+				t_pedido *pedido;
+				if (!existe_restaurante(req_obtener_pedido->nombre)) {
+					pedido = getEmptyPedido(REST_INEXISTENTE);
+				} else if (!existe_pedido(req_obtener_pedido)) {
+					pedido = getEmptyPedido(PEDIDO_INEXISTENTE);
+				} else {
+					pedido = obtener_pedido(req_obtener_pedido);
+				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
-				free(pedido); free(milanesa); free(empanadas); free(ensalada);
+				free(req_obtener_pedido); free(pedido);
 				break;
 			case PLATO_LISTO:; // TODO
 				break;
@@ -221,7 +216,7 @@ int main(int argc, char **argv)
 	int fd;
 	while (1) {
 		fd = aceptarCliente(socketServidor);
-		if (fd != -1) {
+		if (fd != ERROR) {
 			// Creo un nuevo hilo para la conexión aceptada
 			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
 			t_data->socketThread = fd;

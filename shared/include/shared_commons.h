@@ -27,8 +27,12 @@
 
 #define REST_NO_EXISTE "EL RESTAURANTE NO EXISTE EN EL FS"
 #define RECETA_NO_EXISTE "LA RECETA NO EXISTE EN EL FS"
+#define PEDIDO_NO_EXISTE "EL PEDIDO NO EXISTE EN EL FS"
 #define YA_EXISTE_PEDIDO "EL PEDIDO YA EXISTE PARA EL RESTAURANTE SOLICITADO"
 #define PEDIDO_CREADO "EL PEDIDO FUE CREADO CON ÉXITO"
+#define ESTADO_AVANZADO "EL PEDIDO YA FUE CONFIRMADO/TERMINADO, NO SE PUEDE ACTUALIZAR"
+#define PEDIDO_ACTUALIZADO "EL PEDIDO HA SIDO ACTUALIZADO"
+#define BLOQUES_NO_ASIGNADOS "SOLICITUD SIN BLOQUES ASIGNADOS"
 
 typedef enum {
 	APP = 1,
@@ -187,39 +191,6 @@ typedef struct {
 } t_request;
 
 typedef struct {
-	char *restaurante;
-	int idPedido;
-	char *plato;
-	int cantidadPlato;
-} t_req_plato;
-
-typedef enum {
-	PENDIENTE = 1,
-	CONFIRMADO = 2,
-	FINALIZADO = 3
-} t_estado;
-
-typedef struct {
-	char *plato;
-	int cantidadPedida;
-	int cantidadLista;
-	int precio;
-} t_plato;
-
-typedef struct {
-	char *restaurante;
-	int idPedido;
-	char *plato;
-} t_plato_listo;
-
-typedef struct { // Ir actualizando con erratas del TP! No debería tener el id también?
-	char *restaurante;
-	t_estado estado;
-	t_list *platos;
-	int precioTotal; // Quizás después corresponda un float o double
-} t_pedido;
-
-typedef struct {
 	char *idCliente; // Instancias de CLIENTE: CLIENTE_ID, Instancias de RESTAURANTE: NOMBRE_RESTAURANTE
 	int socketCliente;
 	bool esRestaurante;
@@ -228,6 +199,60 @@ typedef struct {
 	char *restSeleccionado;
 	t_posicion *posRest;
 } t_cliente;
+
+// PLATOS
+
+typedef struct {
+	char *restaurante;
+	int idPedido;
+	char *plato;
+	int cantidadPlato;
+} t_req_plato;
+
+// PEDIDOS
+
+typedef enum {
+	PENDIENTE = 1,
+	CONFIRMADO = 2,
+	FINALIZADO = 3,
+	REST_INEXISTENTE = 4,
+	PEDIDO_INEXISTENTE = 5,
+	SIN_PLATOS = 6
+} t_estado;
+
+static t_keys diccionarioTEstados[] = {
+    { "PENDIENTE", PENDIENTE },
+	{ "CONFIRMADO", CONFIRMADO },
+	{ "FINALIZADO", FINALIZADO },
+	{ "REST_INEXISTENTE", REST_INEXISTENTE },
+	{ "PEDIDO_INEXISTENTE", PEDIDO_INEXISTENTE },
+	{ "SIN_PLATOS", SIN_PLATOS }
+};
+
+#define T_ESTADOSNKEYS (sizeof(diccionarioTEstados)/sizeof(t_keys))
+
+// Devuelve el t_estado conrrespondiente a un string
+t_estado string_to_t_estado(char *estado);
+
+typedef struct {
+	char *plato;
+	int cantidadPedida;
+	int cantidadLista;
+	//int precio;
+} t_plato;
+
+typedef struct {
+	char *restaurante;
+	int idPedido;
+	char *plato;
+} t_plato_listo;
+
+typedef struct {
+	char *restaurante;
+	t_estado estado;
+	t_list *platos; // Es una lista de t_plato
+	int precioTotal; // Quizás después corresponda un float o double
+} t_pedido;
 
 // METADATA RESTAURANTE
 

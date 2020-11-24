@@ -40,14 +40,21 @@ t_instrucciones_receta *getTPaso(char *paso, int qPaso) {
 
 t_md *getEmptyMd() {
     t_md *md = malloc(sizeof(t_md));
-    t_list *platos = list_create();
-    t_list *afinidades = list_create();
     md->posX = ERROR;
     md->posY = ERROR;
     md->cantidadHornos = ERROR;
     md->cantidadPedidos = ERROR;
     md->cantidadCocineros = ERROR;
-    md->platos = platos;
-    md->afinidades = afinidades;
+    md->platos = list_create();
+    md->afinidades = list_create();
     return md;
+}
+
+t_pedido *getEmptyPedido(t_estado error_code) {
+    t_pedido *pedido = malloc(sizeof(t_pedido));
+    pedido->restaurante = string_new();
+    pedido->estado = error_code;
+    pedido->platos = list_create();
+    pedido->precioTotal = ERROR;
+    return pedido;
 }

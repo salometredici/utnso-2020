@@ -42,6 +42,8 @@ void logInitDataCliente(t_cliente *cliente);
 
 /* Mensajes */
 
+void log_ObtenerPedido(t_request *request, m_code codigo_operacion);
+void log_rta_ObtenerPedido(t_pedido *pedido_obtenido, t_request *request);
 void log_rta_GuardarPedido(t_result *result);
 void log_ConsultarPlatos(char *restaurante);
 void log_rta_ConsultarPlatos(t_list *platos);
@@ -49,6 +51,7 @@ void log_ObtenerReceta(char *receta_solicitada);
 void log_rta_ObtenerReceta(t_receta *receta);
 void log_ObtenerRestaurante(char *restaurante);
 void log_rta_ObtenerRestaurante(t_md *md);
+void log_GuardarPlato(t_req_plato *request_plato);
 
 // APP
 void logClientInfo(t_cliente *cliente);

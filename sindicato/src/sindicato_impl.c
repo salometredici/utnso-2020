@@ -149,6 +149,7 @@ char *get_content_from_AFIP_file(int option, char *object) {
 			AFIP_file_path = get_full_recipe_path(object);
 			break;
 		case PEDIDO:
+			AFIP_file_path = object;
 			break;
 	}
 	char *file_content = string_new();
@@ -263,6 +264,10 @@ char *get_info(int option, char *object) {
 		int total_size = get_int_file_value(afip_content, fst_equal_i, fst_endl_i);
 		int fst_block_number = get_int_file_value(snd_line, snd_equal_i, strlen(snd_line)-2);
 		
+		if (total_size == 0 && fst_block_number == ERROR) {
+			return BLOQUES_NO_ASIGNADOS;
+		}
+
 		char *content = get_full_blocks_content(total_size, fst_block_number);
 		log_full_blocks_content(content);
 		free(afip_content); free(snd_line);

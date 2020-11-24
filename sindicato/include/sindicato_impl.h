@@ -15,6 +15,7 @@
 
 char *get_restaurant_path(char *restaurante);
 char *get_content_from_AFIP_file(int option, char *object);
+char *get_full_pedido_path(t_request *request);
 char *get_info(int option, char *object);
 
 bool existe_restaurante(char *restaurante);

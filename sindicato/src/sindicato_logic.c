@@ -84,15 +84,32 @@ t_posicion *get_posicion_from_string(char *info){
 }
 
 // Retorna una lista de t_md_receta a partir de dos listas de strings, una para los platos y otra para sus precios
-t_list *get_md_platos_from_lists(t_list *platos, t_list *precios) {
+
+t_list *get_platos_con_precios_from_rest(char *info_restaurante) {
 	t_list *platos_con_precios = list_create();
+	t_list *platos = get_list_from_string(info_restaurante, 3, 8);
+	t_list *precios = get_list_from_string(info_restaurante, 4, 15);
 	for (int i = 0; i < list_size(platos); i++) {
 		t_md_receta *plato_actual = malloc(sizeof(t_md_receta));
 		plato_actual->plato = list_get(platos, i);
 		plato_actual->precio = atoi(list_get(precios, i));
 		list_add(platos_con_precios, plato_actual);
 	}
+	free(platos); free(precios);
 	return platos_con_precios;
+}
+
+// Retorna una lista de t_plato a partir de tres listas de strings, una para los platos, otra para sus cant. pedidas y otra para sus cant. listas
+t_list *get_t_plato_list_from_lists(t_list *platos, t_list *cant_pedidas, t_list *cant_listas) {
+	t_list *t_plato_list = list_create();
+	for (int i = 0; i < list_size(platos); i++) {
+		t_plato *plato_actual = malloc(sizeof(t_plato));
+		plato_actual->plato = list_get(platos, i);
+		plato_actual->cantidadPedida = list_get(cant_pedidas, i);
+		plato_actual->cantidadLista = list_get(cant_listas, i);
+		list_add(t_plato_list, plato_actual);
+	}
+	return t_plato_list;	
 }
 
 // Retorna un md
@@ -102,9 +119,7 @@ t_md *get_md_from_string(char *afip_content) {
 	md->cantidadCocineros = atoi(get_plain_line_content(afip_content, 0));
 	md->cantidadPedidos = atoi(get_plain_line_content(afip_content, 6));
 
-	t_list *platos = get_list_from_string(afip_content, 3, 8);
-	t_list *precios = get_list_from_string(afip_content, 4, 15);
-	md->platos = get_md_platos_from_lists(platos, precios);
+	md->platos = get_platos_con_precios_from_rest(afip_content);
 
 	md->afinidades = get_list_from_string(afip_content, 2, 20);
 
@@ -112,8 +127,45 @@ t_md *get_md_from_string(char *afip_content) {
 	md->posX = posicion->posX;
 	md->posY = posicion->posY;
 
-	free(platos); free(precios); free(posicion);
+	free(posicion);
 	return md;
+}
+
+int obtener_precio_pedido(t_list *platos_con_precios, t_list *platos_pedido) {
+	int precio_total = 0;
+	for (int i = 0; i < list_size(platos_pedido); i++) {
+
+		t_plato *plato_actual = list_get(platos_pedido, i);
+
+		bool es_plato_actual(void *actual) {
+			t_md_receta *plato_menu_actual = actual;
+			return string_equals_ignore_case(plato_actual->plato, plato_menu_actual->plato);
+		}
+
+		t_md_receta *plato_encontrado = list_find(platos_con_precios, &es_plato_actual);
+
+		if (plato_encontrado) { precio_total += plato_encontrado->precio; }
+
+		free(plato_actual); free(plato_encontrado);
+	}
+	return precio_total;
+}
+
+t_pedido *get_pedido_from_string(char *info, t_request *request, char *info_restaurante) {
+	t_pedido *pedido = malloc(sizeof(t_pedido));
+	pedido->restaurante = request->nombre;
+	pedido->estado = string_to_t_estado(get_plain_line_content(info, 0));
+
+	t_list *platos = get_list_from_string(info, 1, 14);
+	t_list *cant_pedidas = get_list_from_string(info, 2, 17);
+	t_list *cant_listas = get_list_from_string(info, 3, 16);
+	pedido->platos = get_t_plato_list_from_lists(platos, cant_pedidas, cant_listas);
+
+	t_list *menu_restaurante = get_platos_con_precios_from_rest(info_restaurante);
+	pedido->precioTotal = obtener_precio_pedido(menu_restaurante, pedido->platos);
+
+	free(platos); free(cant_pedidas); free(cant_listas);
+	return pedido;
 }
 
 /* Funcionalidades */
@@ -134,4 +186,20 @@ t_list *obtener_receta(char *receta_a_buscar) {
 t_md *obtener_restaurante(char *restaurante) {
 	char *info_restaurante = get_info(RESTAURANTE, restaurante);
 	return get_md_from_string(info_restaurante);
+}
+
+void agregar_plato_a_pedido(t_req_plato *req_plato_a_agregar) {
+
+}
+
+t_pedido *obtener_pedido(t_request *request) {
+	char *info_restaurante = get_info(RESTAURANTE, request->nombre);
+	char *info_pedido = get_info(PEDIDO, get_full_pedido_path(request));
+	t_pedido *pedido;
+	if (string_equals_ignore_case(info_pedido, BLOQUES_NO_ASIGNADOS)) {
+		pedido = getEmptyPedido(SIN_PLATOS);
+	} else {
+		pedido = get_pedido_from_string(info_pedido, request, info_restaurante);
+	}
+	return pedido;
 }

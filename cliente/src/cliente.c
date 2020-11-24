@@ -310,17 +310,15 @@ void consultarPedido(int idPedido) {
 }
 
 void obtenerPedido(char *nombreRestaurante, int idPedido) {
-	t_request *pedidoObt = malloc(sizeof(t_request));
-	pedidoObt->nombre = nombreRestaurante;
-	pedidoObt->idPedido = idPedido;
+	t_request *req_obtener_pedido = getTRequest(idPedido, nombreRestaurante);
 
-	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, pedidoObt);
+	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, req_obtener_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(pedidoObt);
 
-	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexion);
-	logObtenerPedido(pedidoCompleto, idPedido);
-	free(pedidoCompleto);
+	t_pedido *pedido_obtenido = recibirPayloadPaquete(header, conexion);
+	log_rta_ObtenerPedido(pedido_obtenido, req_obtener_pedido);
+	free(req_obtener_pedido);
+	free(pedido_obtenido);
 	free(header);
 }
 

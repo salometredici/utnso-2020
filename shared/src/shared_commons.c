@@ -88,6 +88,16 @@ int commandToString(char *key) {
     return ERROR;
 }
 
+t_estado string_to_t_estado(char *estado) {
+    for (int i = 0; i < T_ESTADOSNKEYS; i++) {
+    	t_keys sym = diccionarioTEstados[i];
+    	if (string_equals_ignore_case(estado,sym.valor)) {
+        	return sym.valor;
+    	}
+	}
+    return ERROR;
+}
+
 /* Config */
 
 char *obtenerLogFileName() {
@@ -126,10 +136,11 @@ void mostrarListaPlatos(t_list *listaPlatos) {
 	for (int i = 0; i < cantidadPlatos; i++) {
 		t_plato *platoActual = list_get(listaPlatos, i);
 		printf("Plato: [%s]\n", platoActual->plato);
-		printf("\tPrecio: $%d\n", platoActual->precio);
+		//printf("\tPrecio: $%d\n", platoActual->precio);
 		printf("\tCantidad pedida: %d\n", platoActual->cantidadPedida);
 		printf("\tCantidad lista: %d\n", platoActual->cantidadLista);
-		log_info(logger, "Plato %d: [%s], $%d, Pedido: %d, Listo: %d", i, platoActual->plato, platoActual->precio, platoActual->cantidadPedida, platoActual->cantidadLista);
+		// log_info(logger, "Plato %d: [%s], $%d, Pedido: %d, Listo: %d", i, platoActual->plato, platoActual->precio, platoActual->cantidadPedida, platoActual->cantidadLista);
+		log_info(logger, "Plato %d: [%s], Pedido: %d, Listo: %d", i, platoActual->plato, platoActual->cantidadPedida, platoActual->cantidadLista);
 		free(platoActual);
 	}
 }
@@ -152,15 +163,15 @@ t_link_element *list_find_element(t_list *self, bool(*condition)(void*), int *in
 	return element;
 }
 
-int calcularPrecioTotal(t_list *listaPlatos) {
-	int precioTotal = 0;
-	int cantidadPlatos = list_size(listaPlatos);
-	for (int i = 0; i < cantidadPlatos; i++) {
-		t_plato *plato = list_get(listaPlatos, i);
-		precioTotal += plato->precio;
-	}
-	return precioTotal;
-}
+// int calcularPrecioTotal(t_list *listaPlatos) { // rehacer
+// 	int precioTotal = 0;
+// 	int cantidadPlatos = list_size(listaPlatos);
+// 	for (int i = 0; i < cantidadPlatos; i++) {
+// 		t_plato *plato = list_get(listaPlatos, i);
+// 		precioTotal += plato->precio;
+// 	}
+// 	return precioTotal;
+// }
 
 char *getStringEstadoPedido(t_estado estado) {
 	switch (estado) {
@@ -170,6 +181,12 @@ char *getStringEstadoPedido(t_estado estado) {
 			return "CONFIRMADO";
 		case FINALIZADO:
 			return "FINALIZADO";
+		case REST_INEXISTENTE:
+			return "REST_INEXISTENTE";
+		case PEDIDO_INEXISTENTE:
+			return "PEDIDO_INEXISTENTE";
+		case SIN_PLATOS:
+			return "SIN_PLATOS";
 		default:
 			break;
 	}

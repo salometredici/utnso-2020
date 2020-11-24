@@ -53,9 +53,10 @@ int getBytesReqPlato(t_req_plato *request) {
 	return sizeof(int) * 4 + getBytesString(request->restaurante) + getBytesString(request->plato);
 }
 
-// Size de 4 ints (precio, cantPedida, cantLista y size del plato) más la longitud del plato en sí
+// Size de 4 ints (precio, cantPedida, cantLista y size del plato) más la longitud del plato en sí-- antes
+// Size de 3 ints (cantPedida, cantLista y size del plato) más la longitud del plato en sí --ahora
 int getBytesPlato(t_plato *plato) {
-	return sizeof(int) * 4 + getBytesString(plato->plato);
+	return sizeof(int) * 3 + getBytesString(plato->plato);
 }
 
 int getBytesListaPlatos(t_list *listaPlatos) {
@@ -468,8 +469,8 @@ void *srlzPedido(t_pedido *pedido) {
 		desplazamiento += sizeof(int);
 		memcpy(magic + desplazamiento, &plato->cantidadLista, sizeof(int));
 		desplazamiento += sizeof(int);
-		memcpy(magic + desplazamiento, &plato->precio, sizeof(int));
-		desplazamiento += sizeof(int);
+		// memcpy(magic + desplazamiento, &plato->precio, sizeof(int));
+		// desplazamiento += sizeof(int);
 	}
 
 	return magic;
@@ -811,8 +812,8 @@ t_pedido *dsrlzPedido(void *buffer, int size) {
 		desplazamiento += sizeof(int);
 		memcpy(&platoActual->cantidadLista, buffer + desplazamiento, sizeof(int));
 		desplazamiento += sizeof(int);
-		memcpy(&platoActual->precio, buffer + desplazamiento, sizeof(int));
-		desplazamiento += sizeof(int);
+		// memcpy(&platoActual->precio, buffer + desplazamiento, sizeof(int));
+		// desplazamiento += sizeof(int);
 		// Por último, agregamos el plato a la lista
 		list_add(platos, platoActual);
 	}

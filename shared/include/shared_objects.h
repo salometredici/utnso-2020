@@ -10,5 +10,6 @@ t_result *getTResult(char *msg, bool hasError);
 t_receta *getEmptyRecipe();
 t_instrucciones_receta *getTPaso(char *paso, int qPaso);
 t_md *getEmptyMd();
+t_pedido *getEmptyPedido(t_estado error_code);
 
 #endif

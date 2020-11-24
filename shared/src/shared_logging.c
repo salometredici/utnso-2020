@@ -171,6 +171,20 @@ void logSeleccionarRestaurante(t_selecc_rest *seleccion) {
 	log_info(logger, "Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restauranteSeleccionado);
 }
 
+/* Lista de t_plato */
+
+void log_t_plato_list(t_list *list) {
+	int cant_platos = list_size(list);
+	for (int i = 0; i < cant_platos; i++) {
+		t_plato *plato_actual = list_get(list, i);
+		printf("Plato: "BOLD"[%s]"RESET BREAK, plato_actual->plato);
+		printf(TAB"Cantidad pedida: %d"BREAK, plato_actual->cantidadPedida);
+		printf(TAB"Cantidad lista: %d"BREAK, plato_actual->cantidadLista);
+		log_info(logger, "Plato %d: [%s], Pedido: %d, Listo: %d", i, plato_actual->plato, plato_actual->cantidadPedida, plato_actual->cantidadLista);
+		free(plato_actual);
+	}
+}
+
 /* t_result */
 
 void logTResult(t_result *result) {
@@ -235,6 +249,51 @@ void logRequestPlato(t_req_plato *plato) {
 }
 
 /* Mensajes */
+
+// OBTENER_PEDIDO
+
+void log_ObtenerPedido(t_request *request, m_code codigo_operacion) {
+	logRequest(request, codigo_operacion);
+}
+
+void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
+	switch (pedido->estado) {
+		case PENDIENTE:
+		case CONFIRMADO:
+		case FINALIZADO:
+			printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+			log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+			log_t_plato_list(pedido->platos);
+		break;
+		case REST_INEXISTENTE:
+			printf(TAB RED"[ERROR] %s - [%s, Pedido #%d]"RESET BREAK, REST_NO_EXISTE, request->nombre, request->idPedido);
+			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, REST_NO_EXISTE);
+			break;
+		case PEDIDO_INEXISTENTE:
+			printf(TAB RED"[ERROR] %s - [%s, Pedido #%d]"RESET BREAK, PEDIDO_NO_EXISTE, request->nombre, request->idPedido);
+			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, PEDIDO_NO_EXISTE);
+			break;
+		case SIN_PLATOS:
+			printf(TAB YELLOW"[WARNING]"RESET" %s - [%s, Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS, request->nombre, request->idPedido);
+			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, BLOQUES_NO_ASIGNADOS);
+			break;
+		default:
+			break;
+	}
+}
+
+// GUARDAR_PLATO
+
+void log_GuardarPlato(t_req_plato *req_plato) {
+	printf("Datos del request del plato:"BREAK);
+	printf(TAB"Restaurante: "BOLDMAGENTA"[%s], Pedido: "BOLD"%d"RESET BREAK, req_plato->restaurante, req_plato->idPedido);
+	printf(TAB"Plato: "BOLD"[%s]"RESET", Cant. a añadir: "BOLD"%d"RESET BREAK, req_plato->plato, req_plato->cantidadPlato); 
+	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cant. a añadir: %d", req_plato->restaurante, req_plato->idPedido, req_plato->plato, req_plato->cantidadPlato);
+}
+
+void log_rta_GuardarPlato() {
+
+}
 
 // OBTENER_RESTAURANTE
 

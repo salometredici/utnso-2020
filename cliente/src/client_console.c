@@ -124,13 +124,13 @@ int validate_plato_listo(char** parameters){
 int validate_confirmar_pedido(char** parameters){
 	if (!parameters[1] || !parameters[2]) {
 		showCommandErrorMsg(CONFIRMAR_PEDIDO);
-		printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]"RESET BREAK);
+		printf(BOLDYELLOW"CONFIRMAR_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
 		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
 		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
 		return ERROR;
 	}
 
-	if (!only_contains_numbers(parameters[1])) {
+	if (!only_contains_numbers(parameters[2])) {
 		show_NaN_error_msg();
 		return ERROR;
 	}

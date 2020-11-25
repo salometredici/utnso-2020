@@ -116,7 +116,7 @@ void *threadLecturaConsola(void *args) {
 							obtenerRestaurante(parametro1);
 							break;
 						case CONSULTAR_PLATOS:
-							consultarPlatos("");
+							consultarPlatos(parametro1);
 							break;
 						case GUARDAR_PEDIDO:
 							guardarPedido(parametro1, atoi(parametro2));
@@ -132,7 +132,10 @@ void *threadLecturaConsola(void *args) {
 							break;
 						case OBTENER_PEDIDO:
 							obtenerPedido(parametro1, atoi(parametro2));
-							break;		
+							break;
+						case OBTENER_RECETA:
+							obtener_receta(parametro1);
+							break;
 						case ERROR:
 						default:
 							showInvalidCommandMsg(SINDICATO);
@@ -187,21 +190,31 @@ void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
 	free(header);
 }
 
-void obtenerRestaurante(char *nombreRestaurante) {
-	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombreRestaurante);
+void obtenerRestaurante(char *nombre_restaurante) {
+	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombre_restaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_md *md = recibirPayloadPaquete(header, conexion);
-	logMetadata(md);
+	log_rta_ObtenerRestaurante(md);
+	free(nombre_restaurante);
 	free(md);
 	free(header);
 }
 
-void consultarPlatos(char *nombreRestaurante) { // Es un string vacío
+void consultarPlatos(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_list *platos = recibirPayloadPaquete(header, conexion);
-	mostrarListaStrings(platos);
+	log_rta_ConsultarPlatos(platos);
 	free(platos);
+	free(header);
+}
+
+void obtener_receta(char *receta_a_buscar) {
+	enviarPaquete(conexion, CLIENTE, OBTENER_RECETA, receta_a_buscar);
+	t_header *header = recibirHeaderPaquete(conexion);
+	t_receta *receta = recibirPayloadPaquete(header, conexion);
+	log_rta_ObtenerReceta(receta);
+	free(receta);
 	free(header);
 }
 
@@ -215,17 +228,15 @@ void crearPedido() {
 }
 
 void guardarPedido(char *nombreRestaurante, int idPedido) {
-	t_request *reqGuardarPedido = malloc(sizeof(t_request));
-	reqGuardarPedido->nombre = nombreRestaurante;
-	reqGuardarPedido->idPedido = idPedido;
+	t_request *req_guardar_pedido = getTRequest(idPedido, nombreRestaurante);
 
-	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, reqGuardarPedido);
+	enviarPaquete(conexion, CLIENTE, GUARDAR_PEDIDO, req_guardar_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(reqGuardarPedido);
+	free(req_guardar_pedido);
 
-	t_result *resultGP = recibirPayloadPaquete(header, conexion);
-	logTResult(resultGP);
-	free(resultGP);
+	t_result *result_guardar_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_GuardarPedido(result_guardar_pedido);
+	free(result_guardar_pedido);
 	free(header);
 }
 
@@ -299,17 +310,15 @@ void consultarPedido(int idPedido) {
 }
 
 void obtenerPedido(char *nombreRestaurante, int idPedido) {
-	t_request *pedidoObt = malloc(sizeof(t_request));
-	pedidoObt->nombre = nombreRestaurante;
-	pedidoObt->idPedido = idPedido;
+	t_request *req_obtener_pedido = getTRequest(idPedido, nombreRestaurante);
 
-	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, pedidoObt);
+	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, req_obtener_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(pedidoObt);
 
-	t_pedido *pedidoCompleto = recibirPayloadPaquete(header, conexion);
-	logObtenerPedido(pedidoCompleto, idPedido);
-	free(pedidoCompleto);
+	t_pedido *pedido_obtenido = recibirPayloadPaquete(header, conexion);
+	log_rta_ObtenerPedido(pedido_obtenido, req_obtener_pedido);
+	free(req_obtener_pedido);
+	free(pedido_obtenido);
 	free(header);
 }
 
@@ -332,6 +341,7 @@ void initVariablesGlobales() {
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
+	dataCliente->socketCliente = ERROR;
 	logInitDataCliente(dataCliente);
 }
 

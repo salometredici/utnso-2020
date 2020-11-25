@@ -1,81 +1,15 @@
 #include "../include/sindicato.h"
 
-int sindicatoOptionToKey(char *key) {
-    t_keys *diccionario = diccionarioConsola;
-    for (int i = 0; i < CONSOLENKEYS; i++) {
-        t_keys sym = diccionario[i];
-        if (strcmp(sym.key, key) == 0) {
-            return sym.valor;
-        }
-    }
-    return ERROR;
-}
-
-void mostrarComandosValidos() {
-    printf("-------------------Comandos Válidos-------------------\n");
-	printf("Ejemplo: AIUDA\n");
-	printf("Ejemplo: CLEAR\n");
-	printf("Ejemplo: BAI\n");
-    printf("Formato: [MENSAJE] [PARAMETROS]\n");
-	printf("Ejemplo: CREAR_RESTAURANTE [NOMBRE] [CANTIDAD_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANTIDAD_HORNOS]\n");
-	printf("Ejemplo: CREAR_RECETA [NOMBRE] [PASOS] [TIEMPO_PASOS] \n");
-    printf("------------------------------------------------------\n");
-}
-
-void showCommandErrorMsg(char *msg) {
-	printf("-----------------------[ERROR]------------------------\n");
-	printf("\033[1;31mFaltan uno o más parámetros.\033[0m\n");
-	printf("El formato aceptado para el comando \033[0;33m[%s]\033[0m es el siguiente:\n", msg);
-	log_error(logger, "Faltan uno o más parámetros para el comando [%s]", msg);
-}
-
-
-int validateConsoleCommand(char *msg, char **parameters) {
-	int option = sindicatoOptionToKey(msg);
-	switch (option) {
-		case OPT_CREAR_RESTAURANTE:
-			if (!parameters[8]) {
-				showCommandErrorMsg(msg);
-				printf(BOLDYELLOW "CREAR_RESTAURANTE [NOMBRE] [CANT_COCINEROS] [POSICION] [AFINIDADES] [PLATOS] [PRECIOS] [CANT_HORNOS] [CANT_PEDIDOS]" RESET BREAK);
-				printf("[!] Ejemplo: " MAGENTA "CREAR_RESTAURANTE BurguerKing 3 [1,4] [PapasAlHorno] [PapasAlHorno,Milanesas] [32,50] 2 1" RESET BREAK);
-				printf(TAB "[!] " BOLD "[NOMBRE]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[CANT_COCINEROS]: int" RESET BREAK);
-				printf(TAB "[!] " BOLD "[POSICION]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[AFINIDADES]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[PLATOS]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[PRECIOS]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[CANT_HORNOS]: int" RESET BREAK);
-				printf(TAB "[!] " BOLD "[CANT_PEDIDOS]: int" RESET BREAK);
-				return ERROR;
-			}
-			break;
-		case OPT_CREAR_RECETA:
-			if (!parameters[3]) {
-				showCommandErrorMsg(msg);
-				printf(BOLDYELLOW "CREAR_RECETA [NOMBRE_RECETA] [PASOS] [TIEMPO_PASOS]" RESET BREAK);
-				printf("[!] Ejemplo: " MAGENTA "CREAR_RECETA PapasAlHorno [Trocear,Hornear] [2,3]" RESET BREAK);
-				printf(TAB "[!] " BOLD "[NOMBRE_RECETA]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[PASOS]: char*" RESET BREAK);
-				printf(TAB "[!] " BOLD "[POSICION]: char*" RESET BREAK);
-				return ERROR;
-			}
-			break;
-		default:
-			return option;
-	}
-	return option;
-}
-
 /* Consola */
 
-void* threadLecturaConsola(void * args) {
-    printf("Iniciando la consola ...\n");
-	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
+void* thread_lectura_consola(void * args) {
+    printf("Iniciando la consola ..."BREAK);
+	printf("Para ver los comandos válidos, ingrese 'AIUDA'."BREAK);
 
 	char **parametros;
 	char *mensaje;
 	int opcion;
-    char *comandoLeido = readline("(=^.^=)~>");
+    char *comandoLeido = readline(CYAN"(=^.^=)~>"RESET);
 
     while (1) {
 		if (!string_is_empty(comandoLeido)) {
@@ -88,28 +22,27 @@ void* threadLecturaConsola(void * args) {
 			mensaje = parametros[0];
 			logConsoleInput(comandoLeido);
 
-			//opcion = sindicatoOptionToKey(mensaje);
-			opcion = validateConsoleCommand(mensaje, parametros);
+			opcion = validate_console_command(mensaje, parametros);
 
 			switch (opcion) {
 				case OPT_CREAR_RESTAURANTE:
-					crearRestaurante(parametros);
+					crear_restaurante(parametros);
 					break;
 				case OPT_CREAR_RECETA:
-					printf("Crear Receta: Se deberá crear un nuevo archivo de receta siguiendo los lineamientos de lo detallado anteriormente.\n");
+					crear_receta(parametros);
 					break;
 				case OPT_AIUDA:
-					mostrarComandosValidos();
+					show_valid_commands();
 					break;
 				case OPT_BAI:
-					printf("adiosss (๑♡3♡๑)!\n");
+					printf("adiosss (๑♡3♡๑)!"BREAK);
 					break;
 				case OPT_CLEAR:
 					limpiarPantalla();
 					break;
 				case ERROR:
 				default:
-					printf("Comando no válido. Escriba 'AIUDA' para ver los formatos aceptados ◔_◔\n");
+					show_invalid_command_msg();
 					break;
 			}
 
@@ -118,14 +51,16 @@ void* threadLecturaConsola(void * args) {
 			free(comandoLeido);
 			if (opcion == OPT_BAI) { break; }
 		}
-		comandoLeido = readline("(=^.^=)~>");
+		comandoLeido = readline(CYAN"(=^.^=)~>"RESET);
 	}
 
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }
 
-void *atenderConexiones(void *conexionNueva)
+/* Conexiones */
+
+void *atender_conexiones(void *conexionNueva)
 {
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
@@ -147,80 +82,68 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PROCESO, SINDICATO);
 				break;
 			case OBTENER_RESTAURANTE:;
-				char *nombreRestaurante = recibirPayloadPaquete(header, socketCliente);
-				logMetadataRequest(nombreRestaurante);
-
-				t_md *md = malloc(sizeof(t_md));
-
-				t_list *afinidades = list_create();
-				list_add(afinidades, "Milanesas");
-				md->afinidades = afinidades;
-
-				t_list *platosMd = list_create();
-				t_md_receta *r1 = malloc(sizeof(t_md_receta)); t_md_receta *r2 = malloc(sizeof(t_md_receta));
-				r1->plato = "Milanesas"; r1->precio = 150;
-				r2->plato = "Pizza"; r2->precio = 220;
-				list_add(platosMd, r1); list_add(platosMd, r2);
-				md->platos = platosMd;
-
-				md->posX = 5; md->posY = 7;
-				md->cantidadCocineros = 5; md->cantidadHornos = 2; md->cantidadPedidos = 1;
-
+				char *nombre_restaurante = recibirPayloadPaquete(header, socketCliente);
+				log_ObtenerRestaurante(nombre_restaurante);
+				t_md *md;
+				if (!existe_restaurante(nombre_restaurante)) {
+					md = getEmptyMd();
+				} else {
+					md = obtener_restaurante(nombre_restaurante);
+				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RESTAURANTE, md);
-				free(r1); free(r2); free(platosMd);
-				free(afinidades);
-				free(md);
+				free(nombre_restaurante); free(md);
 				break;
 			case CONSULTAR_PLATOS:;
-				char *restConsulta = recibirPayloadPaquete(header, socketCliente);
-				logConsultaPlatos(restConsulta);
-				free(restConsulta);
-
-				// TODO:
-				// 1. Verificar si R existe en FS, buscando en dir Restaurantes si existe un subdir con R - Si no existe informarlo
-				// 2. Obtener los platos que puede preparar R del archivo info.AFIP
-				// 3. Responder indicando los platos que puede preparar R
-				
-				t_list *platosRest = list_create();
-				list_add(platosRest, "Ensalada");
-				list_add(platosRest, "Lasagna");
-				list_add(platosRest, "Helado");
-				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platosRest);
-				free(platosRest);
+				char *rest_consulta = recibirPayloadPaquete(header, socketCliente);
+				log_ConsultarPlatos(rest_consulta);
+				t_list *platos_restaurante = list_create();
+				if (!existe_restaurante(rest_consulta)) {
+					list_add(platos_restaurante, REST_NO_EXISTE);
+				} else {
+					list_add_all(platos_restaurante, obtener_platos_restaurante(rest_consulta));
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platos_restaurante);
+				free(rest_consulta); free(platos_restaurante);
 				break;
 			case GUARDAR_PEDIDO:;
-				t_request *reqGuardarPedido = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqGuardarPedido, header->codigoOperacion);
-				free(reqGuardarPedido);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar cuál fue el último pedido y crear un nuevo archivo Pedido y ContPedidos++, de ser el 1ero, crear el archivo Pedido1
-				// 3. Responder el mensaje con Ok/fail
-				
-				t_result *resGP = malloc(sizeof(t_result));
-				resGP->msg = "[GUARDAR_PEDIDO] OK";
-				resGP->hasError = false;
-				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, resGP);
-				free(resGP);		
+				t_request *req_guardar_pedido = recibirPayloadPaquete(header, socketCliente);
+				logRequest(req_guardar_pedido, header->codigoOperacion);
+				t_result *result_guardar_pedido;
+				if (!existe_restaurante(req_guardar_pedido->nombre)) {
+					 result_guardar_pedido = getTResult(REST_NO_EXISTE, true);
+				} else if (!existe_pedido(req_guardar_pedido)) {
+					crear_pedido(req_guardar_pedido);
+					result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
+				} else {
+					result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, result_guardar_pedido);
+				free(req_guardar_pedido); free(result_guardar_pedido);	
 				break;
 			case GUARDAR_PLATO:;
-				t_req_plato *reqGuardarPlato = recibirPayloadPaquete(header, socketCliente);
-				logRequestPlato(reqGuardarPlato);
-				free(reqGuardarPlato);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
-				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
-				// 4. Verificar si Pl existe en el archivo. CantActual + CantEnviada - Si no existe agregar Pl a lista de Pls y anexar Cant + aumentar precio total del Pedido
-				// 5. Responder el mensaje con Ok/fail
-				
-				t_result *resGPlato = malloc(sizeof(t_result));
-				resGPlato->msg = "[GUARDAR_PLATO] OK";
-				resGPlato->hasError = false;
-				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, resGPlato);
-				free(resGPlato);
+				t_req_plato *req_guardar_plato = recibirPayloadPaquete(header, socketCliente);
+				log_GuardarPlato(req_guardar_plato);
+				t_result *result_guardar_plato;
+				if (!existe_restaurante(req_guardar_plato->restaurante)) {
+					result_guardar_plato = getTResult(REST_NO_EXISTE, true);
+				} else {
+					t_request *req_pedido_buscado = getTRequest(req_guardar_plato->idPedido, req_guardar_plato->restaurante);
+					if (!existe_pedido(req_pedido_buscado)) {
+						result_guardar_plato = getTResult(PEDIDO_NO_EXISTE, true);
+					} else {
+						t_pedido *pedido_guardar_plato = obtener_pedido(req_pedido_buscado);
+						if (pedido_guardar_plato->estado != PENDIENTE) {
+							result_guardar_plato = getTResult(ESTADO_AVANZADO, true);
+						} else {
+							agregar_plato_a_pedido(req_guardar_plato);
+							result_guardar_plato = getTResult(PEDIDO_ACTUALIZADO, false);
+						}
+						free(pedido_guardar_plato);
+					}
+					free(req_pedido_buscado);
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, result_guardar_plato);
+				free(req_guardar_pedido); free(result_guardar_plato);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
@@ -240,47 +163,37 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
 				break;
 			case OBTENER_PEDIDO:;
-				t_request *reqObt = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqObt, header->codigoOperacion);
-				free(reqObt);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
-				// 3. Responder indicando si se pudo realizar junto con la información del pedido de ser así
-
-				t_pedido *pedido = malloc(sizeof(t_pedido)); t_list *platos = list_create();
-				t_plato *milanesa = malloc(sizeof(t_plato)); t_plato *empanadas = malloc(sizeof(t_plato)); t_plato *ensalada = malloc(sizeof(t_plato));
-
-				milanesa->plato = "Milanesa"; milanesa->precio = 200; milanesa->cantidadPedida = 2; milanesa->cantidadLista = 1;
-				empanadas->plato = "Empanadas"; empanadas->precio = 880; empanadas->cantidadPedida = 12; empanadas->cantidadLista = 6;
-				ensalada->plato = "Ensalada"; ensalada->precio = 120; ensalada->cantidadPedida = 1; ensalada->cantidadLista = 0;
-				list_add(platos, milanesa); list_add(platos, empanadas); list_add(platos, ensalada);
-
-				pedido->restaurante = string_new(); pedido->estado = PENDIENTE;
-				pedido->platos = platos; pedido->precioTotal = calcularPrecioTotal(platos);
-
+				t_request *req_obtener_pedido = recibirPayloadPaquete(header, socketCliente);
+				log_ObtenerPedido(req_obtener_pedido, header->codigoOperacion);
+				t_pedido *pedido;
+				if (!existe_restaurante(req_obtener_pedido->nombre)) {
+					pedido = getEmptyPedido(REST_INEXISTENTE);
+				} else if (!existe_pedido(req_obtener_pedido)) {
+					pedido = getEmptyPedido(PEDIDO_INEXISTENTE);
+				} else {
+					pedido = obtener_pedido(req_obtener_pedido);
+				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
-				free(pedido); free(milanesa); free(empanadas); free(ensalada);
+				free(req_obtener_pedido); free(pedido);
 				break;
-			case PLATO_LISTO: // TODO
+			case PLATO_LISTO:; // TODO
 				break;
-			case TERMINAR_PEDIDO: // TODO: Recibe idPedido y restaurante, retorna Ok/fail
+			case TERMINAR_PEDIDO:; // TODO: Recibe idPedido y restaurante, retorna Ok/fail
 				break;
-			case OBTENER_RECETA: // TODO: Recibe plato y retorna receta
-				// t_list *instrucciones = list_create();
-
-				// char* ej[] = { "PREPARAR", "SERVIR" };
-				// for(int i = 0; i < 4; i++){
-				// 	t_instrucciones_receta *instruccion = malloc(sizeof(t_instrucciones_receta));
-				// 	instruccion->paso = ej[i];
-				// 	instruccion->qPaso = 2;
-				// 	list_add(instrucciones, instruccion);
-				// }
-				// enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RECETA, instrucciones);
+			case OBTENER_RECETA:;
+				char *receta_a_buscar = recibirPayloadPaquete(header, socketCliente);
+				log_ObtenerReceta(receta_a_buscar);
+				t_receta *receta;
+				if (!existe_receta(receta_a_buscar)) {
+					receta = getEmptyRecipe();
+				} else {
+					receta = obtener_receta(receta_a_buscar);
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_RECETA_2, receta);
+				free(receta_a_buscar); free(receta);
 				break;
 			default:
-				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
+				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)"BREAK, header->codigoOperacion);
 				break;
 		}
 		free(header);
@@ -297,17 +210,17 @@ int main(int argc, char **argv)
 	init();
 
 	// Inicio del hilo de la consola y su lectura
-	pthread_create(&threadConsola, NULL, (void *) threadLecturaConsola, NULL);
+	pthread_create(&threadConsola, NULL, (void *)thread_lectura_consola, NULL);
     pthread_detach(threadConsola);
 
 	int fd;
 	while (1) {
 		fd = aceptarCliente(socketServidor);
-		if (fd != -1) {
+		if (fd != ERROR) {
 			// Creo un nuevo hilo para la conexión aceptada
 			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
 			t_data->socketThread = fd;
-			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
+			pthread_create(&threadConexiones, NULL, (void*)atender_conexiones, t_data);
 			pthread_detach(threadConexiones);
 			logNewClientConnection(fd);
 		} else {

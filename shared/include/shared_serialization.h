@@ -27,6 +27,7 @@ int getBytesReqPlato(t_req_plato *request);
 int getBytesListaStrings(t_list *listaStrings);
 int getBytesTPlatoListo(t_plato_listo *platoListo);
 int getBytesTCliente(t_cliente *cliente);
+int getBytesTReceta(t_receta *receta);
 int getBytesTPosicion();
 int getBytesTSeleccRest(t_selecc_rest *seleccRest);
 int getBytesMd();
@@ -56,6 +57,7 @@ void *srlzRequest(t_request *request);
 void *srlzReqPlato(t_req_plato *request);
 void *srlzListaStrings(t_list *listaStrings);
 void *srlzTPosicion(t_posicion *posicion);
+void *srlzTReceta(t_receta *receta);
 void *srlzTSeleccRest(t_selecc_rest *seleccRest);
 
 // Deserializar
@@ -71,5 +73,6 @@ t_result *dsrlzTResult(void *buffer);
 t_posicion *dsrlzTPosicion(void *buffer);
 t_selecc_rest *dsrlzTSeleccRest(void *buffer);
 t_plato_listo *dsrlzTPlatoListo(void *buffer);
+t_receta *dsrlzTReceta(void *buffer, int size);
 
 #endif

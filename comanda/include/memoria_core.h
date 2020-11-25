@@ -10,15 +10,27 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdio.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <time.h>
+
 
 #define PAGE_SIZE 32 // por enunciado 
 #define MAX_LENGTH_COMIDA 24
+#define RUTASWAP "/home/utnso/swap.txt"
+#define IN_MEMORY 1
+#define IN_SWAP 0
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
 pthread_mutex_t swap_frames_bitarray;
 
 pthread_mutex_t mutex_paginas_en_memoria;
+pthread_mutex_t mx_find_frame_in_memory;
+pthread_mutex_t mx_find_frame_in_swap;
 pthread_mutex_t mutex_asignar_pagina;
 
 /*Tabla de segmentos*/
@@ -30,6 +42,9 @@ void* bitmap_pointer;
 t_bitarray *swap_usage_bitmap;
 void* swap_bitmap_pointer;
 
+void* archivo_swap;
+int fd_swap;
+
 void **MEMORIA;
 int MEMORY_SIZE;
 int SWAP_SIZE;
@@ -37,6 +52,7 @@ char* SWAP_FILE;
 FILE *swap_file;
 char *ALGORITMO_REEMPLAZO;
 int frames;
+int swap_frames;
 size_t size_char;
 
 typedef struct{
@@ -52,9 +68,11 @@ typedef struct {
 
 typedef struct{
     int frame; 
+    int frame_mv; //el frame que esta en el area de swap
 	bool in_use; 
 	bool modified;
     bool flag; //1 en memoria principal
+    double timestamp;
 }t_page; //plato conflict types
 
 /*Marco en la memoria*/
@@ -72,4 +90,6 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
 t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
 t_list* find_frames(t_pedidoc *pedido);
+void print_swap();
+void print_memory();
 #endif

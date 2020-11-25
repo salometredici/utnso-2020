@@ -18,6 +18,7 @@ char *getLogPath(p_code process) {
 			strcat(f, file);
 			fullPathLength = fLength;
 			fileName = f;
+			//free(f);
 		} else {
 			fileName = obtenerLogFileName();
 			fullPathLength = strlen(fileName) + 1;
@@ -81,7 +82,8 @@ void inicializarProceso(p_code proceso) {
 	} else {
 		crearLoggerProceso(log_path, program);
 	}
-
+	
+	free(log_path);
 	logInitializedProcess();
 }
 

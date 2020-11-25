@@ -13,6 +13,7 @@ t_result* _guardar_pedido(t_request *request){
 			return result;
 		}
 		t_pedidoc *pedido = crear_pedido(request->idPedido);
+
 		add_pedido_to_restaurante(restaurante_creado, pedido);
 
 		t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);		
@@ -54,6 +55,7 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
+	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces tiene que sacarlo a mp 
 	t_page *page = find_plato(pedido, request->plato);
 
 	if(page == NULL){
@@ -62,10 +64,12 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
+			//print_swap();
+			//print_memory();
 			/*Validarrrrr si se guardo*/
-			t_page *plato_enc = find_plato(pedido, request->plato);
-
-			if(plato_enc){
+			//t_page *plato_enc = find_plato(pedido, request->plato);
+			
+			if(1){
 				t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
 				return result;
 			}
@@ -74,6 +78,9 @@ t_result* _guardar_plato(t_req_plato *request){
 				return result;
 			}
 		}
+	}
+	else{
+		//deberia de incrementar en la cantidad pedida 
 	}
 
 	t_result *result = getTResult("[GUARDAR_PLATO] Este plato ya existe en memoria", false);

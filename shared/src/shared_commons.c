@@ -191,3 +191,19 @@ char *getStringEstadoPedido(t_estado estado) {
 			break;
 	}
 }
+
+double get_current_time(){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned long long result = (((unsigned long long)tv.tv_sec) * 1000 + ((unsigned long long)tv.tv_usec) / 1000);
+	double a = result;
+	return a;
+}
+
+bool only_contains_numbers(char *input) {
+	for (int i = 0; i < strlen(input); i++) {
+		if (input[i] < '0' || input[i] > '9') { return false; }
+	}
+	return true;
+}
+

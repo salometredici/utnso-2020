@@ -16,7 +16,7 @@ void *atenderConexiones(void *conexionNueva)
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
-
+		
 		switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);
@@ -30,10 +30,10 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case GUARDAR_PLATO:;
 				t_req_plato *request_gpl = recibirPayloadPaquete(header, socketCliente);
-				t_result *result_gpl = _guardar_plato(request_gpl);				
-				free(request_gpl);
+				t_result *result_gpl = _guardar_plato(request_gpl);
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, result_gpl);
 				free(result_gpl);
+				free(request_gpl);
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *request_obp = recibirPayloadPaquete(header, socketCliente);

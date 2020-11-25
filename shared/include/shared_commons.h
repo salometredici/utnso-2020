@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <time.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
@@ -300,5 +301,5 @@ void mostrarListaPlatos(t_list *listaPlatos);
 t_link_element* list_find_element(t_list *self, bool(*condition)(void*), int* index);
 int calcularPrecioTotal(t_list *listaPlatos);
 char *getStringEstadoPedido(t_estado estado);
-
+double get_current_time();
 #endif

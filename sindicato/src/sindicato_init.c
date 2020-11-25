@@ -8,26 +8,6 @@ int getPuertoEscucha() {
 	return config_get_int_value(config, "PUERTO_ESCUCHA");
 }
 
-char *get_full_bitmap_path() {
-	char *bitmapPath = string_new();
-	string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
-	return bitmapPath;
-}
-
-bool existe_bitmap_previo() {
-	return fdExists(get_full_bitmap_path());
-}
-
-int get_available_blocks_number() {
-	int cont = 0;
-	pthread_mutex_lock(&mutexBitmap);
-	for (int i = 0; i < blocksQuantity; i++) {
-		if (bitarray_test_bit(bitarray, i) == 0) { cont++; }
-	}
-	pthread_mutex_unlock(&mutexBitmap);
-	return cont;
-}
-
 void setBasePath() {
 	// Obtener la ruta del punto de montaje sin el dir /afip
 	char *ultimoDir = strrchr(puntoMontaje, '/');
@@ -59,7 +39,7 @@ void initFromBaseDir(char *dir) {
 }
 
 // Seteamos las variables globales
-void init_variables() {
+void initVariables() {
 	puertoEscucha = getPuertoEscucha();
 	puntoMontaje = getPuntoMontaje();
 	createDirectory(puntoMontaje);
@@ -68,7 +48,7 @@ void init_variables() {
 }
 
 // Creamos los directorios principales
-void init_directories() {
+void initDirectories() {
 	initFromBaseDir(BLOCKS_PATH);
 	initFromBaseDir(FILES_PATH);
 	initFromBaseDir(RECETAS_PATH);
@@ -76,7 +56,7 @@ void init_directories() {
 }
 
 // Obtiene los valores de Metadata.AFIP
-void init_metadata() {
+void initMetadata() {
 	char *metadataPath = string_new();
 	string_append_with_format(&metadataPath, "%s%s", puntoMontaje, METADATA_PATH);
 	t_config *metadata = config_create(metadataPath);
@@ -85,31 +65,25 @@ void init_metadata() {
 }
 
 // Crea la cantidad BLOCKS de bloques #.AFIP
-void init_blocks() {
-	if (!existe_bitmap_previo()) {
-		for (int i = 0; i < blocksQuantity; i++) {
-			char *fullPath = string_new();
-			string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
-			FILE *fp = fopen(fullPath, "w");
-			fclose(fp);
-		}
+void initBlocks() {
+	for (int i = 0; i < blocksQuantity; i++) {
+		char *fullPath = string_new();
+		string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
+		FILE *fp = fopen(fullPath, "w");
+		fclose(fp);
 	}
 }
 
 /* Bitmap */
 
 // Retorna el bitarray inicial con todos los bits en cero
-void set_initial_bitarray(char *bitmap, int size) {
+void getInitialBitarray(char *bitmap, int size) {
 	bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
 	for (int i = 0; i < bitarray_get_max_bit(bitarray); i++) {
 		bitarray_clean_bit(bitarray, i);
 	}
-	log_bitarray_info(bitarray, get_available_blocks_number());
-}
-
-void set_existent_bitarray(char *bitmap, int size) {
-	bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
-	log_bitarray_info(bitarray, get_available_blocks_number());
+	logInitialBitarrayInfo(bitarray);
+	return bitarray;
 }
 
 char *getBitmap(int size, int fd) {
@@ -132,9 +106,9 @@ int getBitmapFile(char *path) {
 	}
 }
 
-void init_bitmap() {
+void initBitMap() {
 	int bitmapSize = (blocksQuantity / 8) + 1; // Sólo va a tener de tamaño la cantidad de bloques en bits + 1
-	char *bitmapPath = get_full_bitmap_path();
+	char *bitmapPath = string_new(); string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
 	if (!fdExists(bitmapPath)) {
 		logBitmapInit();
 		// Crear archivo
@@ -143,26 +117,21 @@ void init_bitmap() {
 		// Crear bitmap
 		bitmap = getBitmap(bitmapSize, bitmapFile);
 		// Crear bitarray
-		set_initial_bitarray(bitmap, bitmapSize);
-		// Actualizamos el archivo
+		getInitialBitarray(bitmap, bitmapSize);
+		// Actualizamos el archivo y borramos el bitarray
 		msync(bitmap, bitmapFile, MS_SYNC);
+		//bitarray_destroy(bitarray);
 		close(bitmapFile);
 		logBitmapSuccess();
-	} else {
-		int bitmapFile = getBitmapFile(bitmapPath);
-		ftruncate(bitmapFile, bitmapSize);
-		bitmap = getBitmap(bitmapSize, bitmapFile);
-		set_existent_bitarray(bitmap, bitmapSize);
-		close(bitmapFile);
 	}
 }
 
 /* Init */
 
 void init() {
-	init_variables();
-	init_directories();
-	init_metadata();
-	init_blocks();
-	init_bitmap();
+	initVariables();
+	initDirectories();
+	initMetadata();
+	initBlocks();
+	initBitMap();
 }

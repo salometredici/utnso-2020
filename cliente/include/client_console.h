@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 #include <commons/collections/list.h>
 #include "../../shared/include/shared_commons.h"
+#include "../../shared/include/shared_logging.h"
 
 void showInvalidMsg();
 void mostrarComandosValidos();

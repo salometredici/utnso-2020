@@ -10,6 +10,7 @@ int getBytesString(char *string) {
 	return strlen(string) + 1;
 }
 
+// Size de una lista de insts (bytes de cada inst + int por c/u + int de qPaso
 int getBytesListaInstrucciones(t_list *listaInstrucciones){
 	int cantidadElementos = list_size(listaInstrucciones);
 	int bytesAEnviar = cantidadElementos * sizeof(int);
@@ -22,6 +23,11 @@ int getBytesListaInstrucciones(t_list *listaInstrucciones){
 	}
 
 	return bytesAEnviar;
+}
+
+// Size del plato y el int de su tamaño + size de la lista de instrucciones e int de su tamaño
+int getBytesTReceta(t_receta *receta) {
+	return getBytesListaInstrucciones(receta->instrucciones) + getBytesString(receta->plato) + sizeof(int) * 2;
 }
 
 // Size de una lista de strings (bytes de cada palabra) más un int por cada uno, que representará a su longitud + 1
@@ -47,9 +53,10 @@ int getBytesReqPlato(t_req_plato *request) {
 	return sizeof(int) * 4 + getBytesString(request->restaurante) + getBytesString(request->plato);
 }
 
-// Size de 4 ints (precio, cantPedida, cantLista y size del plato) más la longitud del plato en sí
+// Size de 4 ints (precio, cantPedida, cantLista y size del plato) más la longitud del plato en sí-- antes
+// Size de 3 ints (cantPedida, cantLista y size del plato) más la longitud del plato en sí --ahora
 int getBytesPlato(t_plato *plato) {
-	return sizeof(int) * 4 + getBytesString(plato->plato);
+	return sizeof(int) * 3 + getBytesString(plato->plato);
 }
 
 int getBytesListaPlatos(t_list *listaPlatos) {
@@ -97,6 +104,10 @@ int getBytesListaRecetas(t_list *listaRecetas) {
 	return bytesAEnviar;
 }
 
+int getBytesTPosicion() {
+	return sizeof(t_posicion);
+}
+
 // Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño
 int getBytesTCliente(t_cliente *cliente) {
 	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSeleccionado)
@@ -110,11 +121,7 @@ int getBytesMd(t_md *md) {
 	int bytesInts = sizeof(int) * 7;
 	int bytesListaRecetas = getBytesListaRecetas(md->platos);
 	int bytesListaAfinidades = getBytesListaStrings(md->afinidades);
-	return bytesInts + bytesListaRecetas + bytesListaAfinidades; 
-}
-
-int getBytesTPosicion() {
-	return sizeof(t_posicion);
+	return bytesInts + bytesListaRecetas + bytesListaAfinidades;
 }
 
 // size de restauranteSeleccionado + size de idCliente + 2 ints para esos valores
@@ -193,6 +200,10 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			payloadSize += getBytesListaInstrucciones(stream);
 			// TODO
 			break;
+		// Envío de t_receta
+		case RTA_OBTENER_RECETA_2:
+			payloadSize += getBytesTReceta(stream);
+			break;
 		// Si no tiene parámetros que serializar, queda en 0
 		case CREAR_PEDIDO:
 		case OBTENER_PROCESO:
@@ -269,6 +280,9 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			break;
 		case PLATO_LISTO:
 			buffer = srlzTPlatoListo(stream);
+			break;
+		case RTA_OBTENER_RECETA_2:
+			buffer = srlzTReceta(stream);
 			break;
 		case RTA_CONSULTAR_PLATOS:
 		case RTA_CONSULTAR_RESTAURANTES:
@@ -350,9 +364,10 @@ void *srlzRequest(t_request *request) {
 
 // Función para serializar un t_selecc_rest
 void *srlzTSeleccRest(t_selecc_rest *seleccRest) {
-	t_selecc_rest *seleccion = (t_selecc_rest*) seleccRest;
 	int desplazamiento = 0;
 	int size = getBytesTSeleccRest(seleccRest);
+	char *idCliente = seleccRest->idCliente;
+	char *restaurante = seleccRest->restauranteSeleccionado;
 	int longitudIdCliente = getBytesString(seleccRest->idCliente);
 	int longitudRestaurante = getBytesString(seleccRest->restauranteSeleccionado);
 
@@ -361,9 +376,9 @@ void *srlzTSeleccRest(t_selecc_rest *seleccRest) {
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &longitudRestaurante, sizeof(int));
 	desplazamiento += sizeof(int);
-	memcpy(magic + desplazamiento, seleccion->idCliente, longitudIdCliente);
+	memcpy(magic + desplazamiento, idCliente, longitudIdCliente);
 	desplazamiento += longitudIdCliente;
-	memcpy(magic + desplazamiento, seleccion->restauranteSeleccionado, longitudRestaurante);
+	memcpy(magic + desplazamiento, restaurante, longitudRestaurante);
 
 	return magic;
 }
@@ -455,7 +470,45 @@ void *srlzPedido(t_pedido *pedido) {
 		desplazamiento += sizeof(int);
 		memcpy(magic + desplazamiento, &plato->cantidadLista, sizeof(int));
 		desplazamiento += sizeof(int);
-		memcpy(magic + desplazamiento, &plato->precio, sizeof(int));
+		// memcpy(magic + desplazamiento, &plato->precio, sizeof(int));
+		// desplazamiento += sizeof(int);
+	}
+
+	return magic;
+}
+
+// Función para serializar un t_receta
+void *srlzTReceta(t_receta *receta) {
+	int desplazamiento = 0;
+	t_list *instrucciones = (t_list*) receta->instrucciones;
+	
+	int longListaInstrucciones = list_size(instrucciones);
+	int bytesListaInstrucciones = getBytesListaInstrucciones(instrucciones);
+
+	int long_nombre_receta = getBytesString(receta->plato);
+	char *plato = receta->plato;
+
+	int size = getBytesTReceta(receta);
+	void *magic = malloc(size);
+
+	// Serializamos lo anterior a la lista: plato y su longitud + el tamaño de la lista
+	memcpy(magic, &long_nombre_receta, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, plato, long_nombre_receta);
+	desplazamiento += long_nombre_receta;
+	memcpy(magic + desplazamiento, &bytesListaInstrucciones, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	// Serializamos la lista de instrucciones (t_instruccion_receta)
+	for (int i = 0; i < longListaInstrucciones; i++) {
+		t_instrucciones_receta *inst = list_get(instrucciones, i);
+		int long_paso = getBytesString(inst->paso);
+		// Vamos a copiar en el stream el tamaño del nombre de la instrucción, la instrucción y el tiempo de la misma
+		memcpy(magic + desplazamiento, &long_paso, sizeof(int));
+		desplazamiento += sizeof(int);
+		memcpy(magic + desplazamiento, inst->paso, long_paso);
+		desplazamiento += long_paso;
+		memcpy(magic + desplazamiento, &inst->qPaso, sizeof(int));
 		desplazamiento += sizeof(int);
 	}
 
@@ -537,10 +590,11 @@ void *srlzTPosicion(t_posicion* posicion) {
 
 void *srlzTCliente(t_cliente *cliente) {
 	int desplazamiento = 0;
+	int size = getBytesTCliente(cliente);
 	int longId = getBytesString(cliente->idCliente);
 	int longRest = getBytesString(cliente->restSeleccionado);
-	
-	void *magic = malloc(getBytesTCliente(cliente));
+
+	void *magic = malloc(size);
 	
 	memcpy(magic + desplazamiento, &longId, sizeof(int));
 	desplazamiento += sizeof(int);
@@ -560,6 +614,9 @@ void *srlzTCliente(t_cliente *cliente) {
 	memcpy(magic + desplazamiento, &cliente->posRest->posX, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &cliente->posRest->posY, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &cliente->socketCliente, sizeof(int));
+	desplazamiento += sizeof(int);
 
 	return magic;
 }
@@ -763,14 +820,54 @@ t_pedido *dsrlzPedido(void *buffer, int size) {
 		desplazamiento += sizeof(int);
 		memcpy(&platoActual->cantidadLista, buffer + desplazamiento, sizeof(int));
 		desplazamiento += sizeof(int);
-		memcpy(&platoActual->precio, buffer + desplazamiento, sizeof(int));
-		desplazamiento += sizeof(int);
+		// memcpy(&platoActual->precio, buffer + desplazamiento, sizeof(int));
+		// desplazamiento += sizeof(int);
 		// Por último, agregamos el plato a la lista
 		list_add(platos, platoActual);
 	}
 
 	pedido->platos = platos;
 	return pedido;
+}
+
+t_receta *dsrlzTReceta(void *buffer, int size) {
+	int desplazamiento = 0;
+	t_receta *receta = malloc(sizeof(t_receta));
+	t_list *instrucciones = list_create();
+
+	int long_nombre_receta = 0;
+	int sizeListaInstrucciones = 0;
+
+	// Deserializamos lo anterior a la lista de instrucciones
+	memcpy(&long_nombre_receta, buffer, sizeof(int));
+	desplazamiento += sizeof(int);
+	
+	char *plato = malloc(long_nombre_receta);
+	memcpy(plato, buffer + desplazamiento, long_nombre_receta);
+	desplazamiento += long_nombre_receta;
+	receta->plato = plato;
+
+	// Tamaño de la lista de instrucciones
+	memcpy(&sizeListaInstrucciones, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	while (desplazamiento < size) {
+		int long_inst_actual = 0;
+		t_instrucciones_receta *inst_actual = malloc(sizeof(t_instrucciones_receta));
+		memcpy(&long_inst_actual, buffer + desplazamiento, sizeof(int)); // Tamaño del step
+		desplazamiento += sizeof(int);
+		char *paso = malloc(long_inst_actual);
+		memcpy(paso, buffer + desplazamiento, long_inst_actual); // Step
+		desplazamiento += long_inst_actual;
+		inst_actual->paso = paso;
+		memcpy(&inst_actual->qPaso, buffer + desplazamiento, sizeof(int)); // Tiempo del step
+		desplazamiento += sizeof(int);
+		// Agregamos el paso a la lista
+		list_add(instrucciones, inst_actual);
+	}
+
+	receta->instrucciones = instrucciones;
+	return receta;
 }
 
 t_md *dsrlzMd(void *buffer, int size) {
@@ -876,6 +973,9 @@ t_cliente *dsrlzTCliente(void *buffer) {
 	memcpy(&cliente->posRest->posX, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(&cliente->posRest->posY, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	memcpy(&cliente->socketCliente, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 
 	cliente->idCliente = id; cliente->restSeleccionado = rest;
@@ -1025,6 +1125,9 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			break;
 		case RTA_OBTENER_RECETA:
 			buffer = dsrlzListaInstrucciones(buffer, size);
+			break;
+		case RTA_OBTENER_RECETA_2:
+			buffer = dsrlzTReceta(buffer, size);
 			break;
 		default:
 			printf("Qué ha pasao'?! џ(ºДºџ)\n");

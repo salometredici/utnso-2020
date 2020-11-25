@@ -19,6 +19,8 @@ void init_mutexs() {
 	pthread_mutex_init(&swap_frames_bitarray, NULL);
 	pthread_mutex_init(&mutex_paginas_en_memoria, NULL);
 	pthread_mutex_init(&mutex_asignar_pagina, NULL);
+	pthread_mutex_init(&mx_find_frame_in_memory, NULL);
+	pthread_mutex_init(&mx_find_frame_in_swap, NULL);
 }
 
 void init_memory(){
@@ -28,8 +30,8 @@ void init_memory(){
 	bitmap_pointer = malloc(bitmap_size_in_bytes);
 	frame_usage_bitmap = bitarray_create_with_mode(bitmap_pointer, bitmap_size_in_bytes, LSB_FIRST);
 	//printf("Bitmap RAM (aka MEMORIA_PRINCIPAL)\n");
-	int i = bitarray_get_max_bit(frame_usage_bitmap);
-	printf("Lcoo %d", i);
+	//int i = bitarray_get_max_bit(frame_usage_bitmap);
+	//printf("Lcoo %d", i);
 	clear_bitmap(frame_usage_bitmap, frames);
 
 	MEMORIA = calloc(frames, PAGE_SIZE);
@@ -66,12 +68,12 @@ void init_virtual() {
 	archivo_swap = create_swap();
 
 	int swap_bitmap_size_in_bytes = ceil((double) swap_frames / 8);
-	printf("SWAP SIZE: %d\n", swap_bitmap_size_in_bytes);
+	//printf("SWAP SIZE: %d\n", swap_bitmap_size_in_bytes);
 	swap_bitmap_pointer = malloc(swap_bitmap_size_in_bytes);
 	swap_usage_bitmap = bitarray_create_with_mode(swap_bitmap_pointer, swap_bitmap_size_in_bytes, LSB_FIRST);
-	printf("Bitmap disco (aka MEMORIA_VIRTUAL\n");
-	int i = bitarray_get_max_bit(frame_usage_bitmap);
-	printf("Lcoo virtual %d", i);
+	//printf("Bitmap disco (aka MEMORIA_VIRTUAL\n");
+	//int i = bitarray_get_max_bit(frame_usage_bitmap);
+	//printf("Lcoo virtual %d", i);
 	clear_bitmap(swap_usage_bitmap, swap_frames);
 }
 

@@ -16,7 +16,7 @@ void *atenderConexiones(void *conexionNueva)
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
-
+		
 		switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);

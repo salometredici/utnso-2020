@@ -71,11 +71,11 @@ t_frame* get_frame_from_memory(int frame_number){
 	t_frame *marco = malloc(sizeof(t_frame));
 
 	uint32_t cantidad;
-	memcpy(&cantidad, frame + (PAGE_SIZE * frame_number), sizeof(uint32_t));
+	memcpy(&cantidad, frame, sizeof(uint32_t));
 	uint32_t cantidad_lista;
-	memcpy(&cantidad_lista, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), sizeof(uint32_t));						
+	memcpy(&cantidad_lista, frame + sizeof(uint32_t), sizeof(uint32_t));						
 	char *plato_encontrado = malloc(size_char);
-	memcpy(plato_encontrado, frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), size_char);
+	memcpy(plato_encontrado, frame + sizeof(uint32_t) + sizeof(uint32_t), size_char);
 
 	marco->cantidad_pedida = cantidad;
 	marco->cantidad_lista = cantidad_lista;
@@ -261,9 +261,9 @@ t_page* find_frame_victim(){
 void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantidad_lista, int frame_number){
 	void* frame = MEMORIA[frame_number];
 
-	memcpy(frame + (PAGE_SIZE * frame_number), &cantidad_pedida, sizeof(uint32_t));
-	memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
-	memcpy(frame + (PAGE_SIZE * frame_number) + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
+	memcpy(frame, &cantidad_pedida, sizeof(uint32_t));
+	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
+	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
 }
 
 //te devuelve el nro de victima para setearlo al que lo necesita

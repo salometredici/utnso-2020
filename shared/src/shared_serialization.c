@@ -694,6 +694,9 @@ t_req_plato *dsrlzReqPlato(void *buffer) {
 
 	request->plato = plato;
 	request->restaurante = restaurante;
+	
+	free(buffer);
+	
 	return request;
 }
 
@@ -953,8 +956,7 @@ t_header *recibirHeaderPaquete(int socket) {
 	return header;
 }
 
-void *recibirBuffer(int *size, int socket)
-{
+void *recibirBuffer(int *size, int socket){
 	void *buffer;
 
 	recv(socket, size, sizeof(int), MSG_WAITALL);

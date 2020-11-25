@@ -29,6 +29,8 @@ pthread_mutex_t memory_frames_bitarray;
 pthread_mutex_t swap_frames_bitarray;
 
 pthread_mutex_t mutex_paginas_en_memoria;
+pthread_mutex_t mx_find_frame_in_memory;
+pthread_mutex_t mx_find_frame_in_swap;
 pthread_mutex_t mutex_asignar_pagina;
 
 /*Tabla de segmentos*/

@@ -140,7 +140,7 @@ int obtener_precio_pedido(t_list *platos_con_precios, t_list *platos_pedido) {
 		bool es_plato_actual(void *actual) {
 			t_md_receta *plato_menu_actual = actual;
 			return string_equals_ignore_case(plato_actual->plato, plato_menu_actual->plato);
-		}
+		};
 
 		t_md_receta *plato_encontrado = list_find(platos_con_precios, &es_plato_actual);
 

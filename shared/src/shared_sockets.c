@@ -83,7 +83,7 @@ void inicializarProceso(p_code proceso) {
 		crearLoggerProceso(log_path, program);
 	}
 	
-	free(log_path);
+	//free(log_path);
 	logInitializedProcess();
 }
 

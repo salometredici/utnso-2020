@@ -67,9 +67,9 @@ t_result* _guardar_plato(t_req_plato *request){
 			//print_swap();
 			//print_memory();
 			/*Validarrrrr si se guardo*/
-			t_page *plato_enc = find_plato(pedido, request->plato);
-
-			if(plato_enc){
+			//t_page *plato_enc = find_plato(pedido, request->plato);
+			
+			if(1){
 				t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
 				return result;
 			}

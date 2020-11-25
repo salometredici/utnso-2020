@@ -246,7 +246,15 @@ t_page* find_frame_victim(){
 
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
-		if(page->flag == 1 && page->timestamp == 0 || page->timestamp < victim_page->timestamp){
+		if(victim_page->timestamp == 0 ){
+			victim_page->frame = page->frame;
+			victim_page->frame_mv = page->frame_mv;
+			victim_page->flag = page->flag;//deberia de estar en memoria principal
+			victim_page->in_use = page->in_use;
+			victim_page->modified = page->modified;
+			victim_page->timestamp = page->timestamp;
+		}
+		else if(page->flag == 1 || page->timestamp < victim_page->timestamp){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
 			victim_page->flag = page->flag;//deberia de estar en memoria principal

@@ -88,7 +88,137 @@ void showInvalidCommandMsg(int option) {
 	printf("------------------------------------------------------"BREAK);
 }
 
+int validate_obtener_pedido(char** parameters){
+	if (!parameters[1] || !parameters[2]) {
+		showCommandErrorMsg(OBTENER_PEDIDO);
+		printf(BOLDYELLOW"OBTENER_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		return ERROR;
+	}
+
+	if (!only_contains_numbers(parameters[2])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_plato_listo(char** parameters){
+	if (!parameters[1] || !parameters[2] || !parameters[3]) {
+		showCommandErrorMsg(PLATO_LISTO);
+		printf(BOLDYELLOW"PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
+		return ERROR;
+	}
+
+	if (!only_contains_numbers(parameters[2])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;	
+}
+
+int validate_confirmar_pedido(char** parameters){
+	if (!parameters[1] || !parameters[2]) {
+		showCommandErrorMsg(CONFIRMAR_PEDIDO);
+		printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+		return ERROR;
+	}
+
+	if (!only_contains_numbers(parameters[1])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_confirmar_pedido_v2(char** parameters){
+	if (!parameters[1]) {
+		showCommandErrorMsg(CONFIRMAR_PEDIDO);
+		printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		return ERROR;
+	}
+	
+	if (!only_contains_numbers(parameters[1])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_guardar_plato(char** parameters){
+	if (!parameters[1] || !parameters[2] || !parameters[3] || !parameters[4]) {
+		showCommandErrorMsg(GUARDAR_PLATO);
+		printf(BOLDYELLOW"GUARDAR_PLATO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO] [CANTIDAD]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
+		printf(TAB"[!] "BOLD"[CANTIDAD]: int"RESET BREAK);
+		return ERROR;	
+	}
+
+	if (!only_contains_numbers(parameters[2]) || !only_contains_numbers(parameters[4])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_guardar_pedido(char** parameters){
+	if (!parameters[1] || !parameters[2]) {
+		showCommandErrorMsg(GUARDAR_PEDIDO);
+		printf(BOLDYELLOW"GUARDAR_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		return ERROR;	
+	}
+
+	if (!only_contains_numbers(parameters[2])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_consultar_pedido(char** parameters){
+	if (!parameters[1]) {
+		showCommandErrorMsg(CONSULTAR_PEDIDO);
+		printf(BOLDYELLOW"CONSULTAR_PEDIDO [ID_PEDIDO]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		return ERROR;
+	}
+
+	if (!only_contains_numbers(parameters[1])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_aniadir_plato(char** parameters){
+	if (!parameters[1] || !parameters[2]) {
+		showCommandErrorMsg(ANIADIR_PLATO);
+		printf(BOLDYELLOW"ANIADIR_PLATO [NOMBRE_PLATO] [ID_PEDIDO]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		return ERROR;
+	}
+
+	if (!only_contains_numbers(parameters[2])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
 int validateCommand(int option, int command, char **parameters) {
+	int res;
 	switch (option) {
 		case OPTION_APP:
 			switch (command) {
@@ -100,121 +230,84 @@ int validateCommand(int option, int command, char **parameters) {
 						return ERROR;
 					}
 					break;
-				case ANIADIR_PLATO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"ANIADIR_PLATO [NOMBRE_PLATO] [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+				case ANIADIR_PLATO:;
+					res = validate_aniadir_plato(parameters);
+
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case CONFIRMAR_PEDIDO:
-					if (!parameters[1]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+				case CONFIRMAR_PEDIDO:;
+					res = validate_confirmar_pedido_v2(parameters);
+
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case PLATO_LISTO:
-					if (!parameters[1] || !parameters[2] || !parameters[3]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
+				case PLATO_LISTO:;
+					res = validate_plato_listo(parameters);
+
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case CONSULTAR_PEDIDO:
-					if (!parameters[1]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"CONSULTAR_PEDIDO [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+				case CONSULTAR_PEDIDO:;
+					res = validate_consultar_pedido(parameters);
+					
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
 			}
 			break;
 		case OPTION_COMANDA:
 			switch (command) {
-				case GUARDAR_PEDIDO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"GUARDAR_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						return ERROR;	
-					}
-					break;
-				case GUARDAR_PLATO:
-					if (!parameters[1] || !parameters[2] || !parameters[3] || !parameters[4]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"GUARDAR_PLATO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO] [CANTIDAD]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[CANTIDAD]: int"RESET BREAK);
-						return ERROR;	
-					}
-					break;
-				case CONFIRMAR_PEDIDO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+				case GUARDAR_PEDIDO:;
+					res = validate_guardar_pedido(parameters);
+					
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case PLATO_LISTO:
-					if (!parameters[1] || !parameters[2] || !parameters[3]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
+				case GUARDAR_PLATO:;
+					res = validate_guardar_plato(parameters);
+					
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case OBTENER_PEDIDO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"OBTENER_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+				case CONFIRMAR_PEDIDO:;
+					res = validate_confirmar_pedido(parameters);					
+					
+					if(res == ERROR)
 						return ERROR;
-					}
+					break;
+				case PLATO_LISTO:;
+					res = validate_plato_listo(parameters);
+					
+					if(res == ERROR)
+						return ERROR;
+					break;
+				case OBTENER_PEDIDO:;
+					res = validate_obtener_pedido(parameters);
+					
+					if(res == ERROR)
+						return ERROR;
 					break;
 			}
 			break;
 		case OPTION_RESTAURANTE:
 			switch (command) {
-				case ANIADIR_PLATO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"ANIADIR_PLATO [NOMBRE_PLATO] [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						return ERROR;	
-					}
-					break;
-				case CONFIRMAR_PEDIDO:
-					if (!parameters[1]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+				case ANIADIR_PLATO:;
+					res = validate_aniadir_plato(parameters);
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case CONSULTAR_PEDIDO:
-					if (!parameters[1]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"CONSULTAR_PEDIDO [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+				case CONFIRMAR_PEDIDO:;
+					res = validate_confirmar_pedido_v2(parameters);
+					
+					if(res == ERROR)
 						return ERROR;
-					}
+					break;
+				case CONSULTAR_PEDIDO:;
+					res = validate_consultar_pedido(parameters);
+					
+					if(res == ERROR)
+						return ERROR;
 					break;
 			}
 			break;
@@ -228,53 +321,32 @@ int validateCommand(int option, int command, char **parameters) {
 						return ERROR;	
 					}
 					break;
-				case GUARDAR_PEDIDO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"GUARDAR_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						return ERROR;	
-					}
-					break;
-				case GUARDAR_PLATO:
-					if (!parameters[1] || !parameters[2] || !parameters[3] || !parameters[4]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"GUARDAR_PLATO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO] [CANTIDAD]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[CANTIDAD]: int"RESET BREAK);
-						return ERROR;	
-					}
-					break;
-				case CONFIRMAR_PEDIDO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"CONFIRMAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+				case GUARDAR_PEDIDO:;
+					res = validate_guardar_pedido(parameters);
+					
+					if(res == ERROR)
 						return ERROR;
-					}
 					break;
-				case PLATO_LISTO:
-					if (!parameters[1] || !parameters[2] || !parameters[3]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"PLATO_LISTO [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_PLATO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_PLATO]: char*"RESET BREAK);
+				case GUARDAR_PLATO:;
+					res = validate_guardar_plato(parameters);
+
+					if(res == ERROR)
 						return ERROR;
-					}
+					break;
+				case CONFIRMAR_PEDIDO:;
+					res = validate_confirmar_pedido(parameters);
+
+					if(res == ERROR)
+						return ERROR;					
+					break;
+				case PLATO_LISTO:;					
+					res = validate_plato_listo(parameters);
+					
+					if(res == ERROR)
+						return ERROR;
 					break;
 				case OBTENER_PEDIDO:
-					if (!parameters[1] || !parameters[2]) {
-						showCommandErrorMsg(command);
-						printf(BOLDYELLOW"OBTENER_PEDIDO [NOMBRE_RESTAURANTE] [ID_PEDIDO]"RESET BREAK);
-						printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
-						printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
-						return ERROR;
-					}
+					validate_obtener_pedido(parameters);
 					break;
 			}
 			break;

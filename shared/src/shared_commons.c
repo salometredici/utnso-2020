@@ -200,3 +200,10 @@ double get_current_time(){
 	return a;
 }
 
+bool only_contains_numbers(char *input) {
+	for (int i = 0; i < strlen(input); i++) {
+		if (input[i] < '0' || input[i] > '9') { return false; }
+	}
+	return true;
+}
+

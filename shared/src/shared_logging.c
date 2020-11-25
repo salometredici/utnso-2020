@@ -513,3 +513,10 @@ void log_CrearPedido_Data(t_request *request) {
 	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
 	log_info(logger, "Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
 }
+
+/***********************MENSAJE CONSOLA GENERAL***************************/
+void show_NaN_error_msg() {
+	printf("-----------------------[ERROR]------------------------"BREAK);
+	printf(BOLDRED"Se ingresó un valor no numérico en algún/algunos parámetro/s"RESET BREAK);
+	log_error(logger, "Se ingresó un valor no numérico en algún/algunos parámetro/s");
+}

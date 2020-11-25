@@ -8,6 +8,26 @@ int getPuertoEscucha() {
 	return config_get_int_value(config, "PUERTO_ESCUCHA");
 }
 
+char *get_full_bitmap_path() {
+	char *bitmapPath = string_new();
+	string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
+	return bitmapPath;
+}
+
+bool existe_bitmap_previo() {
+	return fdExists(get_full_bitmap_path());
+}
+
+int get_available_blocks_number() {
+	int cont = 0;
+	pthread_mutex_lock(&mutexBitmap);
+	for (int i = 0; i < blocksQuantity; i++) {
+		if (bitarray_test_bit(bitarray, i) == 0) { cont++; }
+	}
+	pthread_mutex_unlock(&mutexBitmap);
+	return cont;
+}
+
 void setBasePath() {
 	// Obtener la ruta del punto de montaje sin el dir /afip
 	char *ultimoDir = strrchr(puntoMontaje, '/');
@@ -39,7 +59,7 @@ void initFromBaseDir(char *dir) {
 }
 
 // Seteamos las variables globales
-void initVariables() {
+void init_variables() {
 	puertoEscucha = getPuertoEscucha();
 	puntoMontaje = getPuntoMontaje();
 	createDirectory(puntoMontaje);
@@ -48,7 +68,7 @@ void initVariables() {
 }
 
 // Creamos los directorios principales
-void initDirectories() {
+void init_directories() {
 	initFromBaseDir(BLOCKS_PATH);
 	initFromBaseDir(FILES_PATH);
 	initFromBaseDir(RECETAS_PATH);
@@ -56,7 +76,7 @@ void initDirectories() {
 }
 
 // Obtiene los valores de Metadata.AFIP
-void initMetadata() {
+void init_metadata() {
 	char *metadataPath = string_new();
 	string_append_with_format(&metadataPath, "%s%s", puntoMontaje, METADATA_PATH);
 	t_config *metadata = config_create(metadataPath);
@@ -65,25 +85,31 @@ void initMetadata() {
 }
 
 // Crea la cantidad BLOCKS de bloques #.AFIP
-void initBlocks() {
-	for (int i = 0; i < blocksQuantity; i++) {
-		char *fullPath = string_new();
-		string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
-		FILE *fp = fopen(fullPath, "w");
-		fclose(fp);
+void init_blocks() {
+	if (!existe_bitmap_previo()) {
+		for (int i = 0; i < blocksQuantity; i++) {
+			char *fullPath = string_new();
+			string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
+			FILE *fp = fopen(fullPath, "w");
+			fclose(fp);
+		}
 	}
 }
 
 /* Bitmap */
 
 // Retorna el bitarray inicial con todos los bits en cero
-void getInitialBitarray(char *bitmap, int size) {
+void set_initial_bitarray(char *bitmap, int size) {
 	bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
 	for (int i = 0; i < bitarray_get_max_bit(bitarray); i++) {
 		bitarray_clean_bit(bitarray, i);
 	}
-	logInitialBitarrayInfo(bitarray);
-	return bitarray;
+	log_bitarray_info(bitarray, get_available_blocks_number());
+}
+
+void set_existent_bitarray(char *bitmap, int size) {
+	bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
+	log_bitarray_info(bitarray, get_available_blocks_number());
 }
 
 char *getBitmap(int size, int fd) {
@@ -106,9 +132,9 @@ int getBitmapFile(char *path) {
 	}
 }
 
-void initBitMap() {
+void init_bitmap() {
 	int bitmapSize = (blocksQuantity / 8) + 1; // Sólo va a tener de tamaño la cantidad de bloques en bits + 1
-	char *bitmapPath = string_new(); string_append_with_format(&bitmapPath, "%s%s", puntoMontaje, BITMAP_PATH);
+	char *bitmapPath = get_full_bitmap_path();
 	if (!fdExists(bitmapPath)) {
 		logBitmapInit();
 		// Crear archivo
@@ -117,21 +143,26 @@ void initBitMap() {
 		// Crear bitmap
 		bitmap = getBitmap(bitmapSize, bitmapFile);
 		// Crear bitarray
-		getInitialBitarray(bitmap, bitmapSize);
-		// Actualizamos el archivo y borramos el bitarray
+		set_initial_bitarray(bitmap, bitmapSize);
+		// Actualizamos el archivo
 		msync(bitmap, bitmapFile, MS_SYNC);
-		//bitarray_destroy(bitarray);
 		close(bitmapFile);
 		logBitmapSuccess();
+	} else {
+		int bitmapFile = getBitmapFile(bitmapPath);
+		ftruncate(bitmapFile, bitmapSize);
+		bitmap = getBitmap(bitmapSize, bitmapFile);
+		set_existent_bitarray(bitmap, bitmapSize);
+		close(bitmapFile);
 	}
 }
 
 /* Init */
 
 void init() {
-	initVariables();
-	initDirectories();
-	initMetadata();
-	initBlocks();
-	initBitMap();
+	init_variables();
+	init_directories();
+	init_metadata();
+	init_blocks();
+	init_bitmap();
 }

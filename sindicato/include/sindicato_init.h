@@ -24,16 +24,14 @@ char *puntoMontaje;
 char *dirInicial;
 char *blocksPath;
 char *filesPath;
-char *bitmap;
 
 int blockSize;
 int blocksQuantity;
 int maxContentSize;
 
+char *bitmap;
 t_bitarray *bitarray;
-
-pthread_mutex_t mx1;
-pthread_mutex_t mx2;
+pthread_mutex_t mutexBitmap;
 
 void init();
 

@@ -4,7 +4,7 @@
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
-#include "../include/app_init.h"
+#include "../include/app_handler.h"
 #include "../include/app_planification.h"
 #include "tests.h"
 

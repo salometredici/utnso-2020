@@ -64,6 +64,7 @@ char *get_full_recipe_path(char *receta) { // Retorna la ruta absoluta, por ejem
 /* Existencia */
 
 bool existe_restaurante(char *rest) {
+	string_to_upper(rest);
 	char *path = get_full_rest_path(rest);
 	return fdExists(path);
 }

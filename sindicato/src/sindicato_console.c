@@ -11,12 +11,12 @@ int sindicato_option_to_key(char *key) {
     return ERROR;
 }
 
-bool only_contains_numbers(char *input) {
-	for (int i = 0; i < strlen(input); i++) {
-		if (input[i] < '0' || input[i] > '9') { return false; }
-	}
-	return true;
-}
+// bool only_contains_numbers(char *input) {
+// 	for (int i = 0; i < strlen(input); i++) {
+// 		if (input[i] < '0' || input[i] > '9') { return false; }
+// 	}
+// 	return true;
+// }
 
 bool only_contains_chars(char *input) {
 	for (int i = 0; i < strlen(input); i++) {
@@ -102,12 +102,12 @@ void show_invalid_position_error_msg() {
 	log_error(logger, "El formato para la posición del restaurante era incorrecto");
 }
 
-void show_NaN_error_msg() {
-	printf("-----------------------[ERROR]------------------------"BREAK);
-	printf(BOLDRED"Se ingresó un valor no numérico en algún/algunos parámetro/s"RESET BREAK);
-	printf("Los parámetros "YELLOW"[CANT_COCINEROS]"RESET", "YELLOW"[CANT_HORNOS]"RESET", y "YELLOW"[CANT_PEDIDOS]"RESET" deben ser números"BREAK);
-	log_error(logger, "Se ingresó un valor no numérico en algún/algunos parámetro/s");
-}
+// void show_NaN_error_msg() {
+// 	printf("-----------------------[ERROR]------------------------"BREAK);
+// 	printf(BOLDRED"Se ingresó un valor no numérico en algún/algunos parámetro/s"RESET BREAK);
+// 	printf("Los parámetros "YELLOW"[CANT_COCINEROS]"RESET", "YELLOW"[CANT_HORNOS]"RESET", y "YELLOW"[CANT_PEDIDOS]"RESET" deben ser números"BREAK);
+// 	log_error(logger, "Se ingresó un valor no numérico en algún/algunos parámetro/s");
+// }
 
 void show_not_a_list_error_msg(int option) {
 	printf("-----------------------[ERROR]------------------------"BREAK);

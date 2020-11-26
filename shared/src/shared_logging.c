@@ -437,36 +437,46 @@ void log_Receta_AFIP(char *receta) {
 
 // Bitmap
 
-void logBitmapFileError() {
+void log_bitmap_file_error() {
 	printf(RED"[ERROR] Error al abrir el archivo Bitmap.bin"RESET BREAK);
 	log_error(logger, "Error al abrir el archivo Bitmap.bin");
 }
 
-void logBitmapError() {
+void log_bitmap_error() {
 	printf(RED"[ERROR] Error al realizar mmap"RESET BREAK);
 	log_error(logger, "Error al realizar mmap");
 }
 
 void log_bitarray_info(t_bitarray *bitarray, int available_blocks) {
 	int lastBit = bitarray_get_max_bit(bitarray);
-	printf("Tamaño del bitmap: %d"BREAK, lastBit);
-	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
-	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
-	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
-	log_debug(logger, "Tamaño del bitmap: %d", lastBit);
-	log_debug(logger, "Cant. de bloques disponibles: %d"BREAK, available_blocks);
-	log_debug(logger, "Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
-	log_debug(logger, "Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
+	printf("→ Tamaño del bitmap: %d"BREAK, lastBit);
+	printf("→ Cant. de bloques disponibles: "BOLD"%d"RESET BREAK, available_blocks);
+	printf(TAB BOLD"→"RESET" Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
+	printf(TAB BOLD"→"RESET" Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
+	log_debug(logger, "→ Tamaño del bitmap: %d", lastBit);
+	log_debug(logger, "→ Cant. de bloques disponibles: %d"BREAK, available_blocks);
+	log_debug(logger, TAB"→ Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
+	log_debug(logger, TAB"→ Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
 }
 
-void logBitmapInit() {
+void log_bitmap_init() {
 	printf(BOLD"Creando Bitmap.bin..."RESET BREAK);
 	log_debug(logger, "Creando Bitmap.bin...");
 }
 
-void logBitmapSuccess() {
+void log_bitmap_success() {
 	printf(BOLD"Archivo Bitmap.bin creado exitosamente"RESET BREAK);
 	log_debug(logger, "Archivo Bitmap.bin creado exitosamente");
+}
+
+void log_bitmap_reload() {
+	printf(BOLD"Cargando el archivo Bitmap.bin ya existente en el FS..."RESET BREAK);
+	log_debug(logger, "Cargando el archivo Bitmap.bin ya existente en el FS...");
+}
+
+void log_bitmap_reload_success() {
+	printf(BOLD"Archivo Bitmap.bin cargado exitosamente"RESET BREAK);
+	log_debug(logger, "Archivo Bitmap.bin cargado exitosamente");
 }
 
 // Bitmap updates

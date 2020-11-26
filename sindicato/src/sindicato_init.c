@@ -115,7 +115,7 @@ void set_existent_bitarray(char *bitmap, int size) {
 char *getBitmap(int size, int fd) {
 	char *bitmap = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (bitmap == MAP_FAILED) {
-		logBitmapError();
+		log_bitmap_error();
 		exit(EXIT_FAILURE);
 	} else {
 		return bitmap;
@@ -125,7 +125,7 @@ char *getBitmap(int size, int fd) {
 int getBitmapFile(char *path) {
 	int fd = open(path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 	if (fd == ERROR) {
-		logBitmapFileError();
+		log_bitmap_file_error();
 		exit(EXIT_FAILURE);
 	} else {
 		return fd;
@@ -133,27 +133,29 @@ int getBitmapFile(char *path) {
 }
 
 void init_bitmap() {
-	int bitmapSize = (blocksQuantity / 8) + 1; // Sólo va a tener de tamaño la cantidad de bloques en bits + 1
-	char *bitmapPath = get_full_bitmap_path();
-	if (!fdExists(bitmapPath)) {
-		logBitmapInit();
+	int bitmap_size = (blocksQuantity / 8) + 1; // Sólo va a tener de tamaño la cantidad de bloques en bits + 1
+	char *bitmap_path = get_full_bitmap_path();
+	if (!fdExists(bitmap_path)) {
+		log_bitmap_init();
 		// Crear archivo
-		int bitmapFile = getBitmapFile(bitmapPath);
-		ftruncate(bitmapFile, bitmapSize);
+		int bitmap_file = getBitmapFile(bitmap_path);
+		ftruncate(bitmap_file, bitmap_size);
 		// Crear bitmap
-		bitmap = getBitmap(bitmapSize, bitmapFile);
+		bitmap = getBitmap(bitmap_size, bitmap_file);
 		// Crear bitarray
-		set_initial_bitarray(bitmap, bitmapSize);
+		set_initial_bitarray(bitmap, bitmap_size);
 		// Actualizamos el archivo
-		msync(bitmap, bitmapFile, MS_SYNC);
-		close(bitmapFile);
-		logBitmapSuccess();
+		msync(bitmap, bitmap_file, MS_SYNC);
+		close(bitmap_file);
+		log_bitmap_success();
 	} else {
-		int bitmapFile = getBitmapFile(bitmapPath);
-		ftruncate(bitmapFile, bitmapSize);
-		bitmap = getBitmap(bitmapSize, bitmapFile);
-		set_existent_bitarray(bitmap, bitmapSize);
-		close(bitmapFile);
+		log_bitmap_reload();
+		int bitmap_file = getBitmapFile(bitmap_path);
+		ftruncate(bitmap_file, bitmap_size);
+		bitmap = getBitmap(bitmap_size, bitmap_file);
+		set_existent_bitarray(bitmap, bitmap_size);
+		close(bitmap_file);
+		log_bitmap_reload_success();
 	}
 }
 

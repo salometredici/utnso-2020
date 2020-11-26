@@ -7,7 +7,6 @@ bool fdExists(char *fd) {
 	if (stat(fd, &dirStat) < 0) {
 		return false;
 	}
-	free(fd);
 	return true;
 }
 
@@ -15,7 +14,6 @@ void createDirectory(char *directory) {
 	if (!fdExists(directory)) {
 		recursiveCreateDir(directory);
 	}
-	free(directory);
 }
 
 void recursiveCreateDir(char *path) {

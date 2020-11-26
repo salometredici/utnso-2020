@@ -115,31 +115,13 @@ t_list *get_t_plato_list_from_lists(t_list *platos, t_list *cant_pedidas, t_list
 	t_list *t_plato_list = list_create();
 	for (int i = 0; i < list_size(platos); i++) {
 		t_plato *plato_actual = malloc(sizeof(t_plato));
+		plato_actual->plato = (char *) malloc(sizeof(list_get(platos, i)));
 		plato_actual->plato = list_get(platos, i);
 		plato_actual->cantidadPedida = atoi(list_get(cant_pedidas, i));
 		plato_actual->cantidadLista = atoi(list_get(cant_listas, i));
 		list_add(t_plato_list, plato_actual);
 	}
 	return t_plato_list;	
-}
-
-// Retorna un md
-t_md *get_md_from_string(char *afip_content) {
-	t_md *md = getEmptyMd();
-	md->cantidadHornos = atoi(get_plain_line_content(afip_content, 5));
-	md->cantidadCocineros = atoi(get_plain_line_content(afip_content, 0));
-	md->cantidadPedidos = atoi(get_plain_line_content(afip_content, 6));
-
-	md->platos = get_platos_con_precios_from_rest(afip_content);
-
-	md->afinidades = get_list_from_string(afip_content, 2, 20);
-
-	t_posicion *posicion = get_posicion_from_string(get_plain_line_content(afip_content, 1));
-	md->posX = posicion->posX;
-	md->posY = posicion->posY;
-
-	free(posicion);
-	return md;
 }
 
 int obtener_precio_pedido(t_list *platos_con_precios, t_list *platos_pedido) {
@@ -160,6 +142,25 @@ int obtener_precio_pedido(t_list *platos_con_precios, t_list *platos_pedido) {
 		free(plato_actual); free(plato_encontrado);
 	}
 	return precio_total;
+}
+
+// Retorna un md
+t_md *get_md_from_string(char *afip_content) {
+	t_md *md = getEmptyMd();
+	md->cantidadHornos = atoi(get_plain_line_content(afip_content, 5));
+	md->cantidadCocineros = atoi(get_plain_line_content(afip_content, 0));
+	md->cantidadPedidos = atoi(get_plain_line_content(afip_content, 6));
+
+	md->platos = get_platos_con_precios_from_rest(afip_content);
+
+	md->afinidades = get_list_from_string(afip_content, 2, 20);
+
+	t_posicion *posicion = get_posicion_from_string(get_plain_line_content(afip_content, 1));
+	md->posX = posicion->posX;
+	md->posY = posicion->posY;
+
+	free(posicion);
+	return md;
 }
 
 t_pedido *get_pedido_from_string(char *info, t_request *request, char *info_restaurante) {

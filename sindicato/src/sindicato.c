@@ -132,10 +132,10 @@ void *atender_conexiones(void *conexionNueva)
 						result_guardar_plato = getTResult(PEDIDO_NO_EXISTE, true);
 					} else {
 						t_pedido *pedido_guardar_plato = obtener_pedido(req_pedido_buscado);
-						if (pedido_guardar_plato->estado != PENDIENTE) {
+						if (pedido_guardar_plato->estado != PENDIENTE || pedido_guardar_plato-> estado != SIN_PLATOS) {
 							result_guardar_plato = getTResult(ESTADO_AVANZADO, true);
 						} else {
-							agregar_plato_a_pedido(req_guardar_plato);
+							agregar_plato_a_pedido(req_guardar_plato, pedido_guardar_plato);
 							result_guardar_plato = getTResult(PEDIDO_ACTUALIZADO, false);
 						}
 						free(pedido_guardar_plato);

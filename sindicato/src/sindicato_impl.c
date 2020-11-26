@@ -19,6 +19,14 @@ int find_char_index(char *string, char caracter) {
 	}
 }
 
+bool existe_plato_en_pedido(char *plato, t_pedido *pedido) {
+	bool es_plato_actual(void *actual) {
+		t_plato *plato_pedido = actual;
+		return string_equals_ignore_case(plato, plato_pedido->plato);
+	};
+	return list_any_satisfy(pedido->platos, &es_plato_actual);
+}
+
 /* Utils Restaurantes */
 
 char *get_restaurant_path(char *restaurante) { // Retorna, por ejemplo: /Restaurantes/BK
@@ -311,13 +319,13 @@ char *get_CrearReceta_Data(char **params) {
 
 /* CREAR_PEDIDO */
 
-char *get_CrearPedido_Data(t_request *request) {
+char *get_IniciarPedido_Data(t_req_plato *request, int precio) {
 	char *fileContent = string_new();
-	// string_append_with_format(&fileContent, "ESTADO_PEDIDO=%s\n", getStringEstadoPedido(PENDIENTE));
-	// string_append_with_format(&fileContent, "LISTA_PLATOS=%s\n", "[]");
-	// string_append_with_format(&fileContent, "CANTIDAD_PLATOS=%s\n", "[]");
-	// string_append_with_format(&fileContent, "CANTIDAD_LISTA=%s\n", "[]");
-	// string_append_with_format(&fileContent, "PRECIO_TOTAL=%s\n", 0);
+	string_append_with_format(&fileContent, "ESTADO_PEDIDO=%s\n", getStringEstadoPedido(PENDIENTE));
+	string_append_with_format(&fileContent, "LISTA_PLATOS=%s\n", "[%s]", request->plato);
+	string_append_with_format(&fileContent, "CANTIDAD_PLATOS=%s\n", "[%s]", request->cantidadPlato);
+	string_append_with_format(&fileContent, "CANTIDAD_LISTA=%s\n", "[%d]", 0);
+	string_append_with_format(&fileContent, "PRECIO_TOTAL=%d\n", request->cantidadPlato * precio);
 	log_CrearPedido_Data(request);
 	return fileContent;
 }
@@ -325,6 +333,10 @@ char *get_CrearPedido_Data(t_request *request) {
 void create_pedido_dir(t_request *request) {
 	char *new_pedido_path = get_full_pedido_path(request);
 	createDirectory(new_pedido_path);
+}
+
+void emptypedido() {
+
 }
 
 /* Funcionalidades */
@@ -336,6 +348,14 @@ void check_and_save(int option, char *object, char *content, int reqBlocks) {
 		log_full_FS(reqBlocks, get_available_blocks_number());
 		exit(EXIT_FAILURE);
 	}
+}
+
+void guardar_primer_plato(t_req_plato *request, int precio) {
+	char *fst_fileContent = get_IniciarPedido_Data(request, precio);
+	int reqBlocks = get_required_blocks_number(strlen(fst_fileContent));
+	t_request *req_a_guardar = getTRequest(request->idPedido, request->restaurante);
+	check_and_save(PEDIDO, get_full_pedido_path(req_a_guardar), fst_fileContent, reqBlocks);
+	free(req_a_guardar);
 }
 
 void crear_restaurante(char **params) {

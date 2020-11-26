@@ -84,7 +84,6 @@ t_posicion *get_posicion_from_string(char *info){
 }
 
 // Retorna una lista de t_md_receta a partir de dos listas de strings, una para los platos y otra para sus precios
-
 t_list *get_platos_con_precios_from_rest(char *info_restaurante) {
 	t_list *platos_con_precios = list_create();
 	t_list *platos = get_list_from_string(info_restaurante, 3, 8);
@@ -97,6 +96,18 @@ t_list *get_platos_con_precios_from_rest(char *info_restaurante) {
 	}
 	free(platos); free(precios);
 	return platos_con_precios;
+}
+
+int obtener_precio_plato(char *plato, char *info_restaurante) {
+	t_list *menu_restaurante = get_platos_con_precios_from_rest(info_restaurante);
+	bool es_plato_actual(void *actual) {
+		t_md_receta *plato_menu_actual = actual;
+		return string_equals_ignore_case(plato, plato_menu_actual->plato);
+	};
+	t_md_receta *plato_encontrado = list_find(menu_restaurante, &es_plato_actual);
+	int precio_plato = plato_encontrado != NULL ? plato_encontrado->precio : ERROR;
+	free(menu_restaurante); if (plato_encontrado != NULL) { free(plato_encontrado); }
+	return precio_plato;
 }
 
 // Retorna una lista de t_plato a partir de tres listas de strings, una para los platos, otra para sus cant. pedidas y otra para sus cant. listas
@@ -188,10 +199,6 @@ t_md *obtener_restaurante(char *restaurante) {
 	return get_md_from_string(info_restaurante);
 }
 
-void agregar_plato_a_pedido(t_req_plato *req_plato_a_agregar) {
-
-}
-
 t_pedido *obtener_pedido(t_request *request) {
 	char *info_restaurante = get_info(RESTAURANTE, request->nombre);
 	char *info_pedido = get_info(PEDIDO, get_full_pedido_path(request));
@@ -202,4 +209,24 @@ t_pedido *obtener_pedido(t_request *request) {
 		pedido = get_pedido_from_string(info_pedido, request, info_restaurante);
 	}
 	return pedido;
+}
+
+void incrementar_plato_en_pedido(t_req_plato *request) {
+
+}
+
+void guardar_plato_en_pedido(t_req_plato *request) {
+
+}
+
+void agregar_plato_a_pedido(t_req_plato *request, t_pedido *pedido_actual) {
+	char *info_restaurante = get_info(RESTAURANTE, request->restaurante);
+	if (pedido_actual->estado == SIN_PLATOS) {
+		int precio_plato = obtener_precio_plato(request->plato, info_restaurante);
+		guardar_primer_plato(request, precio_plato);
+	} else if(existe_plato_en_pedido(request->plato, pedido_actual)) {
+		incrementar_plato_en_pedido(request);
+	} else {
+		guardar_plato_en_pedido(request);
+	}
 }

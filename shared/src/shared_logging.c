@@ -286,7 +286,7 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 
 void log_GuardarPlato(t_req_plato *req_plato) {
 	printf("Datos del request del plato:"BREAK);
-	printf(TAB"Restaurante: "BOLDMAGENTA"[%s], Pedido: "BOLD"%d"RESET BREAK, req_plato->restaurante, req_plato->idPedido);
+	printf(TAB"Restaurante: "BOLDMAGENTA"[%s]"RESET", Pedido: "BOLD"%d"RESET BREAK, req_plato->restaurante, req_plato->idPedido);
 	printf(TAB"Plato: "BOLD"[%s]"RESET", Cant. a añadir: "BOLD"%d"RESET BREAK, req_plato->plato, req_plato->cantidadPlato); 
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cant. a añadir: %d", req_plato->restaurante, req_plato->idPedido, req_plato->plato, req_plato->cantidadPlato);
 }
@@ -512,6 +512,13 @@ void log_CrearReceta_Data(char **params) {
 void log_CrearPedido_Data(t_request *request) {
 	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
 	log_info(logger, "Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
+}
+
+// INICIAR PEDIDO
+
+void log_IniciarPedido_Data(t_req_plato *request) {
+	printf("Inicializando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->restaurante);
+	log_info(logger, "Inicializando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->restaurante);
 }
 
 /***********************MENSAJE CONSOLA GENERAL***************************/

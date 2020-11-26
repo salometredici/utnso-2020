@@ -258,7 +258,6 @@ void log_ObtenerPedido(t_request *request, m_code codigo_operacion) {
 
 void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 	switch (pedido->estado) {
-		case PENDIENTE:
 		case CONFIRMADO:
 		case FINALIZADO:
 			printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
@@ -273,7 +272,17 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 			printf(TAB RED"[ERROR] %s - [%s, Pedido #%d]"RESET BREAK, PEDIDO_NO_EXISTE, request->nombre, request->idPedido);
 			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, PEDIDO_NO_EXISTE);
 			break;
-		case SIN_PLATOS:
+		case PENDIENTE:
+			if (list_is_empty(pedido->platos)) {
+				printf(TAB YELLOW"[WARNING]"RESET BOLD" PENDIENTE"RESET" - %s - [%s, Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS, request->nombre, request->idPedido);
+				log_error(logger, "Pedido %d, Restaurante %s - PENDIENTE - %s", request->idPedido, request->nombre, BLOQUES_NO_ASIGNADOS);
+			} else {
+				printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+				log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+				log_t_plato_list(pedido->platos);
+			}
+			break;
+		case SIN_PLATOS: // Revisar
 			printf(TAB YELLOW"[WARNING]"RESET" %s - [%s, Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS, request->nombre, request->idPedido);
 			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, BLOQUES_NO_ASIGNADOS);
 			break;
@@ -367,7 +376,6 @@ void log_receta_e_instrucciones(t_receta *receta) {
 		printf("[Paso #%d]: "BOLD"%s"RESET", Tiempo: %d" BREAK, i, current_inst->paso, current_inst->qPaso);
 		log_info(logger, "[Paso #%d]: %s, Tiempo: %d", i, current_inst->paso, current_inst->qPaso);
 	}
-
 }
 
 void log_rta_ObtenerReceta(t_receta *receta) {
@@ -392,7 +400,7 @@ void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_l
 	log_debug(logger, "Chars=%03d, Buf_size=%03zu, Contenido: %s", line_size, line_buf_size, current_line);
 }
 
-// Consola e inicialización
+// Bloques e implementación interna
 
 void log_full_FS(int cantReq, int cantDisp) {
 	printf(RED"[ERROR] No hay bloques suficientes para realizar la operación. "RESET BOLDRED "[Cant. requerida: %d] - [Cant. disponible: %d]"RESET BREAK, cantReq, cantDisp);
@@ -404,7 +412,7 @@ void log_blocks_assignment() {
 	log_debug(logger, "Iniciando la reserva de bloques...");
 }
 
-// Files content
+// File content
 
 void log_full_blocks_content(char *content) {
 	log_debug(logger, "El contenido del archivo obtenido fue:");

@@ -34,6 +34,7 @@
 #define ESTADO_AVANZADO "EL PEDIDO YA FUE CONFIRMADO/TERMINADO, NO SE PUEDE ACTUALIZAR"
 #define PEDIDO_ACTUALIZADO "EL PEDIDO HA SIDO ACTUALIZADO"
 #define BLOQUES_NO_ASIGNADOS "SOLICITUD SIN BLOQUES ASIGNADOS"
+#define NO_CONOCE_PLATO "EL RESTAURANTE NO SABE PREPARAR EL PLATO SOLICITADO"
 
 typedef enum {
 	APP = 1,
@@ -215,15 +216,17 @@ typedef struct {
 typedef enum {
 	PENDIENTE = 1,
 	CONFIRMADO = 2,
-	FINALIZADO = 3,
-	REST_INEXISTENTE = 4,
-	PEDIDO_INEXISTENTE = 5,
-	SIN_PLATOS = 6
+	TERMINADO = 3, // Cuando el pedido está listo para ser retirado del restaurante
+	FINALIZADO = 4, // Cuando el pedido fue entregado al cliente
+	REST_INEXISTENTE = 5,
+	PEDIDO_INEXISTENTE = 6,
+	SIN_PLATOS = 7
 } t_estado;
 
 static t_keys diccionarioTEstados[] = {
     { "PENDIENTE", PENDIENTE },
 	{ "CONFIRMADO", CONFIRMADO },
+	{ "TERMINADO", TERMINADO },
 	{ "FINALIZADO", FINALIZADO },
 	{ "REST_INEXISTENTE", REST_INEXISTENTE },
 	{ "PEDIDO_INEXISTENTE", PEDIDO_INEXISTENTE },
@@ -239,7 +242,6 @@ typedef struct {
 	char *plato;
 	int cantidadPedida;
 	int cantidadLista;
-	//int precio;
 } t_plato;
 
 typedef struct {
@@ -251,7 +253,7 @@ typedef struct {
 typedef struct {
 	char *restaurante;
 	t_estado estado;
-	t_list *platos; // Es una lista de t_plato
+	t_list *platos; // Es una lista de t_plato. Ej: [{Papas,1,0},{Hamburguesas,3,2}]
 	int precioTotal; // Quizás después corresponda un float o double
 } t_pedido;
 

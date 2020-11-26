@@ -139,7 +139,7 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 			string_append_with_format(&AFIP_file_path, "%s", object);
 			break;
 	}
-	if (!fdExists(AFIP_file_path)) { // Hace falta revisar esto?
+	if (!fdExists(AFIP_file_path) || option == PEDIDO) { // Hace falta revisar esto?
 		FILE *fp = fopen(AFIP_file_path, "w+");
 		if (fp != NULL) {
 			fputs(fileContent, fp);
@@ -206,6 +206,7 @@ void save_content(int reqBlocks, char *fileContent, uint32_t *bloquesAsignados) 
 	}	
 }
 
+// Método para la primer asignación de bloques y el guardado del contenido en los archivos
 void save_in_blocks(int option, char *object, char *fileContent, int bloquesReq) {
 	int contentSize = strlen(fileContent);
 	// Creamos el array para guardar los números de bloques asignados
@@ -322,9 +323,9 @@ char *get_CrearReceta_Data(char **params) {
 char *get_IniciarPedido_Data(t_req_plato *request, int precio) {
 	char *fileContent = string_new();
 	string_append_with_format(&fileContent, "ESTADO_PEDIDO=%s\n", getStringEstadoPedido(PENDIENTE));
-	string_append_with_format(&fileContent, "LISTA_PLATOS=%s\n", "[%s]", request->plato);
-	string_append_with_format(&fileContent, "CANTIDAD_PLATOS=%s\n", "[%s]", request->cantidadPlato);
-	string_append_with_format(&fileContent, "CANTIDAD_LISTA=%s\n", "[%d]", 0);
+	string_append_with_format(&fileContent, "LISTA_PLATOS=[%s]\n", request->plato);
+	string_append_with_format(&fileContent, "CANTIDAD_PLATOS=[%d]\n", request->cantidadPlato);
+	string_append_with_format(&fileContent, "CANTIDAD_LISTA=[%d]\n", 0);
 	string_append_with_format(&fileContent, "PRECIO_TOTAL=%d\n", request->cantidadPlato * precio);
 	log_CrearPedido_Data(request);
 	return fileContent;
@@ -341,10 +342,13 @@ void emptypedido() {
 
 /* Funcionalidades */
 
+/* Primeras asignaciones/creaciones */
+
 void check_and_save(int option, char *object, char *content, int reqBlocks) {
 	if (enough_blocks_available(reqBlocks)) {
 		save_in_blocks(option, object, content, reqBlocks);
 	} else {
+		free(object); free(content);
 		log_full_FS(reqBlocks, get_available_blocks_number());
 		exit(EXIT_FAILURE);
 	}
@@ -355,7 +359,7 @@ void guardar_primer_plato(t_req_plato *request, int precio) {
 	int reqBlocks = get_required_blocks_number(strlen(fst_fileContent));
 	t_request *req_a_guardar = getTRequest(request->idPedido, request->restaurante);
 	check_and_save(PEDIDO, get_full_pedido_path(req_a_guardar), fst_fileContent, reqBlocks);
-	free(req_a_guardar);
+	free(fst_fileContent); free(req_a_guardar);
 }
 
 void crear_restaurante(char **params) {

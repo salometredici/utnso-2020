@@ -19,7 +19,7 @@ char *get_plain_line_content(char *content, int line_number) {
 	char *line = lines[line_number];
 	int equal_index = find_char_index(line, '=');
 	free(lines);
-	return string_substring(line, equal_index, strlen(line));
+	string_substring(line, equal_index, strlen(line)-1);//
 }
 
 char *get_full_line_content(char *content, int line_number) {
@@ -116,8 +116,8 @@ t_list *get_t_plato_list_from_lists(t_list *platos, t_list *cant_pedidas, t_list
 	for (int i = 0; i < list_size(platos); i++) {
 		t_plato *plato_actual = malloc(sizeof(t_plato));
 		plato_actual->plato = list_get(platos, i);
-		plato_actual->cantidadPedida = list_get(cant_pedidas, i);
-		plato_actual->cantidadLista = list_get(cant_listas, i);
+		plato_actual->cantidadPedida = atoi(list_get(cant_pedidas, i));
+		plato_actual->cantidadLista = atoi(list_get(cant_listas, i));
 		list_add(t_plato_list, plato_actual);
 	}
 	return t_plato_list;	
@@ -170,6 +170,7 @@ t_pedido *get_pedido_from_string(char *info, t_request *request, char *info_rest
 	t_list *platos = get_list_from_string(info, 1, 14);
 	t_list *cant_pedidas = get_list_from_string(info, 2, 17);
 	t_list *cant_listas = get_list_from_string(info, 3, 16);
+
 	pedido->platos = get_t_plato_list_from_lists(platos, cant_pedidas, cant_listas);
 
 	t_list *menu_restaurante = get_platos_con_precios_from_rest(info_restaurante);
@@ -180,6 +181,15 @@ t_pedido *get_pedido_from_string(char *info, t_request *request, char *info_rest
 }
 
 /* Funcionalidades */
+
+bool sabe_preparar_plato_restaurante(t_req_plato *request) {
+	t_md *restaurante = obtener_restaurante(request->restaurante);
+	bool existe_plato(void *actual) {
+		t_md_receta *plato_actual = actual;
+		return string_equals_ignore_case(plato_actual->plato, request->plato);
+	};
+	return list_any_satisfy(restaurante->platos, &existe_plato);
+}
 
 t_list *obtener_platos_restaurante(char *restaurante) {
 	t_list *platos_restaurante = list_create();
@@ -208,6 +218,7 @@ t_pedido *obtener_pedido(t_request *request) {
 	} else {
 		pedido = get_pedido_from_string(info_pedido, request, info_restaurante);
 	}
+	free(info_restaurante);
 	return pedido;
 }
 
@@ -221,12 +232,31 @@ void guardar_plato_en_pedido(t_req_plato *request) {
 
 void agregar_plato_a_pedido(t_req_plato *request, t_pedido *pedido_actual) {
 	char *info_restaurante = get_info(RESTAURANTE, request->restaurante);
-	if (pedido_actual->estado == SIN_PLATOS) {
+	if (list_is_empty(pedido_actual->platos)) {
 		int precio_plato = obtener_precio_plato(request->plato, info_restaurante);
 		guardar_primer_plato(request, precio_plato);
 	} else if(existe_plato_en_pedido(request->plato, pedido_actual)) {
 		incrementar_plato_en_pedido(request);
 	} else {
 		guardar_plato_en_pedido(request);
+	}
+}
+
+t_result *check_and_add_plato(t_req_plato *request) {
+	t_request *req_pedido_buscado = getTRequest(request->idPedido, request->restaurante);
+	if (!existe_pedido(req_pedido_buscado)) {
+		free(req_pedido_buscado);
+		return getTResult(PEDIDO_NO_EXISTE, true);
+	} else {
+		t_pedido *pedido_a_guardar_plato = obtener_pedido(req_pedido_buscado);
+		if (pedido_a_guardar_plato->estado == TERMINADO ||
+			pedido_a_guardar_plato->estado == FINALIZADO) {
+			free(req_pedido_buscado); free(pedido_a_guardar_plato);
+			return getTResult(ESTADO_AVANZADO, true);
+		} else {
+			agregar_plato_a_pedido(request, pedido_a_guardar_plato);
+			free(req_pedido_buscado); free(pedido_a_guardar_plato);
+			return getTResult(PEDIDO_ACTUALIZADO, false);
+		}
 	}
 }

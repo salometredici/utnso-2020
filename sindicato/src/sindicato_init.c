@@ -81,7 +81,7 @@ void init_metadata() {
 	string_append_with_format(&metadataPath, "%s%s", puntoMontaje, METADATA_PATH);
 	t_config *metadata = config_create(metadataPath);
 	setMetadata(metadata);
-	config_destroy(metadata);
+	free(metadataPath); config_destroy(metadata);
 }
 
 // Crea la cantidad BLOCKS de bloques #.AFIP

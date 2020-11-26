@@ -7,6 +7,7 @@ bool fdExists(char *fd) {
 	if (stat(fd, &dirStat) < 0) {
 		return false;
 	}
+	free(fd);
 	return true;
 }
 
@@ -14,6 +15,7 @@ void createDirectory(char *directory) {
 	if (!fdExists(directory)) {
 		recursiveCreateDir(directory);
 	}
+	free(directory);
 }
 
 void recursiveCreateDir(char *path) {
@@ -91,7 +93,7 @@ int commandToString(char *key) {
 t_estado string_to_t_estado(char *estado) {
     for (int i = 0; i < T_ESTADOSNKEYS; i++) {
     	t_keys sym = diccionarioTEstados[i];
-    	if (string_equals_ignore_case(estado,sym.valor)) {
+    	if (string_equals_ignore_case(estado,sym.key)) {
         	return sym.valor;
     	}
 	}

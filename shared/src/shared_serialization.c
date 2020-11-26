@@ -77,9 +77,9 @@ int getBytesTPlatoListo(t_plato_listo *platoListo) {
 }
 
 // Size de 2 ints (estado y precioTotal) + size de cada t_plato --ANTES
-// Size de 3 ints (estado, precioTotal y long del R) + size de cada t_plato + size del R --AHORA
+// Size de 3 ints (estado, precioTotal y long del R) + size de cada t_plato + size del R --AHORA + int del tamaño de la lista
 int getBytesPedido(t_pedido *pedido) {
-	return sizeof(int) * 3 + getBytesListaPlatos(pedido->platos) + getBytesString(pedido->restaurante);
+	return sizeof(int) * 3 + getBytesListaPlatos(pedido->platos) + getBytesString(pedido->restaurante) + sizeof(int);
 }
 
 // Size de un bool, de un string y un int que representa el size del string
@@ -441,23 +441,29 @@ void *srlzPedido(t_pedido *pedido) {
 	t_list *listaPlatos = (t_list*) pedido->platos;
 
 	int longListaPlatos = list_size(listaPlatos);
+	int bytesListaPlatos = getBytesListaPlatos(listaPlatos);
 
-	int longRestaurante = string_length(pedido->restaurante); //
+	int longRestaurante = getBytesString(pedido->restaurante); //
 	char *rest = pedido->restaurante; //
 
 	int size = getBytesPedido(pedido);
-
 	void *magic = malloc(size);
-	memcpy(magic, &pedido->estado, sizeof(int));
+
+	memcpy(magic, &pedido->estado, sizeof(int)); // Estado del pedido
 	desplazamiento += sizeof(int);
-	memcpy(magic + desplazamiento, &pedido->precioTotal, sizeof(int));
+	memcpy(magic + desplazamiento, &pedido->precioTotal, sizeof(int)); // Precio
 	desplazamiento += sizeof(int);
 
-	memcpy(magic + desplazamiento, &longRestaurante, sizeof(int)); //
-	desplazamiento += sizeof(int); //
-	memcpy(magic + desplazamiento, rest, longRestaurante); //
+	memcpy(magic + desplazamiento, &longRestaurante, sizeof(int)); // Restaurante
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, rest, longRestaurante);
 	desplazamiento += longRestaurante;
 
+	// size de la lista de platos
+	memcpy(magic + desplazamiento, &bytesListaPlatos, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	// Serializamos la lista de platos (t_plato)
 	for (int i = 0; i < longListaPlatos; i++) {
 		t_plato *plato = list_get(listaPlatos, i);
 		int longNombrePlato = getBytesString(plato->plato);
@@ -788,24 +794,31 @@ t_pedido *dsrlzPedido(void *buffer, int size) {
 	t_list *platos = list_create();
 	//int sizeListaPlatos = size - sizeof(int) * 2; -- Ahora van a ser 3 ints y la long del R
 
-	int longRestaurante; //
+	int longRestaurante = 0; //
+	int size_lista = 0;//****
 
 	memcpy(&pedido->estado, buffer, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(&pedido->precioTotal, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 
+//nombre del rest
 	memcpy(&longRestaurante, buffer + desplazamiento, sizeof(int)); //
 	desplazamiento += sizeof(int); //
 	
 	char *rest = malloc(longRestaurante); //
 	memcpy(rest, buffer + desplazamiento, longRestaurante); //
 	desplazamiento += longRestaurante; //
+	pedido->restaurante = rest;
 
 	int sizeListaPlatos = size - sizeof(int) * 2 - longRestaurante;
 
-	while (desplazamiento < sizeListaPlatos) {
-		int longPlatoActual;
+	//tamaño de la lista de platos
+	memcpy(&size_lista, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+
+	while (desplazamiento < size){//sizeListaPlatos) {
+		int longPlatoActual =0;
 		t_plato *platoActual = malloc(sizeof(t_plato));
 		// Copiamos el tamaño del nombre del plato en la variable longPlatoActual
 		memcpy(&longPlatoActual, buffer + desplazamiento, sizeof(int));

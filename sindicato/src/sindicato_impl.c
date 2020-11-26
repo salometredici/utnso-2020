@@ -119,12 +119,7 @@ char *new_AFIP_file_content(int fullSize, int initialBlock) {
 	return fileContent;
 }
 
-void save_empty_AFIP_file(char *path_pedido) {
-	char *AFIP_file_content = new_AFIP_file_content(0,ERROR);
-	check_AFIP_file(PEDIDO, AFIP_file_content, path_pedido);
-}	
-
-void check_AFIP_file(int option, char *fileContent, char *object) {
+char *get_AFIP_file_path(int option, char *object) {
 	char *AFIP_file_path = string_new();
 	switch (option) {
 		case RESTAURANTE:
@@ -139,13 +134,22 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 			string_append_with_format(&AFIP_file_path, "%s", object);
 			break;
 	}
-	if (!fdExists(AFIP_file_path) || option == PEDIDO) { // Hace falta revisar esto?
-		FILE *fp = fopen(AFIP_file_path, "w+");
-		if (fp != NULL) {
-			fputs(fileContent, fp);
-			fclose(fp);
-		}
+	return AFIP_file_path;
+}
+
+// Para editar el archivo AFIP.file o crearlo si no existe
+void check_AFIP_file(int option, char *fileContent, char *object) {
+	char *AFIP_file_path = get_AFIP_file_path(option, object);
+	FILE *fp = fopen(AFIP_file_path, "w+");
+	if (fp != NULL) {
+		fputs(fileContent, fp);
+		fclose(fp);
 	}
+}
+
+void save_empty_AFIP_file(char *path_pedido) {
+	char *AFIP_file_content = new_AFIP_file_content(0,ERROR);
+	check_AFIP_file(PEDIDO, AFIP_file_content, path_pedido);
 }
 
 char *get_content_from_AFIP_file(int option, char *object) {	
@@ -260,6 +264,11 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 	return full_content;
 }
 
+void update_blocks_content() {
+
+}
+
+
 // Busca la información del archivo .AFIP correspondiente, y retorna el conjunto de información de los bloques en base a ello
 char *get_info(int option, char *object) {
 	char *afip_content = get_content_from_AFIP_file(option, object);
@@ -334,6 +343,47 @@ char *get_IniciarPedido_Data(t_req_plato *request, int precio) {
 void create_pedido_dir(t_request *request) {
 	char *new_pedido_path = get_full_pedido_path(request);
 	createDirectory(new_pedido_path);
+}
+
+/* GUARDAR_PLATO */
+
+
+
+char *get_GuardarPlato_Data(t_req_plato *request, t_pedido *pedido_actual, bool es_incremento) {
+	char *updated_file_content = string_new();
+	string_append_with_format(&updated_file_content, "ESTADO_PEDIDO=%s\n", getStringEstadoPedido(pedido_actual->estado));
+	
+	char *lp = string_new(); char *cp = string_new(); char *cl = string_new();
+	char *lista_platos = "LISTA_PLATOS=[";
+	char *cant_platos = "CANTIDAD_PLATOS=[";
+	char *cant_lista = "CANTIDAD_LISTA=[";
+	string_append_with_format(&lp, "%s", lista_platos);
+	string_append_with_format(&cp, "%s", cant_platos);
+	string_append_with_format(&cl, "%s", cant_lista);
+	int tam = list_size(pedido_actual->platos);
+	int preciototal = pedido_actual->precioTotal;
+
+	for (int i = 0; i < tam;i++) {
+		t_plato *plato_actual = list_get(pedido_actual->platos,i);
+		string_append_with_format(&lp, "%s", plato_actual->plato);
+		string_append_with_format(&lp, "%d", plato_actual->cantidadLista);
+		int cant = plato_actual->cantidadPedida;
+		if (!es_incremento && string_equals_ignore_case(plato_actual->plato, request->plato)) {
+			cant += request->cantidadPlato;
+			preciototal += request->cantidadPlato;//???
+		}
+		string_append_with_format(&lp, "%d", cant);
+	}
+
+	if (!es_incremento) {
+		string_append_with_format(&lp, "%s", request->plato);
+		string_append_with_format(&lp, "%s", request->cantidadPlato);
+	}
+	string_append_with_format(&updated_file_content, "%s]\n", lp);
+	string_append_with_format(&updated_file_content, "%s]\n", cp);
+	string_append_with_format(&updated_file_content, "%s]\n", cl);
+	string_append_with_format(&updated_file_content, "PRECIO_TOTAL=%d\n", preciototal);
+	return updated_file_content;
 }
 
 void emptypedido() {

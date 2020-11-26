@@ -162,7 +162,8 @@ void *atender_conexiones(void *conexionNueva)
 				} else {
 					pedido = obtener_pedido(req_obtener_pedido);
 				}
-				printf("%s\n", list_get(pedido->platos, 0));
+				t_plato *ee = malloc(sizeof(t_plato)); ee = list_get(pedido->platos, 0);	
+				printf("daleeeeee %s\n", ee->plato);
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				free(req_obtener_pedido); free(pedido);
 				break;

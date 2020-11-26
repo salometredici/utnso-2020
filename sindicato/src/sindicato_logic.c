@@ -115,12 +115,12 @@ t_list *get_t_plato_list_from_lists(t_list *platos, t_list *cant_pedidas, t_list
 	t_list *t_plato_list = list_create();
 	for (int i = 0; i < list_size(platos); i++) {
 		t_plato *plato_actual = malloc(sizeof(t_plato));
-		plato_actual->plato = (char *) malloc(sizeof(list_get(platos, i)));
 		plato_actual->plato = list_get(platos, i);
 		plato_actual->cantidadPedida = atoi(list_get(cant_pedidas, i));
 		plato_actual->cantidadLista = atoi(list_get(cant_listas, i));
 		list_add(t_plato_list, plato_actual);
 	}
+	//free(platos); free(cant_listas); free(cant_pedidas);
 	return t_plato_list;	
 }
 
@@ -223,8 +223,8 @@ t_pedido *obtener_pedido(t_request *request) {
 	return pedido;
 }
 
-void incrementar_plato_en_pedido(t_req_plato *request) {
-
+void incrementar_plato_en_pedido(t_req_plato *request, t_pedido *pedido_actual, bool e) {
+	char *pedido_act_file_content = get_GuardarPlato_Data(request, pedido_actual, e);
 }
 
 void guardar_plato_en_pedido(t_req_plato *request) {
@@ -237,7 +237,7 @@ void agregar_plato_a_pedido(t_req_plato *request, t_pedido *pedido_actual) {
 		int precio_plato = obtener_precio_plato(request->plato, info_restaurante);
 		guardar_primer_plato(request, precio_plato);
 	} else if(existe_plato_en_pedido(request->plato, pedido_actual)) {
-		incrementar_plato_en_pedido(request);
+		incrementar_plato_en_pedido(request, pedido_actual, true);
 	} else {
 		guardar_plato_en_pedido(request);
 	}

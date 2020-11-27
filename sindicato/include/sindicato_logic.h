@@ -10,8 +10,11 @@
 #include "../include/sindicato_init.h"
 #include "tests.h"
 
+bool sabe_preparar_plato_restaurante(t_req_plato *request);
 t_list *obtener_platos_restaurante(char *restaurante);
 t_list *obtener_receta(char *receta_a_buscar);
 t_md *obtener_restaurante(char *restaurante);
+t_pedido *obtener_pedido(t_request *request);
+t_result *check_and_add_plato(t_req_plato *request);
 
 #endif

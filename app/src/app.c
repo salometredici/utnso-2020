@@ -28,7 +28,7 @@ void actualizarClientesConectados(t_cliente *cliente) {
 		if (restDuplicado != NULL || list_is_empty(restaurantesConectados)) { list_add(restaurantesConectados, cliente); }
 	} else {
 		t_cliente *clienteDuplicado = list_find(clientesConectados, &estaDuplicado);
-		if (clienteDuplicado != NULL || list_is_empty(clientesConectados)) {	list_add(clientesConectados, cliente); }
+		if (clienteDuplicado != NULL || list_is_empty(clientesConectados)) { list_add(clientesConectados, cliente); }
 	}
 }
 
@@ -125,20 +125,15 @@ void *atenderConexiones(void *conexionNueva)
 				actualizarClientesConectados(cliente);
 				break;
         	case CONSULTAR_RESTAURANTES:;
-				if (list_is_empty(restaurantesConectados)) {
-					t_list *rest = list_create(); list_add(rest, restauranteDefault);
-					enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, rest);
-					free(rest);
-				} else {
-            		enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, obtenerRestsConectados());
-				}
+				t_list *rta_cons_rest = _consultar_restaurantes();
+				enviarPaquete(socketCliente, APP, RTA_CONSULTAR_RESTAURANTES, rta_cons_rest);
+				free(rta_cons_rest);
         		break;
 			case SELECCIONAR_RESTAURANTE:;
-				t_selecc_rest *seleccRest = recibirPayloadPaquete(header, socketCliente);
-				cliente->restSeleccionado = seleccRest->restauranteSeleccionado;
-				logSeleccionarRestaurante(seleccRest);
-				t_result *resSelecc = getTResult("[SELECCIONAR_RESTAURANTE] Ok",false);
-				enviarPaquete(socketCliente, APP, RTA_SELECCIONAR_RESTAURANTE, resSelecc);
+				t_selecc_rest *tupla_cliente_rest = recibirPayloadPaquete(header, socketCliente);
+				t_result *rta_selec_rest = _seleccionar_restaurante(cliente, tupla_cliente_rest);
+				enviarPaquete(socketCliente, APP, RTA_SELECCIONAR_RESTAURANTE, rta_selec_rest);
+				free(rta_selec_rest);
 				break;
 			case CONSULTAR_PLATOS:; // Finished with annotations
 				char *consulta = recibirPayloadPaquete(header, socketCliente); free(consulta);

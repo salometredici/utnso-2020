@@ -258,7 +258,6 @@ void log_ObtenerPedido(t_request *request, m_code codigo_operacion) {
 
 void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 	switch (pedido->estado) {
-		case PENDIENTE:
 		case CONFIRMADO:
 		case FINALIZADO:
 			printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
@@ -273,7 +272,17 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 			printf(TAB RED"[ERROR] %s - [%s, Pedido #%d]"RESET BREAK, PEDIDO_NO_EXISTE, request->nombre, request->idPedido);
 			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, PEDIDO_NO_EXISTE);
 			break;
-		case SIN_PLATOS:
+		case PENDIENTE:
+			if (list_is_empty(pedido->platos)) {
+				printf(TAB YELLOW"[WARNING]"RESET BOLD" PENDIENTE"RESET" - %s - [%s, Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS, request->nombre, request->idPedido);
+				log_error(logger, "Pedido %d, Restaurante %s - PENDIENTE - %s", request->idPedido, request->nombre, BLOQUES_NO_ASIGNADOS);
+			} else {
+				printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+				log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+				log_t_plato_list(pedido->platos);
+			}
+			break;
+		case SIN_PLATOS: // Revisar
 			printf(TAB YELLOW"[WARNING]"RESET" %s - [%s, Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS, request->nombre, request->idPedido);
 			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, BLOQUES_NO_ASIGNADOS);
 			break;
@@ -286,7 +295,7 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 
 void log_GuardarPlato(t_req_plato *req_plato) {
 	printf("Datos del request del plato:"BREAK);
-	printf(TAB"Restaurante: "BOLDMAGENTA"[%s], Pedido: "BOLD"%d"RESET BREAK, req_plato->restaurante, req_plato->idPedido);
+	printf(TAB"Restaurante: "BOLDMAGENTA"[%s]"RESET", Pedido: "BOLD"%d"RESET BREAK, req_plato->restaurante, req_plato->idPedido);
 	printf(TAB"Plato: "BOLD"[%s]"RESET", Cant. a añadir: "BOLD"%d"RESET BREAK, req_plato->plato, req_plato->cantidadPlato); 
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cant. a añadir: %d", req_plato->restaurante, req_plato->idPedido, req_plato->plato, req_plato->cantidadPlato);
 }
@@ -367,7 +376,6 @@ void log_receta_e_instrucciones(t_receta *receta) {
 		printf("[Paso #%d]: "BOLD"%s"RESET", Tiempo: %d" BREAK, i, current_inst->paso, current_inst->qPaso);
 		log_info(logger, "[Paso #%d]: %s, Tiempo: %d", i, current_inst->paso, current_inst->qPaso);
 	}
-
 }
 
 void log_rta_ObtenerReceta(t_receta *receta) {
@@ -392,7 +400,7 @@ void log_AFIP_file_line(ssize_t line_size, size_t line_buf_size, char *current_l
 	log_debug(logger, "Chars=%03d, Buf_size=%03zu, Contenido: %s", line_size, line_buf_size, current_line);
 }
 
-// Consola e inicialización
+// Bloques e implementación interna
 
 void log_full_FS(int cantReq, int cantDisp) {
 	printf(RED"[ERROR] No hay bloques suficientes para realizar la operación. "RESET BOLDRED "[Cant. requerida: %d] - [Cant. disponible: %d]"RESET BREAK, cantReq, cantDisp);
@@ -404,7 +412,7 @@ void log_blocks_assignment() {
 	log_debug(logger, "Iniciando la reserva de bloques...");
 }
 
-// Files content
+// File content
 
 void log_full_blocks_content(char *content) {
 	log_debug(logger, "El contenido del archivo obtenido fue:");
@@ -437,36 +445,46 @@ void log_Receta_AFIP(char *receta) {
 
 // Bitmap
 
-void logBitmapFileError() {
+void log_bitmap_file_error() {
 	printf(RED"[ERROR] Error al abrir el archivo Bitmap.bin"RESET BREAK);
 	log_error(logger, "Error al abrir el archivo Bitmap.bin");
 }
 
-void logBitmapError() {
+void log_bitmap_error() {
 	printf(RED"[ERROR] Error al realizar mmap"RESET BREAK);
 	log_error(logger, "Error al realizar mmap");
 }
 
 void log_bitarray_info(t_bitarray *bitarray, int available_blocks) {
 	int lastBit = bitarray_get_max_bit(bitarray);
-	printf("Tamaño del bitmap: %d"BREAK, lastBit);
-	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
-	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
-	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
-	log_debug(logger, "Tamaño del bitmap: %d", lastBit);
-	log_debug(logger, "Cant. de bloques disponibles: %d"BREAK, available_blocks);
-	log_debug(logger, "Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
-	log_debug(logger, "Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
+	printf("→ Tamaño del bitmap: %d"BREAK, lastBit);
+	printf("→ Cant. de bloques disponibles: "BOLD"%d"RESET BREAK, available_blocks);
+	printf(TAB BOLD"→"RESET" Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
+	printf(TAB BOLD"→"RESET" Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
+	log_debug(logger, "→ Tamaño del bitmap: %d", lastBit);
+	log_debug(logger, "→ Cant. de bloques disponibles: %d"BREAK, available_blocks);
+	log_debug(logger, TAB"→ Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
+	log_debug(logger, TAB"→ Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
 }
 
-void logBitmapInit() {
+void log_bitmap_init() {
 	printf(BOLD"Creando Bitmap.bin..."RESET BREAK);
 	log_debug(logger, "Creando Bitmap.bin...");
 }
 
-void logBitmapSuccess() {
+void log_bitmap_success() {
 	printf(BOLD"Archivo Bitmap.bin creado exitosamente"RESET BREAK);
 	log_debug(logger, "Archivo Bitmap.bin creado exitosamente");
+}
+
+void log_bitmap_reload() {
+	printf(BOLD"Cargando el archivo Bitmap.bin ya existente en el FS..."RESET BREAK);
+	log_debug(logger, "Cargando el archivo Bitmap.bin ya existente en el FS...");
+}
+
+void log_bitmap_reload_success() {
+	printf(BOLD"Archivo Bitmap.bin cargado exitosamente"RESET BREAK);
+	log_debug(logger, "Archivo Bitmap.bin cargado exitosamente");
 }
 
 // Bitmap updates
@@ -512,4 +530,18 @@ void log_CrearReceta_Data(char **params) {
 void log_CrearPedido_Data(t_request *request) {
 	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
 	log_info(logger, "Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
+}
+
+// INICIAR PEDIDO
+
+void log_IniciarPedido_Data(t_req_plato *request) {
+	printf("Inicializando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->restaurante);
+	log_info(logger, "Inicializando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->restaurante);
+}
+
+/***********************MENSAJE CONSOLA GENERAL***************************/
+void show_NaN_error_msg() {
+	printf("-----------------------[ERROR]------------------------"BREAK);
+	printf(BOLDRED"Se ingresó un valor no numérico en algún/algunos parámetro/s"RESET BREAK);
+	log_error(logger, "Se ingresó un valor no numérico en algún/algunos parámetro/s");
 }

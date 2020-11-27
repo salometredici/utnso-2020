@@ -64,7 +64,7 @@ void *atenderConexiones(void *conexionNueva)
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
-
+		//ver si puedo borrar esta variable
 		socketSindicato = conectarseA(SINDICATO);
 
 		switch (header->codigoOperacion) {
@@ -92,12 +92,15 @@ void *atenderConexiones(void *conexionNueva)
 				pthread_mutex_lock(&mutexQPedidos);
 				cantidadPedidos++;
 				pthread_mutex_unlock(&mutexQPedidos);
-
+				t_request *reqcrearPedido = malloc(sizeof(t_request));
+				reqcrearPedido->idPedido = cantidadPedidos;
+				reqcrearPedido->nombre = nombreRestaurante;
 				conexionSindicato = conectarseA(SINDICATO);
-				enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, cantidadPedidos);
+				enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, reqcrearPedido);
 				t_header *hrRtaGuardarPedido = recibirHeaderPaquete(conexionSindicato);
-				t_result *reqRtaGuardarPedido = recibirPayloadPaquete(header, socketCliente);
+				t_result *reqRtaGuardarPedido = recibirPayloadPaquete(hrRtaGuardarPedido, conexionSindicato);
 				liberarConexion(conexionSindicato);
+				//ta mal handleado fijarse si hay error pls tarada
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, cantidadPedidos);
 				break;
 			case ANIADIR_PLATO:;
@@ -112,9 +115,9 @@ void *atenderConexiones(void *conexionNueva)
 				reqPlato->cantidadPlato = 1;
 
 				conexionSindicato = conectarseA(SINDICATO);
-				enviarPaquete(socketSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
+				enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PLATO, reqPlato);
 				t_header *hrRtaGuardarPlato = recibirHeaderPaquete(conexionSindicato);
-				t_result *reqRtaGuardarPlato = recibirPayloadPaquete(header, socketCliente);
+				t_result *reqRtaGuardarPlato = recibirPayloadPaquete(hrRtaGuardarPlato, conexionSindicato);
 				liberarConexion(conexionSindicato);
 				free(hrRtaGuardarPlato);
 				// if(reqRtaGuardarPlato->hasError){
@@ -139,7 +142,7 @@ void *atenderConexiones(void *conexionNueva)
 				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf);
 				t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
-				t_pedido *pedidoConf = recibirPayloadPaquete(header, conexionSindicato);
+				t_pedido *pedidoConf = recibirPayloadPaquete(hRConf, conexionSindicato);
 				liberarConexion(SINDICATO);
 				mostrarListaPlatos(pedidoConf->platos);
 				free(hRConf);
@@ -170,7 +173,7 @@ void *atenderConexiones(void *conexionNueva)
 				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO , reqConsultarPedido);
 				t_header *hRConsultarP = recibirHeaderPaquete(conexionSindicato);
-				t_pedido *pedidoConsultar = recibirPayloadPaquete(header, conexionSindicato);
+				t_pedido *pedidoConsultar = recibirPayloadPaquete(hRConsultarP, conexionSindicato);
 				liberarConexion(SINDICATO);
 				pedidoConsultar->restaurante = nombreRestaurante;
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PEDIDO, pedidoConsultar);

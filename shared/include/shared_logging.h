@@ -70,11 +70,13 @@ void log_Pedido_AFIP(int nroPedido);
 void log_Receta_AFIP(char *receta);
 
 // Bitmap
-void logBitmapFileError();
-void logBitmapError();
+void log_bitmap_file_error();
+void log_bitmap_error();
 void log_bitarray_info(t_bitarray *bitarray, int available_blocks);
-void logBitmapInit();
-void logBitmapSuccess();
+void log_bitmap_init();
+void log_bitmap_success();
+void log_bitmap_reload();
+void log_bitmap_reload_success();
 // Bitmap updates
 void log_bit_state(int pos, int bit);
 void log_bit_update(int pos, t_bitarray *bitarray);
@@ -91,5 +93,9 @@ void log_CrearReceta_Data(char **params);
 // CREAR_PEDIDO
 
 void log_CrearPedido_Data(t_request *request);
+
+// INICIAR PEDIDO
+
+void log_IniciarPedido_Data(t_req_plato *request);
 
 #endif

@@ -112,7 +112,7 @@ void *atender_conexiones(void *conexionNueva)
 				if (!existe_restaurante(req_guardar_pedido->nombre)) {
 					 result_guardar_pedido = getTResult(REST_NO_EXISTE, true);
 				} else if (!existe_pedido(req_guardar_pedido)) {
-					crear_pedido(req_guardar_pedido);
+					crear_pedido(req_guardar_pedido); // Revisar
 					result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
 				} else {
 					result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
@@ -126,21 +126,10 @@ void *atender_conexiones(void *conexionNueva)
 				t_result *result_guardar_plato;
 				if (!existe_restaurante(req_guardar_plato->restaurante)) {
 					result_guardar_plato = getTResult(REST_NO_EXISTE, true);
+				} else if (!sabe_preparar_plato_restaurante(req_guardar_plato)) {
+					result_guardar_plato = getTResult(NO_CONOCE_PLATO, true);
 				} else {
-					t_request *req_pedido_buscado = getTRequest(req_guardar_plato->idPedido, req_guardar_plato->restaurante);
-					if (!existe_pedido(req_pedido_buscado)) {
-						result_guardar_plato = getTResult(PEDIDO_NO_EXISTE, true);
-					} else {
-						t_pedido *pedido_guardar_plato = obtener_pedido(req_pedido_buscado);
-						if (pedido_guardar_plato->estado != PENDIENTE) {
-							result_guardar_plato = getTResult(ESTADO_AVANZADO, true);
-						} else {
-							agregar_plato_a_pedido(req_guardar_plato);
-							result_guardar_plato = getTResult(PEDIDO_ACTUALIZADO, false);
-						}
-						free(pedido_guardar_plato);
-					}
-					free(req_pedido_buscado);
+					result_guardar_plato = check_and_add_plato(req_guardar_plato);
 				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, result_guardar_plato);
 				free(req_guardar_pedido); free(result_guardar_plato);
@@ -167,9 +156,9 @@ void *atender_conexiones(void *conexionNueva)
 				log_ObtenerPedido(req_obtener_pedido, header->codigoOperacion);
 				t_pedido *pedido;
 				if (!existe_restaurante(req_obtener_pedido->nombre)) {
-					pedido = getEmptyPedido(REST_INEXISTENTE);
+					pedido = getEmptyPedido_with_error(REST_INEXISTENTE);
 				} else if (!existe_pedido(req_obtener_pedido)) {
-					pedido = getEmptyPedido(PEDIDO_INEXISTENTE);
+					pedido = getEmptyPedido_with_error(PEDIDO_INEXISTENTE);
 				} else {
 					pedido = obtener_pedido(req_obtener_pedido);
 				}

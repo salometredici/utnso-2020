@@ -19,7 +19,7 @@ t_list *idsGenerados;
 #define SJF 3
 
 static t_keys diccionarioAlgoritmos[] = {
-    { "FIFO", FIFO },
+	{ "FIFO", FIFO },
     { "HRRN", HRRN },
     { "SJF", SJF }
 };

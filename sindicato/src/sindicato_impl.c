@@ -268,7 +268,6 @@ void update_blocks_content() {
 
 }
 
-
 // Busca la información del archivo .AFIP correspondiente, y retorna el conjunto de información de los bloques en base a ello
 char *get_info(int option, char *object) {
 	char *afip_content = get_content_from_AFIP_file(option, object);
@@ -295,6 +294,151 @@ char *get_info(int option, char *object) {
 		log_no_AFIP_content();
 		exit(EXIT_FAILURE);
 	}
+}
+
+/* Formateos */
+
+/* Retorna el valor comprendido entre el char '=' y '\n' como int
+	Ejemplo:
+		line = "SIZE=158\n"
+		index_equal = 4
+		index_endl = 8
+	Retorna el valor comprendido entre ambos -> 158 */
+int get_int_file_value(char *line, int index_equal, int index_endl) {
+	return atoi(string_substring(line, index_equal, index_endl));
+}
+
+char *get_string_file_value(char *line, int index_equal, int index_endl) {
+	return string_substring(line, index_equal, index_endl);
+}
+
+char *get_plain_line_content(char *content, int line_number) {
+	char **lines = string_split(content, "\n");
+	char *line = lines[line_number];
+	int equal_index = find_char_index(line, '=');
+	free(lines);
+	string_substring(line, equal_index, strlen(line)-1);//
+}
+
+char *get_full_line_content(char *content, int line_number) {
+	char **lines = string_split(content, "\n");
+	char *line = lines[line_number];
+	free(lines);
+	return line;	
+}
+
+t_list *get_list_from_string(char *info, int line_number, int start_index) {
+	t_list *new_list = list_create();
+	char **lines = string_split(info, "\n");
+	char *line_to_use = lines[line_number];
+	char *list = strrchr(line_to_use, '[');
+	char *string_list = string_substring(list, 1, strlen(list)-2);
+	int values_quantity = getValuesQuantity(string_list);
+	char **values = string_split(string_list, ",");
+	for (int i = 0; i < values_quantity; i ++) {
+		list_add(new_list, values[i]);
+	}
+	free(lines); free(line_to_use); free(string_list); free(values);
+	return new_list;
+}
+
+t_list *get_platos_restaurante(char *info_restaurante) {
+	return get_list_from_string(info_restaurante, 3, 8);
+}
+
+// Retorna una lista de t_instruccion_receta
+t_list *get_instrucciones_from_string(char *info) {
+	t_list *inst_list = list_create();
+	t_list *pasos = get_list_from_string(info, 0, 7);
+	t_list *tiempos = get_list_from_string(info, 1, 14);
+	for (int i = 0; i < list_size(pasos); i++) {
+		char *current_step = list_get(pasos, i);
+		char *current_time = list_get(tiempos, i);
+		t_instrucciones_receta *current_inst = getTPaso(current_step, atoi(current_time));
+		list_add(inst_list, current_inst);
+	}
+	free(pasos); free(tiempos);
+	return inst_list;
+}
+
+// Retorna un t_receta
+t_receta *get_receta_from_string(char *info, char *receta_a_buscar) {
+	t_receta *receta = malloc(sizeof(t_receta));
+	receta->plato = receta_a_buscar;
+	receta->instrucciones = get_instrucciones_from_string(info);
+	return receta;
+}
+
+// Retorna un t_posicion
+t_posicion *get_posicion_from_string(char *info){
+	char *list = string_substring(info, 1, strlen(info)-1);
+	char **values = string_split(list, ",");
+	t_posicion *posicion = malloc(sizeof(t_posicion));
+	posicion->posX = atoi(values[0]);
+	posicion->posY = atoi(values[1]);
+	free(list); free(values);
+	return posicion;
+}
+
+// Retorna una lista de t_md_receta a partir de dos listas de strings, una para los platos y otra para sus precios
+t_list *get_platos_con_precios_from_rest(char *info_restaurante) {
+	t_list *platos_con_precios = list_create();
+	t_list *platos = get_list_from_string(info_restaurante, 3, 8);
+	t_list *precios = get_list_from_string(info_restaurante, 4, 15);
+	for (int i = 0; i < list_size(platos); i++) {
+		t_md_receta *plato_actual = malloc(sizeof(t_md_receta));
+		plato_actual->plato = list_get(platos, i);
+		plato_actual->precio = atoi(list_get(precios, i));
+		list_add(platos_con_precios, plato_actual);
+	}
+	free(platos); free(precios);
+	return platos_con_precios;
+}
+
+int obtener_precio_plato(char *plato, char *info_restaurante) {
+	t_list *menu_restaurante = get_platos_con_precios_from_rest(info_restaurante);
+	bool es_plato_actual(void *actual) {
+		t_md_receta *plato_menu_actual = actual;
+		return string_equals_ignore_case(plato, plato_menu_actual->plato);
+	};
+	t_md_receta *plato_encontrado = list_find(menu_restaurante, &es_plato_actual);
+	int precio_plato = plato_encontrado != NULL ? plato_encontrado->precio : ERROR;
+	free(menu_restaurante); if (plato_encontrado != NULL) { free(plato_encontrado); }
+	return precio_plato;
+}
+
+// Retorna una lista de t_plato a partir de tres listas de strings, una para los platos, otra para sus cant. pedidas y otra para sus cant. listas
+t_list *get_t_plato_list_from_lists(t_list *platos, t_list *cant_pedidas, t_list *cant_listas) {
+	t_list *t_plato_list = list_create();
+	for (int i = 0; i < list_size(platos); i++) {
+		t_plato *plato_actual = malloc(sizeof(t_plato));
+		plato_actual->plato = list_get(platos, i);
+		plato_actual->cantidadPedida = atoi(list_get(cant_pedidas, i));
+		plato_actual->cantidadLista = atoi(list_get(cant_listas, i));
+		list_add(t_plato_list, plato_actual);
+	}
+	//free(platos); free(cant_listas); free(cant_pedidas);
+	return t_plato_list;	
+}
+
+int obtener_precio_pedido(t_list *platos_con_precios, t_list *platos_pedido) {
+	int precio_total = 0;
+	for (int i = 0; i < list_size(platos_pedido); i++) {
+
+		t_plato *plato_actual = list_get(platos_pedido, i);
+
+		bool es_plato_actual(void *actual) {
+			t_md_receta *plato_menu_actual = actual;
+			return string_equals_ignore_case(plato_actual->plato, plato_menu_actual->plato);
+		};
+
+		t_md_receta *plato_encontrado = list_find(platos_con_precios, &es_plato_actual);
+
+		if (plato_encontrado) { precio_total += plato_encontrado->precio; }
+
+		free(plato_actual); free(plato_encontrado);
+	}
+	return precio_total;
 }
 
 /* CREAR_RESTAURANTE */
@@ -347,47 +491,56 @@ void create_pedido_dir(t_request *request) {
 
 /* GUARDAR_PLATO */
 
-
-
-char *get_GuardarPlato_Data(t_req_plato *request, t_pedido *pedido_actual, bool es_incremento) {
-	char *updated_file_content = string_new();
-	string_append_with_format(&updated_file_content, "ESTADO_PEDIDO=%s\n", getStringEstadoPedido(pedido_actual->estado));
+char *get_GuardarPlato_Data(t_req_plato *request, int precio_plato, bool es_plato_nuevo) {
+	t_request *req_pedido = getTRequest(request->idPedido, request->restaurante);
+	char *file_content_pedido = get_info(PEDIDO, get_full_pedido_path(req_pedido));
 	
-	char *lp = string_new(); char *cp = string_new(); char *cl = string_new();
-	char *lista_platos = "LISTA_PLATOS=[";
-	char *cant_platos = "CANTIDAD_PLATOS=[";
-	char *cant_lista = "CANTIDAD_LISTA=[";
-	string_append_with_format(&lp, "%s", lista_platos);
-	string_append_with_format(&cp, "%s", cant_platos);
-	string_append_with_format(&cl, "%s", cant_lista);
-	int tam = list_size(pedido_actual->platos);
-	int preciototal = pedido_actual->precioTotal;
+	char *updated_file_content = string_new();
 
-	for (int i = 0; i < tam;i++) {
-		t_plato *plato_actual = list_get(pedido_actual->platos,i);
-		string_append_with_format(&lp, "%s", plato_actual->plato);
-		string_append_with_format(&lp, "%d", plato_actual->cantidadLista);
-		int cant = plato_actual->cantidadPedida;
-		if (!es_incremento && string_equals_ignore_case(plato_actual->plato, request->plato)) {
-			cant += request->cantidadPlato;
-			preciototal += request->cantidadPlato;//???
+	// Obtenemos el contenido del archivo del pedido actualizado con el plato a incrementar o agregar
+	char **lines = string_split(file_content_pedido, "\n");
+	char *new_lista_platos_line = string_new(); char *new_cant_platos_line = string_new();
+	char *new_cant_lista_platos_line = string_new(); char *new_precio_total_line = string_new();
+	int precio_total_actual = atoi(get_plain_line_content(file_content_pedido, 4));
+
+	if (es_plato_nuevo) {
+		// Agregamos el plato nuevo al final de LISTA_PLATOS
+		new_lista_platos_line = string_substring_until(lines[1], strlen(lines[1]) - 1);
+		string_append_with_format(&new_lista_platos_line, ",%s]\n", request->plato);
+		// Agregamos la cantidad pedida del plato nuevo al final de CANTIDAD_PLATOS
+		new_cant_platos_line = string_substring_until(lines[2], strlen(lines[2]) - 1);
+		string_append_with_format(&new_cant_platos_line, ",%d]\n", request->cantidadPlato);
+		// Agregamos un 0 al final de CANTIDAD_LISTA
+		new_cant_lista_platos_line = string_substring_until(lines[3], strlen(lines[3]) - 1);
+		string_append_with_format(&new_cant_lista_platos_line, ",%d]\n", 0);
+	} else {
+		// LISTA_PLATOS queda igual
+		string_append_with_format(&new_lista_platos_line, "%s%s", lines[1], "\n");
+		// Incrementamos el valor de CANTIDAD_PLATOS para el correspondiente
+		new_cant_platos_line = string_substring_until(lines[2], strlen(lines[2]) - 2);
+		t_list *platos = get_list_from_string(file_content_pedido, 1, 14);
+		t_list *cantidades = get_list_from_string(file_content_pedido, 2, 17);		
+		int total_platos = list_size(platos);
+		for (int i = 0; i < total_platos; i++) {
+			char *plato_actual = list_get(platos, i);
+			if (string_equals_ignore_case(plato_actual, request->plato)){ 
+				string_append_with_format(&new_cant_platos_line, "%d%s", atoi(list_get(cantidades, i)) + request->cantidadPlato, i+1 == total_platos ? "]\n" : ",");
+			} else {
+				string_append_with_format(&new_cant_platos_line, "%d%s", atoi(list_get(cantidades, i)), i+1 == total_platos ? "]\n" : ",");
+			}
 		}
-		string_append_with_format(&lp, "%d", cant);
+		// CANTIDAD_LISTA queda igual
+		string_append_with_format(&new_cant_lista_platos_line, "%s%s", lines[3], "\n");
 	}
 
-	if (!es_incremento) {
-		string_append_with_format(&lp, "%s", request->plato);
-		string_append_with_format(&lp, "%s", request->cantidadPlato);
-	}
-	string_append_with_format(&updated_file_content, "%s]\n", lp);
-	string_append_with_format(&updated_file_content, "%s]\n", cp);
-	string_append_with_format(&updated_file_content, "%s]\n", cl);
-	string_append_with_format(&updated_file_content, "PRECIO_TOTAL=%d\n", preciototal);
+	// La actualización del precio total es igual en ambos casos
+	new_precio_total_line = string_substring_until(lines[4], 13);
+	string_append_with_format(&new_precio_total_line, "%d\n", precio_total_actual + precio_plato * request->cantidadPlato);
+
+	// Finalmente, agregamos todas las líneas actualizadas al char* del contenido actualizado
+	string_append_with_format(&updated_file_content, "%s%s%s%s%s%s", lines[0], "\n", new_lista_platos_line, new_cant_platos_line, new_cant_lista_platos_line, new_precio_total_line);
+
 	return updated_file_content;
-}
-
-void emptypedido() {
-
 }
 
 /* Funcionalidades */
@@ -430,9 +583,4 @@ void crear_pedido(t_request *request) {
 	create_pedido_dir(request);
 	save_empty_AFIP_file(get_full_pedido_path(request));
 	log_CrearPedido_Data(request);
-	//-------------Comentado porque no defini si asignarle bloques al principio o no, por ahora solo creo su archivo afip
-	
-	//  char *fileContent = get_CrearPedido_Data(request);
-	// int reqBlocks = get_required_blocks_number(strlen(fileContent));
-	// check_and_save(PEDIDO, pedido, fileContent, reqBlocks);
 }

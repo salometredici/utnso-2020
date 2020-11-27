@@ -112,7 +112,7 @@ void *atender_conexiones(void *conexionNueva)
 				if (!existe_restaurante(req_guardar_pedido->nombre)) {
 					 result_guardar_pedido = getTResult(REST_NO_EXISTE, true);
 				} else if (!existe_pedido(req_guardar_pedido)) {
-					crear_pedido(req_guardar_pedido);
+					crear_pedido(req_guardar_pedido); // Revisar
 					result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
 				} else {
 					result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
@@ -126,10 +126,10 @@ void *atender_conexiones(void *conexionNueva)
 				t_result *result_guardar_plato;
 				if (!existe_restaurante(req_guardar_plato->restaurante)) {
 					result_guardar_plato = getTResult(REST_NO_EXISTE, true);
-				} else if (sabe_preparar_plato_restaurante(req_guardar_plato)) {
-					result_guardar_plato = check_and_add_plato(req_guardar_plato);
-				} else {
+				} else if (!sabe_preparar_plato_restaurante(req_guardar_plato)) {
 					result_guardar_plato = getTResult(NO_CONOCE_PLATO, true);
+				} else {
+					result_guardar_plato = check_and_add_plato(req_guardar_plato);
 				}
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, result_guardar_plato);
 				free(req_guardar_pedido); free(result_guardar_plato);

@@ -217,7 +217,7 @@ typedef enum {
 	PENDIENTE = 1,
 	CONFIRMADO = 2,
 	TERMINADO = 3, // Cuando el pedido está listo para ser retirado del restaurante
-	FINALIZADO = 4, // Cuando el pedido fue entregado al cliente
+	FINALIZADO = 4, // Cuando el pedido fue entregado al cliente - Creo que no lo vamos a usar
 	REST_INEXISTENTE = 5,
 	PEDIDO_INEXISTENTE = 6,
 	SIN_PLATOS = 7

@@ -163,21 +163,22 @@ t_md *get_md_from_string(char *afip_content) {
 	return md;
 }
 
-t_pedido *get_pedido_from_string(char *info, t_request *request, char *info_restaurante) {
-	t_pedido *pedido = malloc(sizeof(t_pedido));
+t_pedido *get_pedido_from_string(char *info_pedido, t_request *request, char *info_restaurante) {
+	t_pedido *pedido = getEmptyPedido();
+	pedido->estado = string_to_t_estado(get_plain_line_content(info_pedido,0));
+	pedido->precioTotal = atoi(get_plain_line_content(info_pedido, 4));
 	pedido->restaurante = request->nombre;
-	pedido->estado = string_to_t_estado(get_plain_line_content(info, 0));
-
-	t_list *platos = get_list_from_string(info, 1, 14);
-	t_list *cant_pedidas = get_list_from_string(info, 2, 17);
-	t_list *cant_listas = get_list_from_string(info, 3, 16);
-
-	pedido->platos = get_t_plato_list_from_lists(platos, cant_pedidas, cant_listas);
-
-	t_list *menu_restaurante = get_platos_con_precios_from_rest(info_restaurante);
-	pedido->precioTotal = obtener_precio_pedido(menu_restaurante, pedido->platos);
-
-	free(platos); free(cant_pedidas); free(cant_listas);
+	t_list *platos_pedido = get_list_from_string(info_pedido, 1, 14);
+	t_list *num_pedidos = get_list_from_string(info_pedido, 2, 17);
+	t_list *num_listos = get_list_from_string(info_pedido, 3, 16);
+	int cant_platos = list_size(num_pedidos);
+	for (int i = 0; i < cant_platos; i++) {
+		t_plato *plato_pedido = malloc(sizeof(t_plato));
+		plato_pedido->cantidadPedida = atoi(list_get(num_pedidos, i));
+		plato_pedido->cantidadLista = atoi(list_get(num_listos, i));
+		plato_pedido->plato = list_get(platos_pedido, i);
+		list_add(pedido->platos, plato_pedido);
+	}
 	return pedido;
 }
 
@@ -215,7 +216,7 @@ t_pedido *obtener_pedido(t_request *request) {
 	char *info_pedido = get_info(PEDIDO, get_full_pedido_path(request));
 	t_pedido *pedido;
 	if (string_equals_ignore_case(info_pedido, BLOQUES_NO_ASIGNADOS)) {
-		pedido = getEmptyPedido(SIN_PLATOS);
+		pedido = getEmptyPedido_with_error(SIN_PLATOS);
 	} else {
 		pedido = get_pedido_from_string(info_pedido, request, info_restaurante);
 	}

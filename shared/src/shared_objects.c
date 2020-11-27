@@ -50,7 +50,16 @@ t_md *getEmptyMd() {
     return md;
 }
 
-t_pedido *getEmptyPedido(t_estado error_code) {
+t_pedido *getEmptyPedido() {
+    t_pedido *pedido = malloc(sizeof(t_pedido));
+    pedido->estado = PENDIENTE;
+    pedido->precioTotal = ERROR;
+    pedido->restaurante = string_new();
+    pedido->platos = list_create();
+    return pedido;
+}
+
+t_pedido *getEmptyPedido_with_error(t_estado error_code) {
     t_pedido *pedido = malloc(sizeof(t_pedido));
     pedido->restaurante = string_new();
     pedido->estado = error_code == SIN_PLATOS ? PENDIENTE : error_code;

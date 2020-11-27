@@ -156,14 +156,12 @@ void *atender_conexiones(void *conexionNueva)
 				log_ObtenerPedido(req_obtener_pedido, header->codigoOperacion);
 				t_pedido *pedido;
 				if (!existe_restaurante(req_obtener_pedido->nombre)) {
-					pedido = getEmptyPedido(REST_INEXISTENTE);
+					pedido = getEmptyPedido_with_error(REST_INEXISTENTE);
 				} else if (!existe_pedido(req_obtener_pedido)) {
-					pedido = getEmptyPedido(PEDIDO_INEXISTENTE);
+					pedido = getEmptyPedido_with_error(PEDIDO_INEXISTENTE);
 				} else {
 					pedido = obtener_pedido(req_obtener_pedido);
 				}
-				t_plato *ee = malloc(sizeof(t_plato)); ee = list_get(pedido->platos, 0);	
-				printf("daleeeeee %s\n", ee->plato);
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				free(req_obtener_pedido); free(pedido);
 				break;

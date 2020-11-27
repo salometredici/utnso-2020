@@ -169,14 +169,53 @@ t_result* _confirmar_pedido(t_request *request){
  * 1° Verificar si existe la tabla de segmentos, si no existe tengo que mandar mensaje sobre la situacion.--> done
  * 2° Verificar si existe el segmento del pedido, tambien informar. --> done
  * 3° Verificar si en MP sino tenes que traerlo de area de swap
- * 3° Verificar que el pedido este en estado CONFIRMADO, si no esta informar la situacion
+ * 3° Verificar que el pedido este en estado CONFIRMADO, si no esta informar la situacion --> done
  * 4° Se debera aumentar en uno la cantidad del plato. Si todos los platos estan terminados, se deberá cambiar el estado
- * del pedido a TERMINADO
- * 5° Responder el mensaje con Ok/Fail
+ * del pedido a TERMINADO  --> 50% done
+ * 5° Responder el mensaje con Ok/Fail --> done
  */
-void _plato_listo(char *nombre_rest, int id_pedido, char *plato_listo)
-{
+t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_listo) {
+	t_restaurante *rest = find_restaurante(nombre_rest);
 
+	if (rest == NULL) {
+		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe tabla de segmentos.", true);	
+		return result;
+	}
+
+	t_pedidoc *pedido = find_pedido(rest, id_pedido);
+
+	if (pedido == NULL) {
+		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe segmento.", true);	
+		return result;
+	}
+
+	// Buscar nombre_plato_listo en pages del pedido
+	t_page *pl_page = find_plato(pedido, nombre_plato_listo);
+
+	if (pl_page == NULL) { // PAGE_FAULT
+		// TODO: Ejecutar ALGORITMO_REEMPLAZO
+	}
+
+	if (pedido->estado != CONFIRMADO) {
+		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar y/o finalizado.", true);	
+		return result;
+	}
+
+	t_frame *frame_a_actualizar = find_frame_in_memory(pl_page->frame);
+	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+
+	// Actualizar cantidad_lista de la página en MP
+	void *frame = MEMORIA[pl_page->frame];
+	memcpy(frame + (PAGE_SIZE * pl_page->frame) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
+
+	// Marcar página como modified
+	pl_page->modified = true;
+
+	// TODO: Verificar si todos los platos del pedido están listos
+	// Nota: Vamos a tener que traer todas las páginas del pedido a MP para hacer esta validación
+
+	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	
+	return result;
 }
 
 /*

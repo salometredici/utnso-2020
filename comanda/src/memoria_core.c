@@ -323,6 +323,8 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 			return string_equals_ignore_case(plato, plato_a_encontrar->comida);
 		}
 
+		// TODO: Filtrar pages con presencia en MP (flag == 1), para no hacer find_frame_in_memory sobre elementos que no estén en MP
+
 		t_page *plato = list_find(pedido->pages, &_find_plato);
 
 		if(plato == NULL){

@@ -248,23 +248,16 @@ void *atenderConexiones(void *conexionNueva)
 					t_pedido *pedidoAVerificar = recibirPayloadPaquete(headerPO, conexionComanda);
 					
 					// Verificar si todos los platos están listos
-					t_list *platosPedido = list_create(); list_add_all(platosPedido, pedidoAVerificar->platos);
+					// t_list *platosPedido = list_create(); list_add_all(platosPedido, pedidoAVerificar->platos);
 
-					bool platoListo(void *actual) {
-						t_plato *platoActual = actual;
-						return platoActual->cantidadLista == platoActual->cantidadPedida;
-					};
+					// bool platoListo(void *actual) {
+					// 	t_plato *platoActual = actual;
+					// 	return platoActual->cantidadLista == platoActual->cantidadPedida;
+					// };
 
-					bool todosPlatosListos = list_all_satisfy(pedidoAVerificar->platos, &platoListo);
+					// bool todosPlatosListos = list_all_satisfy(pedidoAVerificar->platos, &platoListo);
 					
-					// int cantidadPlatos = list_size(platosPedido);
-					// bool pedidoListo = true;
-					// for (int i=0; i<cantidadPlatos; i++) {
-					// 	t_plato *platoActual = list_get(platosPedido, i);
-					// 	if (platoActual->cantidadLista < platoActual->cantidadPedida) { pedidoListo = false; }
-					// }
-
-					if (todosPlatosListos) {
+					if (pedidoAVerificar->estado == FINALIZADO) {
 						desbloquearPCB(reqPedidoAVerificar->idPedido);
 					}
 				}

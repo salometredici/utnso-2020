@@ -120,7 +120,7 @@ t_restaurante* find_restaurante(char *nombre){
     bool es_restaurante_buscado(void *elemento){
 		t_restaurante *x = (t_restaurante*) elemento;
 		return string_equals_ignore_case(x->nombre, nombre);
-	}
+	};
 
 	t_restaurante *rest = list_find(restaurantes,&es_restaurante_buscado);
 	
@@ -135,7 +135,7 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
     bool _find_pedido(void *elemento){
 		t_pedidoc *x = (t_pedidoc*) elemento;
 		return x->id_pedido == id;
-	}
+	};
 
 	t_pedidoc *pedido = list_find(restaurante->pedidos,&_find_pedido);
 	return pedido;	
@@ -213,7 +213,6 @@ t_frame* get_frame_from_swap(int frame_swap){
 	marco->cantidad_lista = cantidad_lista;
 	marco->comida = plato_encontrado;
 
-	free(plato_encontrado);
 	free(buffer);
 	return marco;
 }
@@ -223,6 +222,7 @@ void print_swap(){
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
 		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		free(swap_frame->comida);
 		free(swap_frame);
 	}
 }
@@ -232,6 +232,7 @@ void print_memory(){
 	for(int i = 0; i < frames; i++){
 		t_frame* mp_frame = get_frame_from_memory(i);
 		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
+		free(mp_frame->comida);
 		free(mp_frame);
 	}
 }
@@ -295,7 +296,9 @@ int find_victim_and_update_swap(){
 	victim_page->flag = 0;
 
 	int frame_victim_nro = victim_page->frame;
+	free(frame_victim->comida);
 	free(frame_victim);
+	free(victim_page);
 	return frame_victim_nro;	
 }
 
@@ -320,7 +323,10 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 			t_page *x = (t_page*)element;
 			int frame_number = x->frame;
 			t_frame *plato_a_encontrar = find_frame_in_memory(x);
-			return string_equals_ignore_case(plato, plato_a_encontrar->comida);
+			bool value = string_equals_ignore_case(plato, plato_a_encontrar->comida);
+			free(plato_a_encontrar->comida);
+			free(plato_a_encontrar);
+			return value;
 		}
 
 		// TODO: Filtrar pages con presencia en MP (flag == 1), para no hacer find_frame_in_memory sobre elementos que no estén en MP

@@ -304,4 +304,5 @@ t_link_element* list_find_element(t_list *self, bool(*condition)(void*), int* in
 int calcularPrecioTotal(t_list *listaPlatos);
 char *getStringEstadoPedido(t_estado estado);
 double get_current_time();
+void free_t_request(t_request* request);
 #endif

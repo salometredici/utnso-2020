@@ -1141,3 +1141,20 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 	log_info(logger, "Payload size: %d", size);
 	return buffer;
 }
+
+/***************FREE SERIALIZATION**********************/
+
+void free_t_request(t_request* request){
+	free(request->nombre);
+	free(request);
+}
+
+void free_t_result(t_result* result){
+	//free(result->msg);
+	free(result);
+}
+
+void free_t_req_plato(t_req_plato* req){
+	free(req->restaurante);
+	free(req->plato);
+}

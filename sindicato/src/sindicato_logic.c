@@ -41,6 +41,15 @@ t_pedido *get_pedido_from_string(char *info_pedido, t_request *request, char *in
 
 /* Funcionalidades */
 
+bool ya_estan_todos_listos(t_pedido *pedido, t_plato_listo *plato_listo) {
+	bool es_plato(void *actual) {
+		t_plato *plato_actual = actual;
+		return string_equals_ignore_case(plato_listo->plato, plato_actual->plato);
+	};
+	t_plato *plato_buscado = list_find(pedido->platos, &es_plato);
+	return plato_buscado->cantidadLista == plato_buscado->cantidadPedida;
+}
+
 bool sabe_preparar_plato_restaurante(t_req_plato *request) {
 	t_md *restaurante = obtener_restaurante(request->restaurante);
 	bool existe_plato(void *actual) {
@@ -121,6 +130,27 @@ void guardar_plato_en_pedido(t_req_plato *request, int precio_plato) {
 	printf(BOLD"Pedido actualizado:"RESET BREAK);
 	printf("%s", pedido_actualizado);
 }
+
+void set_plato_listo_a_pedido(t_plato_listo *plato_listo, t_request *request) {
+	char *pedido_path = get_full_pedido_path(request);
+	char *pedido_actual = get_info(PEDIDO, pedido_path);
+	int cant_actual = get_required_blocks_number(strlen(pedido_actual));
+
+	char *pedido_actualizado = get_PlatoListo_Data(plato_listo, request);
+	int cant_actualizada = get_required_blocks_number(strlen(pedido_actualizado));
+
+	free(pedido_actual);
+
+	update_content(pedido_path, PEDIDO, pedido_actualizado, cant_actual == cant_actualizada ?
+																MISMOS_BLOQUES :
+																(cant_actual < cant_actualizada ?
+																	AGREGAR_BLOQUES :
+																	QUITAR_BLOQUES));
+
+	printf(BOLD"Pedido actualizado:"RESET BREAK);
+	printf("%s", pedido_actualizado);
+}
+
 
 void confirmar_pedido(t_request *request) {
 	char *pedido_path = get_full_pedido_path(request);
@@ -209,6 +239,27 @@ t_result *check_and_terminar_pedido(t_request *request) {
 		return getTResult(ESTADO_TERMINADO, true);
 	} else {
 		terminar_pedido(request);
+		free(pedido);
+		return getTResult(PEDIDO_ACTUALIZADO, false);
+	}
+}
+
+t_result *check_and_set_plato_listo(t_plato_listo *plato_listo, t_request *request) {
+	t_pedido *pedido = obtener_pedido(request);
+	if (pedido->estado == PENDIENTE) {
+		free(pedido);
+		return getTResult(ESTADO_PENDIENTE, true);
+	} else if (pedido->estado != CONFIRMADO) {
+		free(pedido);
+		return getTResult(ESTADO_TERMINADO, true);
+	} else if (!existe_plato_en_pedido(plato_listo->plato, pedido)) {
+		free(pedido);
+		return getTResult(PLATO_NO_EXISTE, true);
+	} else if (ya_estan_todos_listos(pedido, plato_listo)) {
+		free(pedido);
+		return getTResult(YA_TODOS_LISTOS, true);
+	} else {
+		set_plato_listo_a_pedido(plato_listo, request);
 		free(pedido);
 		return getTResult(PEDIDO_ACTUALIZADO, false);
 	}

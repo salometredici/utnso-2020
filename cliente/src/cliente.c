@@ -303,7 +303,7 @@ void platoListo(char *rest, int idPedido, char *plato) {
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(plato_listo);
 	t_result *result_plato_listo = recibirPayloadPaquete(header, conexion);
-	log_PlatoListo(result_plato_listo);
+	log_rta_PlatoListo(result_plato_listo);
 	free(result_plato_listo);
 	free(header);
 }

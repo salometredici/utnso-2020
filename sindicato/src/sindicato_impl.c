@@ -694,6 +694,39 @@ char *get_GuardarPlato_Data(t_req_plato *request, int precio_plato, bool es_plat
 	return updated_file_content;
 }
 
+/* PLATO_LISTO */
+
+char *get_PlatoListo_Data(t_plato_listo *plato_listo, t_request *request) {
+	char *file_content_pedido = get_info(PEDIDO, get_full_pedido_path(request));
+	
+	char *updated_file_content = string_new();
+
+	// Obtenemos el contenido del archivo del pedido actualizado con la cantidad lista del plato correspon
+	char **lines = string_split(file_content_pedido, "\n");
+	
+	// Agregamos la cantidad pedida del plato nuevo al final de CANTIDAD_PLATOS
+	char *new_cant_lista_platos_line = string_new(); 
+	new_cant_lista_platos_line = string_substring_until(lines[3], find_char_index(lines[3], '['));
+	t_list *platos = get_list_from_string(file_content_pedido, 1, 14);
+	t_list *cant_listas = get_list_from_string(file_content_pedido, 3, 16);
+	int total_platos = list_size(platos);
+	for (int i = 0; i < total_platos; i++) {
+		char *plato_actual = list_get(platos, i);
+		if (string_equals_ignore_case(plato_actual, plato_listo->plato)) {
+			string_append_with_format(&new_cant_lista_platos_line, "%d%s", atoi(list_get(cant_listas, i)) + 1, i+1 == total_platos ? "]\n" : ",");
+		} else {
+			string_append_with_format(&new_cant_lista_platos_line, "%d%s", atoi(list_get(cant_listas, i)), i+1 == total_platos ? "]\n" : ",");
+		}
+		free(plato_actual);
+	}
+
+	// Finalmente, agregamos todas las líneas actualizadas al char* del contenido actualizado
+	string_append_with_format(&updated_file_content, "%s\n%s\n%s\n%s%s\n", lines[0], lines[1], lines[2], new_cant_lista_platos_line, lines[4]);
+
+	free(file_content_pedido); free(platos); free(cant_listas);
+	return updated_file_content;
+}
+
 /* Funcionalidades */
 
 /* Primeras asignaciones/creaciones */

@@ -176,8 +176,18 @@ void *atender_conexiones(void *conexionNueva)
 				t_plato_listo *plato_listo = recibirPayloadPaquete(header, socketCliente);
 				log_PlatoListo(plato_listo);
 				t_result *result_plato_listo;
+				t_request *req_plato_listo = getTRequest(plato_listo->idPedido, plato_listo->restaurante);
 
-				free(plato_listo); //free(result_plato_listo);
+				if (!existe_restaurante(plato_listo->restaurante)) {
+					result_plato_listo = getTResult(REST_INEXISTENTE, true);
+				} else if (!existe_pedido(req_plato_listo)) {
+					result_plato_listo = getTResult(PEDIDO_NO_EXISTE, true);
+				} else {
+					result_plato_listo = check_and_set_plato_listo(plato_listo, req_plato_listo);
+				}
+
+				enviarPaquete(socketCliente, SINDICATO, RTA_PLATO_LISTO, result_plato_listo);
+				free(plato_listo); free(req_plato_listo); free(result_plato_listo);
 				break;
 			case TERMINAR_PEDIDO:;
 				t_request *req_terminar_pedido = recibirPayloadPaquete(header, socketCliente);

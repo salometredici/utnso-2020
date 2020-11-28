@@ -199,14 +199,20 @@ void agregar_plato_a_pedido(t_req_plato *request, t_pedido *pedido_actual) {
 	}
 }
 
-t_result *check_and_add_plato(t_req_plato *request) { // Revisar que existan todas las recetas
+t_result *check_and_add_plato(t_req_plato *request) {
 	t_request *req_pedido_buscado = getTRequest(request->idPedido, request->restaurante);
 	if (!existe_pedido(req_pedido_buscado)) {
 		free(req_pedido_buscado);
 		return getTResult(PEDIDO_NO_EXISTE, true);
+	} else if (!existe_receta(request->plato)) {
+		free(req_pedido_buscado);
+		return getTResult(RECETA_NO_EXISTE, true);
 	} else {
 		t_pedido *pedido_a_guardar_plato = obtener_pedido(req_pedido_buscado);
-		if (pedido_a_guardar_plato->estado != PENDIENTE) {
+		if (string_equals_ignore_case(pedido_a_guardar_plato->restaurante, BLOQUES_NO_ASIGNADOS)) {
+			free(pedido_a_guardar_plato);
+			return getTResult(BLOQUES_NO_ASIGNADOS, true);
+		} else if (pedido_a_guardar_plato->estado != PENDIENTE) {
 			free(req_pedido_buscado); free(pedido_a_guardar_plato);
 			return getTResult(ESTADO_AVANZADO, true);
 		} else {
@@ -219,7 +225,10 @@ t_result *check_and_add_plato(t_req_plato *request) { // Revisar que existan tod
 
 t_result *check_and_confirm_pedido(t_request *request) {
 	t_pedido *pedido = obtener_pedido(request);
-	if (pedido->estado != PENDIENTE) {
+	if (string_equals_ignore_case(pedido->restaurante, BLOQUES_NO_ASIGNADOS)) {
+	free(pedido);
+	return getTResult(BLOQUES_NO_ASIGNADOS, true);
+	} else if (pedido->estado != PENDIENTE) {
 		free(pedido);
 		return getTResult(ESTADO_AVANZADO, true);
 	} else {
@@ -231,7 +240,10 @@ t_result *check_and_confirm_pedido(t_request *request) {
 
 t_result *check_and_terminar_pedido(t_request *request) {
 	t_pedido *pedido = obtener_pedido(request);
-	if (pedido->estado == PENDIENTE) {
+	if (string_equals_ignore_case(pedido->restaurante, BLOQUES_NO_ASIGNADOS)) {
+		free(pedido);
+		return getTResult(BLOQUES_NO_ASIGNADOS, true);
+	} else if (pedido->estado == PENDIENTE) {
 		free(pedido);
 		return getTResult(ESTADO_PENDIENTE, true);
 	} else if (pedido->estado != CONFIRMADO) {
@@ -246,7 +258,10 @@ t_result *check_and_terminar_pedido(t_request *request) {
 
 t_result *check_and_set_plato_listo(t_plato_listo *plato_listo, t_request *request) {
 	t_pedido *pedido = obtener_pedido(request);
-	if (pedido->estado == PENDIENTE) {
+	if (string_equals_ignore_case(pedido->restaurante, BLOQUES_NO_ASIGNADOS)) {
+	free(pedido);
+	return getTResult(BLOQUES_NO_ASIGNADOS, true);
+	} else if (pedido->estado == PENDIENTE) {
 		free(pedido);
 		return getTResult(ESTADO_PENDIENTE, true);
 	} else if (pedido->estado != CONFIRMADO) {

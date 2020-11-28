@@ -750,19 +750,32 @@ void guardar_primer_plato(t_req_plato *request, int precio) {
 }
 
 void crear_restaurante(char **params) {
-	char *rest = params[1]; create_rest_dir(rest);
-	char *fileContent = get_CrearRestaurante_Data(params);
-	int reqBlocks = get_required_blocks_number(strlen(fileContent));
-	fst_check_and_save(RESTAURANTE, rest, fileContent, reqBlocks);
-	free(rest); free(fileContent); // Para bajar el leak
+	char *rest = params[1]; 
+	if (!fdExists(get_full_rest_path(rest))) {
+		create_rest_dir(rest);
+		char *fileContent = get_CrearRestaurante_Data(params);
+		int reqBlocks = get_required_blocks_number(strlen(fileContent));
+		fst_check_and_save(RESTAURANTE, rest, fileContent, reqBlocks);
+		free(rest); free(fileContent); // Para bajar el leak
+	} else {
+		t_result *rest_exists_error = getTResult(YA_EXISTE_REST, true);
+		logTResult(rest_exists_error);
+		free(rest_exists_error);	
+	}
 }
 
 void crear_receta(char **params) {
 	char *plato = params[1];
-	char *fileContent = get_CrearReceta_Data(params);
-	int reqBlocks = get_required_blocks_number(strlen(fileContent));
-	fst_check_and_save(RECETA, plato, fileContent, reqBlocks);
-	free(plato); free(fileContent); // Para bajar el leak
+	if (!fdExists(get_full_recipe_path(plato))) {
+		char *fileContent = get_CrearReceta_Data(params);
+		int reqBlocks = get_required_blocks_number(strlen(fileContent));
+		fst_check_and_save(RECETA, plato, fileContent, reqBlocks);
+		free(plato); free(fileContent); // Para bajar el leak
+	} else {
+		t_result *recipe_exists_error = getTResult(YA_EXISTE_RECETA, true);
+		logTResult(recipe_exists_error);
+		free(recipe_exists_error);	
+	}
 }
 
 void crear_pedido(t_request *request) {

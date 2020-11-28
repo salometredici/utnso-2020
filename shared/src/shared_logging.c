@@ -412,8 +412,7 @@ void log_blocks_assignment() {
 	log_debug(logger, "Iniciando la reserva de bloques...");
 }
 
-void log_assigned_blocks(int *assigned_blocks) {
-	int size = sizeof assigned_blocks / sizeof *assigned_blocks;
+void log_assigned_blocks(int *assigned_blocks, int size) {
 	printf("Hay "BOLD"%d"RESET" bloques asignados:"BREAK, size);
 	log_debug(logger, "Hay %d bloques asignados:", size);
 	for (int i = 0; i < size; i++) {

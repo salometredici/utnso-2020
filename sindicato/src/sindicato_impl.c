@@ -328,7 +328,6 @@ void get_assigned_blocks(char *afip_content, int *assigned_blocks, int cant_actu
 		int total_size = get_total_size_from_AFIP(afip_content);
 		int fst_block_number = get_fst_block_from_AFIP(afip_content);
 		get_assigned_blocks_numbers(total_size, fst_block_number, assigned_blocks, cant_actual);
-		log_assigned_blocks(assigned_blocks);
 	} else {
 		log_no_AFIP_content();
 		exit(EXIT_FAILURE);
@@ -343,6 +342,7 @@ void update_content(char *object, int option, char *new_content, op_bloques oper
 	char *pedido_actual = string_new(); string_append_with_format(&pedido_actual, "%s", get_info(option, object));
 	int bloques_actuales = get_required_blocks_number(strlen(pedido_actual));
 	uint32_t assigned_blocks[bloques_actuales]; get_assigned_blocks(AFIP_content_actual, assigned_blocks, bloques_actuales);
+	log_assigned_blocks(assigned_blocks, bloques_actuales);
 	// Contenido nuevo
 	char *updated_AFIP_file_content = new_AFIP_file_content(strlen(new_content), assigned_blocks[0]);
 	int bloques_actualizados = get_required_blocks_number(strlen(new_content));
@@ -630,7 +630,7 @@ char *get_GuardarPlato_Data(t_req_plato *request, int precio_plato, bool es_plat
 		// LISTA_PLATOS queda igual
 		string_append_with_format(&new_lista_platos_line, "%s%s", lines[1], "\n");
 		// Incrementamos el valor de CANTIDAD_PLATOS para el correspondiente
-		new_cant_platos_line = string_substring_until(lines[2], strlen(lines[2]) - 2);
+		new_cant_platos_line = string_substring_until(lines[2], find_char_index(lines[2],'['));
 		t_list *platos = get_list_from_string(file_content_pedido, 1, 14);
 		t_list *cantidades = get_list_from_string(file_content_pedido, 2, 17);		
 		int total_platos = list_size(platos);

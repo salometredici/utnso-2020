@@ -70,7 +70,7 @@ void log_Pedido_AFIP(int nroPedido);
 void log_Receta_AFIP(char *receta);
 
 // Bloques
-void log_assigned_blocks(int *assigned_blocks);
+void log_assigned_blocks(int *assigned_blocks, int cant_bloques);
 // Bitmap
 void log_bitmap_file_error();
 void log_bitmap_error();

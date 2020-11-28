@@ -1157,4 +1157,5 @@ void free_t_result(t_result* result){
 void free_t_req_plato(t_req_plato* req){
 	free(req->restaurante);
 	free(req->plato);
+	free(req);
 }

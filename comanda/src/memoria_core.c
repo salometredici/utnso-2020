@@ -11,6 +11,7 @@ t_restaurante *crear_restaurante(char *nombre_rest){
     restaurante->pedidos = create_list();
     log_comanda("Se creo un restaurante.");
     list_add(restaurantes, restaurante);
+	print_restaurante();
 	return restaurante;
 }
 
@@ -84,6 +85,23 @@ t_frame* get_frame_from_memory(int frame_number){
 	return marco;
 }
 
+void print_restaurante(){
+	printf("--------------------------------RESTAURANTES------------------------------\n");
+	for(int i = 0; i < list_size(restaurantes); i++){
+		t_restaurante* rest= list_get(restaurantes, i);
+		printf("| Indice: %d | Nombre del restaurante: %s \n", i, rest->nombre);
+	}	
+}
+
+void print_pedidos(t_restaurante* rest){
+	printf("----------------------------------PEDIDOS--------------------------------\n");
+	for(int i = 0; i < list_size(rest->pedidos); i++){
+		t_pedidoc* pedido = list_get(rest->pedidos, i);
+		printf("| Indice: %d | Pedido ID : %d \n", i, pedido->id_pedido);
+		//free(pedido);
+	}		
+}
+
 t_frame* find_frame_in_memory(t_page* page){
 	if(page->flag == IN_MEMORY){
 		t_frame *frame = get_frame_from_memory(page->frame);	
@@ -124,6 +142,7 @@ t_restaurante* find_restaurante(char *nombre){
 
 	t_restaurante *rest = list_find(restaurantes,&es_restaurante_buscado);
 	
+	print_restaurante();
 	return rest;
 }
 
@@ -154,7 +173,7 @@ void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, 
 	int offset_swap = page_swap * PAGE_SIZE;
 	memcpy(archivo_swap + offset_swap, contenido, PAGE_SIZE);
 	msync(archivo_swap, PAGE_SIZE, MS_SYNC);
-	free(contenido);
+	//free(contenido);
 
 	// printf("---------------------Escrimos en disco\n");
 	//print_status_bitmap(swap_usage_bitmap);
@@ -298,9 +317,9 @@ int find_victim_and_update_swap(){
 	victim_page->flag = 0;
 
 	int frame_victim_nro = victim_page->frame;
-	free(frame_victim->comida);
-	free(frame_victim);
-	free(victim_page);
+	//free(frame_victim->comida);
+	//free(frame_victim);
+	//free(victim_page);
 	return frame_victim_nro;	
 }
 
@@ -326,8 +345,8 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 			int frame_number = x->frame;
 			t_frame *plato_a_encontrar = find_frame_in_memory(x);
 			bool value = string_equals_ignore_case(plato, plato_a_encontrar->comida);
-			free(plato_a_encontrar->comida);
-			free(plato_a_encontrar);
+			//free(plato_a_encontrar->comida);
+			//free(plato_a_encontrar);
 			return value;
 		}
 

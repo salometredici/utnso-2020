@@ -6,13 +6,17 @@ t_result* _guardar_pedido(t_request *request){
 	
 	if(rest == NULL){
 		//Crear el segmento *restaurante* y la tabla de pagina *pedidos*
-		t_restaurante *restaurante_creado = crear_restaurante(request->nombre);
-
+		char* nombre_rest = string_new();
+		string_append_with_format(&nombre_rest, "%s", request->nombre);
+		t_restaurante *restaurante_creado = crear_restaurante(nombre_rest);
+		int id_pedido = request->idPedido;
+		
 		if(restaurante_creado == NULL){
 			t_result * result = getTResult("[GUARDAR_PEDIDO] Fail.", true);
 			return result;
 		}
-		t_pedidoc *pedido = crear_pedido(request->idPedido);
+
+		t_pedidoc *pedido = crear_pedido(id_pedido);
 
 		add_pedido_to_restaurante(restaurante_creado, pedido);
 
@@ -20,7 +24,7 @@ t_result* _guardar_pedido(t_request *request){
 		return result;
 	}
 
-	t_pedidoc *pedido = crear_pedido(request->idPedido); 
+	t_pedidoc *pedido = crear_pedido(pedido); 
 	add_pedido_to_restaurante(rest, pedido);
 	
 	t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);	

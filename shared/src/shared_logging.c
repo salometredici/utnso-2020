@@ -599,3 +599,7 @@ void show_NaN_error_msg() {
 	printf(BOLDRED"Se ingresó un valor no numérico en algún/algunos parámetro/s"RESET BREAK);
 	log_error(logger, "Se ingresó un valor no numérico en algún/algunos parámetro/s");
 }
+
+void log_planif_step(char *step){
+	printf(TAB TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s]"RESET BREAK, step);
+}

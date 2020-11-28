@@ -4,7 +4,7 @@
 t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta) {
     t_proceso *pcb = malloc(sizeof(t_proceso));
     pcb->pid = idPedido;
-    pcb->idCliente = cliente->idCliente;
+    //pcb->idCliente = cliente->idCliente;
     pcb->estado = ESPERANDO_EJECUCION;
 	pcb->plato= receta->plato;
 	pcb->pasosReceta=receta->instrucciones;
@@ -28,6 +28,7 @@ void agregarQueue(int opcion, t_proceso *pcb) {
 		pthread_mutex_lock(opcion ? &encontrado->mutexQR : &encontrado->mutexQE);
 			queue_push(opcion ? encontrado->qR : encontrado->qE, pcb); 
 		pthread_mutex_unlock(opcion ? &encontrado->mutexQR : &encontrado->mutexQE);
+		log_planif_step("es afinidad");
 	} else {
 		bool esGeneral(void *element){
 			t_queue_obj *actual = element;
@@ -37,7 +38,7 @@ void agregarQueue(int opcion, t_proceso *pcb) {
 		pthread_mutex_lock(opcion ? &general->mutexQR : &general->mutexQE);
 			queue_push(opcion ? general->qR : general->qE, pcb);
 		pthread_mutex_unlock(opcion ? &general->mutexQR : &general->mutexQE);
-
+		log_planif_step("es gral");
 	} 
 }
 
@@ -48,11 +49,12 @@ void agregarQueue(int opcion, t_proceso *pcb) {
 void actualizarQB(t_queue_obj *currentCPU) {
 	//1. revisar queue bloqueados
 	if (!queue_is_empty(currentCPU->qB)) {
+		log_planif_step("entro al primer if");
 		for(int i = 0; i < queue_size(currentCPU->qB);i++) {
 			pthread_mutex_lock(&currentCPU->mutexQB);
 			t_proceso *sigARevisar = queue_pop(currentCPU->qB); // Lo sacamos de la cola de Bloqueado
 			pthread_mutex_unlock(&currentCPU->mutexQB);
-			
+			log_planif_step("Revisando bloqueados");
 			if(sigARevisar->estado == REPOSANDO && sigARevisar->qInstruccionActual == 0){
 				sigARevisar->estado = ESPERANDO_EJECUCION;
 				sigARevisar->posInstruccionActual++;
@@ -63,6 +65,7 @@ void actualizarQB(t_queue_obj *currentCPU) {
 					pthread_mutex_lock(&mutexQF);
 					queue_push(qF,sigARevisar);
 					pthread_mutex_unlock(&mutexQF);
+					log_planif_step("Pasó a done");
 				} else {
 					sigARevisar->instruccionActual = pasoActual->paso;
 					sigARevisar->qInstruccionActual = pasoActual->qPaso;
@@ -71,12 +74,14 @@ void actualizarQB(t_queue_obj *currentCPU) {
 					pthread_mutex_lock(&currentCPU->mutexQR);
 					queue_push(currentCPU->qR,sigARevisar);
 					pthread_mutex_unlock(&currentCPU->mutexQR);
+					log_planif_step("Ejecutó un tiempo de cpu");
 				}
 				
 			} else {
 				pthread_mutex_lock(&currentCPU->mutexQB);
 				queue_push(currentCPU->qB,sigARevisar);
 				pthread_mutex_unlock(&currentCPU->mutexQB);
+					log_planif_step("Volvio a bloqueado");
 			}
 		}
     }	
@@ -103,14 +108,17 @@ void ejecutarCicloIO() {
 	if (!queue_is_empty(ejecutandoIO)) {
 		//nos fijamos si alguno termino su rafaga
 		for(int i = 0; i < queue_size(ejecutandoIO);i++){
+					log_planif_step("Alguno termino la rafaga");
 			pthread_mutex_lock(&mutexEjecutaIO);
 			t_proceso *sigARevisar = queue_pop(ejecutandoIO); // Lo sacamos de la cola de Bloqueado
 			pthread_mutex_unlock(&mutexEjecutaIO);
 			if( sigARevisar->qInstruccionActual == 0 ){
 				agregarQueue(1, sigARevisar); //agrego a ready slds
+					log_planif_step("Pasa a ready");
 			} else {
 				sigARevisar->qEjecutada++;
 				sigARevisar->qInstruccionActual--;
+					log_planif_step("Cumple un quantum");
 			}
 		}
 	}
@@ -124,6 +132,7 @@ void ejecutarCicloIO() {
 			pthread_mutex_lock(&mutexEjecutaIO);
 				queue_push(ejecutandoIO,proceso);
 			pthread_mutex_unlock(&mutexEjecutaIO);
+					log_planif_step("Ejecuta IO");
 		}
 	}
 }

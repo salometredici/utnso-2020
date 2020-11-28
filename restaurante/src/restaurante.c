@@ -133,30 +133,31 @@ void *atenderConexiones(void *conexionNueva)
 			case CONFIRMAR_PEDIDO:;
 				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
 				logRequest(reqConf, header->codigoOperacion);
-				// free(reqConf);
-
-				// Sólo recibe el ID del pedido
-				// 1. Obtener el Pedido desde Sindicato
-
 				reqConf->nombre = nombreRestaurante;
+
 				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf);
-				t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
-				t_pedido *pedidoConf = recibirPayloadPaquete(hRConf, conexionSindicato);
+				t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
+				t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
 				liberarConexion(SINDICATO);
-				mostrarListaPlatos(pedidoConf->platos);
-				free(hRConf);
+				t_list *aux2 = list_create();
+				list_add_all(aux2, pedidoConf2->platos);
 
 				// 2. Generar PCB de cada plato y dejarlo en el ciclo de planificación
 				// Obtener receta de Sindicato para saber trazabilidad al momento de ejecución
 				// El número de pedido se deberá guardar dentro del PCB
-				
+				//crearProceso(cliente, reqConf->idPedido, list_get(pedidoConf->platos, 0));
 				// por cada plato pedir la receta y generar pcb
-				for (int i = 0;i<list_size(pedidoConf->platos);i++){
+				
+				// log_t_plato_list(pedidoConf2);
+				int cantDePlatos = list_size(aux2);
+				for (int i = 0; i < cantDePlatos; i++){
 					//conseguir receta de sindicato //MENSAJE OBTENER RECETA
-					char *platoActual = list_get(pedidoConf->platos,i);
+					char *platoActual = list_get(aux2,i);
 					crearProceso(cliente, reqConf->idPedido, platoActual);
 				}
+
+				//mostrarListaPlatos(pedidoConf->platos);
 
 				// 3. Informar a quien lo invocó que su pedido fue confirmado
 
@@ -194,6 +195,7 @@ void *planificar(void *arg) {
 	int queuePosition = (int)arg;
 	// TODO: Semáforo
 	t_queue_obj *currentCPU = list_get(queuesCocineros, queuePosition);
+	log_planif_step(currentCPU->afinidad);
 	while (1) {
 		switch (algoritmoSeleccionado) {
 			case FIFO:

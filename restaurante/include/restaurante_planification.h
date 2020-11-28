@@ -17,9 +17,9 @@ void ejecutarCiclosRR();
 
 void ejecutarCicloIO();
 
-void actualizarQRaQE();
+void actualizarQRaQE(t_queue_obj *currentCPU);
 void actualizarQE();
-void actualizarQB();
+void actualizarQB(t_queue_obj *currentCPU);
 
 void agregarQueue(int opcion, t_proceso *pcb);
 

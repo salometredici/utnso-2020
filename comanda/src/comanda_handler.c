@@ -225,7 +225,26 @@ t_result* _plato_listo(t_plato_listo* request) {
 		return result;
 	}
 
-	update_cantidad_lista(pl_page);
+	int result = update_cantidad_lista(pl_page);
+
+	if(result == PLATO_TERMINADO){
+		//validar que todos los platos del pedido esten terminados
+		t_list *marcos = find_frames(pedido);
+
+		bool _is_plato_terminado(void * elemento){
+			t_frame* marco = elemento;
+			return marco->cantidad_lista == marco->cantidad_pedida; 
+		};
+
+		int value = list_all_satisfy(marcos, &_is_plato_terminado);
+
+		if(value){
+			pedido->estado = TERMINADO;
+			t_result *result = getTResult("[PLATO_LISTO] Ok.Todos los platos estan terminados. Se termino el pedido", false);	
+			return result;
+		}
+
+	}
 
 	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	
 	return result;

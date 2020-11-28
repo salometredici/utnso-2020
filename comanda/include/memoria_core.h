@@ -23,6 +23,8 @@
 #define RUTASWAP "/home/utnso/swap.txt"
 #define IN_MEMORY 1
 #define IN_SWAP 0
+#define PLATO_TERMINADO 2
+#define PLATO_NO_TERMINADO 3 
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -92,7 +94,7 @@ t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
 t_list* find_frames(t_pedidoc *pedido);
 bool increase_cantidad_plato(t_page* page, int new_cantidad_plato);
-void update_cantidad_lista(t_page* page);
+int update_cantidad_lista(t_page* page);
 
 void print_swap();
 void print_memory();

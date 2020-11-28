@@ -103,7 +103,13 @@ void print_pedidos(t_restaurante* rest){
 }
 
 t_frame* find_frame_in_memory(t_page* page){
+	if(page == NULL){
+		printf("Hubo un problema");
+		return NULL;
+	}
+
 	if(page->flag == IN_MEMORY){
+		page->timestamp = get_current_time();
 		t_frame *frame = get_frame_from_memory(page->frame);	
 		return frame; 
 	}
@@ -368,11 +374,21 @@ bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
 	return true;
 }
 
-void update_cantidad_lista(t_page* page){
-	t_frame *frame_a_actualizar = find_frame_in_memory(page->frame);
+int update_cantidad_lista(t_page* page){
+	t_frame *frame_a_actualizar = find_frame_in_memory(page);
 	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
 
+	if(frame_a_actualizar->cantidad_lista == frame_a_actualizar->cantidad_pedida){
+		return PLATO_TERMINADO;
+	}
+
 	write_frame_memory(frame_a_actualizar->comida, frame_a_actualizar->cantidad_pedida, cantidad_lista, page->frame);
+
+	if(frame_a_actualizar->cantidad_pedida == cantidad_lista){
+		return PLATO_TERMINADO;
+	}
+
+	return PLATO_NO_TERMINADO;
 }
 
 int get_available_blocks_number() {

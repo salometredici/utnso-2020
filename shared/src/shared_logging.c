@@ -252,6 +252,16 @@ void logRequestPlato(t_req_plato *plato) {
 
 /* Mensajes */
 
+// TERMINAR_PEDIDO
+
+void log_TerminarPedido(t_request *request, m_code codigo_operacion) {
+	logRequest(request, codigo_operacion);
+}
+
+void log_rta_TerminarPedido(t_result *result) {
+	logTResult(result);
+}
+
 // CONFIRMAR_PEDIDO
 
 void log_ConfirmarPedido(t_request *request, m_code codigo_operacion) {
@@ -271,6 +281,7 @@ void log_ObtenerPedido(t_request *request, m_code codigo_operacion) {
 void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 	switch (pedido->estado) {
 		case CONFIRMADO:
+		case TERMINADO:
 		case FINALIZADO:
 			printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
 			log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);

@@ -179,6 +179,8 @@ char *getStringEstadoPedido(t_estado estado) {
 			return "PENDIENTE";
 		case CONFIRMADO:
 			return "CONFIRMADO";
+		case TERMINADO:
+			return "TERMINADO";
 		case FINALIZADO:
 			return "FINALIZADO";
 		case REST_INEXISTENTE:

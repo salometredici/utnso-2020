@@ -42,6 +42,8 @@ void logInitDataCliente(t_cliente *cliente);
 
 /* Mensajes */
 
+void log_TerminarPedido(t_request *request, m_code codigo_operacion);
+void log_rta_TerminarPedido(t_result *result);
 void log_ConfirmarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ConfirmarPedido(t_result *result);
 void log_ObtenerPedido(t_request *request, m_code codigo_operacion);

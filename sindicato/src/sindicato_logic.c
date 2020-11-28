@@ -98,6 +98,7 @@ void incrementar_plato_en_pedido(t_req_plato *request, int precio_plato) {
 																	AGREGAR_BLOQUES :
 																	QUITAR_BLOQUES));
 
+	printf(BOLD"Pedido actualizado:"RESET BREAK);
 	printf("%s", pedido_actualizado);
 }
 
@@ -116,7 +117,8 @@ void guardar_plato_en_pedido(t_req_plato *request, int precio_plato) {
 																(cant_actual < cant_actualizada ?
 																	AGREGAR_BLOQUES :
 																	QUITAR_BLOQUES));
-
+	
+	printf(BOLD"Pedido actualizado:"RESET BREAK);
 	printf("%s", pedido_actualizado);
 }
 
@@ -125,7 +127,7 @@ void confirmar_pedido(t_request *request) {
 	char *pedido_actual = get_info(PEDIDO, pedido_path);
 	int cant_actual = get_required_blocks_number(strlen(pedido_actual));
 
-	char *pedido_actualizado = get_ConfirmarPedido_Data(pedido_actual);
+	char *pedido_actualizado = get_CambiarEstadoPedido_Data(pedido_actual, CONFIRMADO);
 	int cant_actualizada = get_required_blocks_number(strlen(pedido_actualizado));
 
 	update_content(pedido_path, PEDIDO, pedido_actualizado, cant_actual == cant_actualizada ?
@@ -134,6 +136,24 @@ void confirmar_pedido(t_request *request) {
 																AGREGAR_BLOQUES :
 																QUITAR_BLOQUES));
 
+	printf(BOLD"Pedido actualizado:"RESET BREAK);
+	printf("%s", pedido_actualizado);
+}
+
+void terminar_pedido(t_request *request) {
+	char *pedido_path = get_full_pedido_path(request);
+	char *pedido_actual = get_info(PEDIDO, pedido_path);
+	int cant_actual = get_required_blocks_number(strlen(pedido_actual));
+
+	char *pedido_actualizado = get_CambiarEstadoPedido_Data(pedido_actual, TERMINADO);
+	int cant_actualizada = get_required_blocks_number(strlen(pedido_actualizado));
+
+	update_content(pedido_path, PEDIDO, pedido_actualizado, cant_actual == cant_actualizada ?
+															MISMOS_BLOQUES :
+															(cant_actual < cant_actualizada ?
+																AGREGAR_BLOQUES :
+																QUITAR_BLOQUES));
+	printf(BOLD"Pedido actualizado:"RESET BREAK);
 	printf("%s", pedido_actualizado);
 }
 
@@ -149,7 +169,7 @@ void agregar_plato_a_pedido(t_req_plato *request, t_pedido *pedido_actual) {
 	}
 }
 
-t_result *check_and_add_plato(t_req_plato *request) {
+t_result *check_and_add_plato(t_req_plato *request) { // Revisar que existan todas las recetas
 	t_request *req_pedido_buscado = getTRequest(request->idPedido, request->restaurante);
 	if (!existe_pedido(req_pedido_buscado)) {
 		free(req_pedido_buscado);
@@ -174,6 +194,21 @@ t_result *check_and_confirm_pedido(t_request *request) {
 		return getTResult(ESTADO_AVANZADO, true);
 	} else {
 		confirmar_pedido(request);
+		free(pedido);
+		return getTResult(PEDIDO_ACTUALIZADO, false);
+	}
+}
+
+t_result *check_and_terminar_pedido(t_request *request) {
+	t_pedido *pedido = obtener_pedido(request);
+	if (pedido->estado == PENDIENTE) {
+		free(pedido);
+		return getTResult(ESTADO_PENDIENTE, true);
+	} else if (pedido->estado != CONFIRMADO) {
+		free(pedido);
+		return getTResult(ESTADO_TERMINADO, true);
+	} else {
+		terminar_pedido(request);
 		free(pedido);
 		return getTResult(PEDIDO_ACTUALIZADO, false);
 	}

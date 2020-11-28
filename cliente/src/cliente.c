@@ -136,6 +136,9 @@ void *threadLecturaConsola(void *args) {
 						case OBTENER_RECETA:
 							obtener_receta(parametro1);
 							break;
+						case TERMINAR_PEDIDO:
+							terminar_pedido(atoi(parametro1), parametro2);
+							break;
 						case ERROR:
 						default:
 							showInvalidCommandMsg(SINDICATO);
@@ -278,6 +281,19 @@ void confirmarPedido(int idPedido, char *nombreRestaurante) {
 	t_result *result_confirmar_pedido = recibirPayloadPaquete(header, conexion);
 	log_rta_ConfirmarPedido(result_confirmar_pedido);
 	free(result_confirmar_pedido);
+	free(header);
+}
+
+void terminar_pedido(int idPedido, char *nombreRestaurante) {
+	t_request *req_terminar_pedido = getTRequest(idPedido, nombreRestaurante);
+
+	enviarPaquete(conexion, CLIENTE, TERMINAR_PEDIDO, req_terminar_pedido);
+	t_header *header = recibirHeaderPaquete(conexion);
+	free(req_terminar_pedido);
+
+	t_result *result_terminar_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_TerminarPedido(result_terminar_pedido);
+	free(result_terminar_pedido);
 	free(header);
 }
 

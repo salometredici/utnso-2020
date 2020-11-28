@@ -97,11 +97,13 @@ void *atender_conexiones(void *conexionNueva)
 				char *rest_consulta = recibirPayloadPaquete(header, socketCliente);
 				log_ConsultarPlatos(rest_consulta);
 				t_list *platos_restaurante = list_create();
+
 				if (!existe_restaurante(rest_consulta)) {
 					list_add(platos_restaurante, REST_NO_EXISTE);
 				} else {
 					list_add_all(platos_restaurante, obtener_platos_restaurante(rest_consulta));
 				}
+
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONSULTAR_PLATOS, platos_restaurante);
 				free(rest_consulta); free(platos_restaurante);
 				break;
@@ -109,14 +111,16 @@ void *atender_conexiones(void *conexionNueva)
 				t_request *req_guardar_pedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(req_guardar_pedido, header->codigoOperacion);
 				t_result *result_guardar_pedido;
+
 				if (!existe_restaurante(req_guardar_pedido->nombre)) {
 					 result_guardar_pedido = getTResult(REST_NO_EXISTE, true);
 				} else if (!existe_pedido(req_guardar_pedido)) {
-					crear_pedido(req_guardar_pedido); // Revisar
+					crear_pedido(req_guardar_pedido);
 					result_guardar_pedido = getTResult(PEDIDO_CREADO, false);
 				} else {
 					result_guardar_pedido = getTResult(YA_EXISTE_PEDIDO, true);
 				}
+
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PEDIDO, result_guardar_pedido);
 				free(req_guardar_pedido); free(result_guardar_pedido);	
 				break;
@@ -124,6 +128,7 @@ void *atender_conexiones(void *conexionNueva)
 				t_req_plato *req_guardar_plato = recibirPayloadPaquete(header, socketCliente);
 				log_GuardarPlato(req_guardar_plato);
 				t_result *result_guardar_plato;
+
 				if (!existe_restaurante(req_guardar_plato->restaurante)) {
 					result_guardar_plato = getTResult(REST_NO_EXISTE, true);
 				} else if (!sabe_preparar_plato_restaurante(req_guardar_plato)) {
@@ -131,6 +136,7 @@ void *atender_conexiones(void *conexionNueva)
 				} else {
 					result_guardar_plato = check_and_add_plato(req_guardar_plato);
 				}
+
 				enviarPaquete(socketCliente, SINDICATO, RTA_GUARDAR_PLATO, result_guardar_plato);
 				free(req_guardar_pedido); free(result_guardar_plato);
 				break;
@@ -138,6 +144,7 @@ void *atender_conexiones(void *conexionNueva)
 				t_request *req_confirmar_pedido = recibirPayloadPaquete(header, socketCliente);
 				logRequest(req_confirmar_pedido, header->codigoOperacion);
 				t_result *result_confirmar_pedido;
+
 				if (!existe_restaurante(req_confirmar_pedido->nombre)) {
 					result_confirmar_pedido = getTResult(REST_NO_EXISTE, true);
 				} else if (!existe_pedido(req_confirmar_pedido)) {
@@ -145,6 +152,7 @@ void *atender_conexiones(void *conexionNueva)
 				} else {
 					result_confirmar_pedido = check_and_confirm_pedido(req_confirmar_pedido);
 				}
+
 				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, result_confirmar_pedido);
 				free(req_confirmar_pedido); free(result_confirmar_pedido);
 				break;
@@ -152,6 +160,7 @@ void *atender_conexiones(void *conexionNueva)
 				t_request *req_obtener_pedido = recibirPayloadPaquete(header, socketCliente);
 				log_ObtenerPedido(req_obtener_pedido, header->codigoOperacion);
 				t_pedido *pedido;
+
 				if (!existe_restaurante(req_obtener_pedido->nombre)) {
 					pedido = getEmptyPedido_with_error(REST_INEXISTENTE);
 				} else if (!existe_pedido(req_obtener_pedido)) {
@@ -159,12 +168,27 @@ void *atender_conexiones(void *conexionNueva)
 				} else {
 					pedido = obtener_pedido(req_obtener_pedido);
 				}
+
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				free(req_obtener_pedido); free(pedido);
 				break;
 			case PLATO_LISTO:; // TODO
 				break;
-			case TERMINAR_PEDIDO:; // TODO: Recibe idPedido y restaurante, retorna Ok/fail
+			case TERMINAR_PEDIDO:;
+				t_request *req_terminar_pedido = recibirPayloadPaquete(header, socketCliente);
+				log_TerminarPedido(req_terminar_pedido, header->codigoOperacion);
+				t_result *result_terminar_pedido;
+
+				if (!existe_restaurante(req_terminar_pedido->nombre)) {
+					result_terminar_pedido = getTResult(REST_INEXISTENTE, true);
+				} else if (!existe_pedido(req_terminar_pedido)) {
+					result_terminar_pedido = getTResult(PEDIDO_NO_EXISTE, true);
+				} else {
+					result_terminar_pedido = check_and_terminar_pedido(req_terminar_pedido);
+				}
+
+				enviarPaquete(socketCliente, SINDICATO, RTA_TERMINAR_PEDIDO, result_terminar_pedido);
+				free(req_terminar_pedido); free(result_terminar_pedido);
 				break;
 			case OBTENER_RECETA:;
 				char *receta_a_buscar = recibirPayloadPaquete(header, socketCliente);

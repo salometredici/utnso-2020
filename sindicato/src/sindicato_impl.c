@@ -626,12 +626,12 @@ void create_pedido_dir(t_request *request) {
 
  /* CONFIRMAR_PEDIDO */
 
- char *get_ConfirmarPedido_Data(char *pedido_actual_content) {
+ char *get_CambiarEstadoPedido_Data(char *pedido_actual_content, int estado_a_cambiar) {
 	 char *updated_file_content = string_new();
-	 // Actualizamos la línea de estado a CONFIRMADO
+	 // Actualizamos la línea de estado a estado_a_cambiar
 	 char **lines = string_split(pedido_actual_content, "\n");
 	 char *new_estado_line = string_new(); new_estado_line = string_substring_until(lines[0], find_char_index(lines[0], '='));
-	 string_append_with_format(&new_estado_line, "%s\n", getStringEstadoPedido(CONFIRMADO));
+	 string_append_with_format(&new_estado_line, "%s\n", getStringEstadoPedido(estado_a_cambiar));
 	 // Agregamos todas las líneas al char* del contenido actualizado
 	 string_append_with_format(&updated_file_content, "%s%s\n%s\n%s\n%s\n", new_estado_line, lines[1], lines[2], lines[3], lines[4]);
 	 return updated_file_content;

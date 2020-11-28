@@ -612,6 +612,21 @@ char *get_CrearReceta_Data(char **params) {
 	return fileContent;
 }
 
+/* ACTUALIZAR_REST */
+
+ char *get_aumentar_pedidos_en_rest(t_request *request) {
+	 char *info_restaurante = get_info(RESTAURANTE, request->nombre);
+	 t_md *md = obtener_restaurante(request->nombre);
+	 char *updated_file_content = string_new();
+	 // Actualizamos la línea de la cantidad de pedidos
+	 char **lines = string_split(info_restaurante, "\n");
+	 char *new_cant_pedidos_line = string_new(); new_cant_pedidos_line = string_substring_until(lines[6], find_char_index(lines[6], '='));
+	 string_append_with_format(&new_cant_pedidos_line, "%d\n", md->cantidadPedidos + 1);
+	 // Agregamos todas las líneas al char* del contenido actualizado
+	 string_append_with_format(&updated_file_content, "%s\n%s\n%s\n%s\n%s\n%s\n%s", lines[0], lines[1], lines[2], lines[3], lines[4], lines[5], new_cant_pedidos_line);
+	 return updated_file_content;
+ }
+
 /* CREAR_PEDIDO */
 
 char *get_IniciarPedido_Data(t_req_plato *request, int precio) {
@@ -787,5 +802,10 @@ void crear_receta(char **params) {
 void crear_pedido(t_request *request) {
 	create_pedido_dir(request);
 	save_empty_AFIP_file(get_full_pedido_path(request));
+
+	char *info_rest_actualizada = get_aumentar_pedidos_en_rest(request);
+	update_content(request->nombre, RESTAURANTE, info_rest_actualizada, MISMOS_BLOQUES);
+	printf("Cantidad de pedidos del restaurante actualizada."BREAK);
+
 	log_CrearPedido_Data(request);
 }

@@ -135,21 +135,18 @@ void *atender_conexiones(void *conexionNueva)
 				free(req_guardar_pedido); free(result_guardar_plato);
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqConf, header->codigoOperacion);
-				free(reqConf);
-
-				// TODO:
-				// 1. Verificar si R existe en FS... etc.
-				// 2. Verificar si el Pedido existe en FS, buscando en dir de R si existe el Pedido - Si no existe informarlo
-				// 3. Verificar que el Pedido esté en estado "Pendiente" - En caso contrario informar situación
-				// 4. Cambiar el estado del Pedido de "Pendiente" a "Confirmado" - Truncar el archivo de ser necesario
-				// 5. Responder el mensaje con Ok/fail
-
-				t_result *resCP = malloc(sizeof(t_result));
-				resCP->msg = "[CONFIRMAR_PEDIDO] OK";
-				resCP->hasError = false;
-				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
+				t_request *req_confirmar_pedido = recibirPayloadPaquete(header, socketCliente);
+				logRequest(req_confirmar_pedido, header->codigoOperacion);
+				t_result *result_confirmar_pedido;
+				if (!existe_restaurante(req_confirmar_pedido->nombre)) {
+					result_confirmar_pedido = getTResult(REST_NO_EXISTE, true);
+				} else if (!existe_pedido(req_confirmar_pedido)) {
+					result_confirmar_pedido = getTResult(PEDIDO_NO_EXISTE, true);
+				} else {
+					result_confirmar_pedido = check_and_confirm_pedido(req_confirmar_pedido);
+				}
+				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, result_confirmar_pedido);
+				free(req_confirmar_pedido); free(result_confirmar_pedido);
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *req_obtener_pedido = recibirPayloadPaquete(header, socketCliente);

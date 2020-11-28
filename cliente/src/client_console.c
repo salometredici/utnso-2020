@@ -130,7 +130,7 @@ int validate_confirmar_pedido(char** parameters){
 		return ERROR;
 	}
 
-	if (!only_contains_numbers(parameters[2])) {
+	if (!only_contains_numbers(parameters[1])) {
 		show_NaN_error_msg();
 		return ERROR;
 	}

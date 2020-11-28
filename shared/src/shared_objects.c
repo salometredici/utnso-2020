@@ -67,3 +67,12 @@ t_pedido *getEmptyPedido_with_error(t_estado error_code) {
     pedido->precioTotal = ERROR;
     return pedido;
 }
+
+t_req_plato *getTReqPlato(char *rest, int idPedido, char *plato, int cantidad) {
+    t_req_plato *request = malloc(sizeof(t_req_plato));
+    request->restaurante = rest;
+    request->idPedido = idPedido;
+    request->plato = plato;
+    request->cantidadPlato = cantidad;
+    return request;
+}

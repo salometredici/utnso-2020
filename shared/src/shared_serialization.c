@@ -1048,7 +1048,7 @@ t_header *recibirHeaderPaquete(int socket) {
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
 		if (proceso < 200) {
-			logHeader(header->codigoOperacion, header->procesoOrigen);
+			logHeader(header->codigoOperacion, header->procesoOrigen, socket);
 		}
 	} else {
 		close(socket);
@@ -1138,6 +1138,6 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			break;
 	}
 
-	log_info(logger, "Payload size: %d", size);
+	log_info(logger, "Payload size: %d, Cliente: %d", size, socket);
 	return buffer;
 }

@@ -31,7 +31,7 @@ void logRtaConsultarPlatos(t_list *platosEnviados);
 void logConsoleInput(char *comandoLeido);
 void logClientDisconnection(int socketCliente);
 void logMetadataRestaurante(t_posicion posicion); // Después va a ser un t_md, es un response
-void logHeader(m_code codigoOperacion, p_code procesoOrigen);
+void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket);
 void logMessageSent(m_code codigoOperacion);
 void logNewClientConnection(int socket);
 void logConnectionCliente(p_code proceso);
@@ -42,6 +42,8 @@ void logInitDataCliente(t_cliente *cliente);
 
 /* Mensajes */
 
+void log_ConfirmarPedido(t_request *request, m_code codigo_operacion);
+void log_rta_ConfirmarPedido(t_result *result);
 void log_ObtenerPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ObtenerPedido(t_pedido *pedido_obtenido, t_request *request);
 void log_rta_GuardarPedido(t_result *result);
@@ -52,6 +54,7 @@ void log_rta_ObtenerReceta(t_receta *receta);
 void log_ObtenerRestaurante(char *restaurante);
 void log_rta_ObtenerRestaurante(t_md *md);
 void log_GuardarPlato(t_req_plato *request_plato);
+void log_rta_GuardarPlato(t_result *result);
 
 // APP
 void logClientInfo(t_cliente *cliente);

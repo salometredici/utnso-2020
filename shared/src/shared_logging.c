@@ -80,13 +80,15 @@ void logNewClientConnection(int socket) {
 	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
 }
 
-void logHeader(m_code codigoOperacion, p_code procesoOrigen) {
-	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET BREAK,
+void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket) {
+	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d" BREAK,
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
-		getStringKeyValue(procesoOrigen, PROCNKEYS));
-	log_info(logger, "[HEADER] Received %s from %s",
+		getStringKeyValue(procesoOrigen, PROCNKEYS),
+		socket);
+	log_info(logger, "[HEADER] Received %s from %s - Socket: %d",
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
-		getStringKeyValue(procesoOrigen, PROCNKEYS));
+		getStringKeyValue(procesoOrigen, PROCNKEYS),
+		socket);
 }
 
 void logMessageSent(m_code codigoOperacion) {
@@ -250,6 +252,16 @@ void logRequestPlato(t_req_plato *plato) {
 
 /* Mensajes */
 
+// CONFIRMAR_PEDIDO
+
+void log_ConfirmarPedido(t_request *request, m_code codigo_operacion) {
+	logRequest(request, codigo_operacion);
+}
+
+void log_rta_ConfirmarPedido(t_result *result) {
+	logTResult(result);
+}
+
 // OBTENER_PEDIDO
 
 void log_ObtenerPedido(t_request *request, m_code codigo_operacion) {
@@ -300,8 +312,8 @@ void log_GuardarPlato(t_req_plato *req_plato) {
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cant. a añadir: %d", req_plato->restaurante, req_plato->idPedido, req_plato->plato, req_plato->cantidadPlato);
 }
 
-void log_rta_GuardarPlato() {
-
+void log_rta_GuardarPlato(t_result *result) {
+	logTResult(result);
 }
 
 // OBTENER_RESTAURANTE

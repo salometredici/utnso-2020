@@ -255,35 +255,29 @@ void aniadirPlato(char *nombrePlato, int idPedido) {
 	free(header);
 }
 
-void guardarPlato(char *nombreRestaurante, int idPedido, char *nombrePlato, int cantidadPlato) {
-	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
-	reqPlato->restaurante = nombreRestaurante;
-	reqPlato->idPedido = idPedido;
-	reqPlato->plato = nombrePlato;
-	reqPlato->cantidadPlato = cantidadPlato;
+void guardarPlato(char *rest, int idPedido, char *plato, int cantPedida) {
+	t_req_plato *req_guardar_plato = getTReqPlato(rest, idPedido, plato, cantPedida);
 
-	enviarPaquete(conexion, CLIENTE, GUARDAR_PLATO, reqPlato);
+	enviarPaquete(conexion, CLIENTE, GUARDAR_PLATO, req_guardar_plato);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(reqPlato);
+	free(req_guardar_plato);
 
-	t_result *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
-	logTResult(resultGuardarPlato);
-	free(resultGuardarPlato);
+	t_result *result_guardar_plato = recibirPayloadPaquete(header, conexion);
+	log_rta_GuardarPlato(result_guardar_plato);
+	free(result_guardar_plato);
 	free(header);
 }
 
 void confirmarPedido(int idPedido, char *nombreRestaurante) {
-	t_request *pedidoConf = malloc(sizeof(t_request));
-	pedidoConf->idPedido = idPedido;
-	pedidoConf->nombre = nombreRestaurante; // Va a ser un string vacío
+	t_request *req_confirmar_pedido = getTRequest(idPedido, nombreRestaurante);
 
-	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, pedidoConf);
+	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, req_confirmar_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(pedidoConf);
+	free(req_confirmar_pedido);
 
-	t_result *resultConfPedido = recibirPayloadPaquete(header, conexion);
-	logTResult(resultConfPedido);
-	free(resultConfPedido);
+	t_result *result_confirmar_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_ConfirmarPedido(result_confirmar_pedido);
+	free(result_confirmar_pedido);
 	free(header);
 }
 

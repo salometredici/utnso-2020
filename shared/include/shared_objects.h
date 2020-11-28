@@ -12,5 +12,6 @@ t_instrucciones_receta *getTPaso(char *paso, int qPaso);
 t_md *getEmptyMd();
 t_pedido *getEmptyPedido();
 t_pedido *getEmptyPedido_with_error(t_estado error_code);
+t_req_plato *getTReqPlato(char *rest, int idPedido, char *plato, int cantidad);
 
 #endif

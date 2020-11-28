@@ -4,10 +4,15 @@
 
 void log_lista_strings(t_list *lista_strings) {
 	int cant_elementos = list_size(lista_strings);
-	for (int i = 0; i < cant_elementos; i++) {
-		char *palabra = list_get(lista_strings, i);
-		printf(TAB"[%d] - %s"BREAK, i, palabra);
-		log_info(logger, TAB"[%d] - %s", i, palabra);
+	if (list_is_empty(lista_strings)) {
+		printf(TAB"[]"BREAK);
+		log_info(logger, TAB"[]");
+	} else {
+		for (int i = 0; i < cant_elementos; i++) {
+			char *palabra = list_get(lista_strings, i);
+			printf(TAB"[%d] - %s"BREAK, i, palabra);
+			log_info(logger, TAB"[%d] - %s", i, palabra);
+		}
 	}
 }
 

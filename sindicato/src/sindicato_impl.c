@@ -10,14 +10,14 @@ bool enough_blocks_available(int bloquesReq) {
 	return bloquesReq <= get_available_blocks_number();
 }
 
-int find_char_index(char *string, char caracter) {
-	char *found_char = strchr(string, caracter);
-	if (found_char != NULL) {
-		return found_char - string + 1;
-	} else {
-		return ERROR;
-	}
-}
+// int find_char_index(char *string, char caracter) {
+// 	char *found_char = strchr(string, caracter);
+// 	if (found_char != NULL) {
+// 		return found_char - string + 1;
+// 	} else {
+// 		return ERROR;
+// 	}
+// }
 
 /* Utils Restaurantes */
 
@@ -468,12 +468,18 @@ t_list *get_list_from_string(char *info, int line_number, int start_index) {
 	char *line_to_use = lines[line_number];
 	char *list = strrchr(line_to_use, '[');
 	char *string_list = string_substring(list, 1, strlen(list)-2);
-	int values_quantity = getValuesQuantity(string_list);
-	char **values = string_split(string_list, ",");
-	for (int i = 0; i < values_quantity; i ++) {
-		list_add(new_list, values[i]);
+	if (string_is_empty(string_list)) {
+		free(lines); free(line_to_use); free(string_list);
+		return new_list;
+	} else {
+		int values_quantity = getValuesQuantity(string_list);
+		char **values = string_split(string_list, ",");
+		for (int i = 0; i < values_quantity; i ++) {
+			list_add(new_list, values[i]);
+		}
+		free(values);
 	}
-	free(lines); free(line_to_use); free(string_list); free(values);
+	free(lines); free(line_to_use); free(string_list);
 	return new_list;
 }
 

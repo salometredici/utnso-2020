@@ -312,4 +312,6 @@ int calcularPrecioTotal(t_list *listaPlatos);
 char *getStringEstadoPedido(t_estado estado);
 double get_current_time();
 void free_t_request(t_request* request);
+int find_char_index(char *string, char caracter);
+
 #endif

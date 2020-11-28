@@ -209,4 +209,12 @@ bool only_contains_numbers(char *input) {
 	return true;
 }
 
+int find_char_index(char *string, char caracter) {
+	char *found_char = strchr(string, caracter);
+	if (found_char != NULL) {
+		return found_char - string + 1;
+	} else {
+		return ERROR;
+	}
+}
 

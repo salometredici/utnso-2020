@@ -55,6 +55,11 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
+	if(pedido->estado == CONFIRMADO || pedido->estado == FINALIZADO){
+		t_result* result = getTResult("[GUARDAR_PLATO] Fail. El pedido tiene que estar en estado PENDIENTE", true);
+		return result;
+	}
+
 	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces tiene que sacarlo a mp 
 	t_page *page = find_plato(pedido, request->plato);
 
@@ -178,15 +183,15 @@ t_result* _confirmar_pedido(t_request *request){
  * del pedido a TERMINADO  --> 50% done
  * 5° Responder el mensaje con Ok/Fail --> done
  */
-t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_listo) {
-	t_restaurante *rest = find_restaurante(nombre_rest);
+t_result* _plato_listo(t_plato_listo* request) {
+	t_restaurante *rest = find_restaurante(request->restaurante);
 
 	if (rest == NULL) {
 		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe tabla de segmentos.", true);	
 		return result;
 	}
 
-	t_pedidoc *pedido = find_pedido(rest, id_pedido);
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
 	if (pedido == NULL) {
 		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe segmento.", true);	
@@ -199,7 +204,7 @@ t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_list
 	}
 
 	// Buscar nombre_plato_listo en pages del pedido
-	t_page *pl_page = find_plato(pedido, nombre_plato_listo);
+	t_page *pl_page = find_plato(pedido, request->plato);
 
 	if(pl_page == NULL){
 		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);
@@ -219,7 +224,19 @@ t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_list
  * 4° Se elimina el segmento
  * 5° Responder el mensaje con Ok/Fail
  */
-void _finalizar_pedido(char *nombre_rest, int id_pedido)
-{
+t_result* _finalizar_pedido(t_request* request){
+	t_restaurante *rest = find_restaurante(request->nombre);
+
+	if (rest == NULL) {
+		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe tabla de segmentos.", true);	
+		return result;
+	}
+
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
+
+	if (pedido == NULL) {
+		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe segmento.", true);	
+		return result;
+	}
 
 }

@@ -53,20 +53,18 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case PLATO_LISTO:;
 				t_plato_listo *request_pl = recibirPayloadPaquete(header, socketCliente);
-				t_result *result_pl = _plato_listo(request_pl->restaurante, request_pl->idPedido, request_pl->plato);
+				t_result *result_pl = _plato_listo(request_pl);
 				free(request_pl);
 				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, result_pl);
 				free(result_pl);
 				break;
 			case FINALIZAR_PEDIDO:;
-				t_request *reqFin = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqFin, header->codigoOperacion);
-				free(reqFin);
-				t_result *rFP = malloc(sizeof(t_result));
-				rFP->msg = "[FINALIZAR_PEDIDO] Ok";
-				rFP->hasError = false;
-				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, rFP);
-	   			free(rFP);
+				t_request *request_fin = recibirPayloadPaquete(header, socketCliente);
+				logRequest(request_fin, header->codigoOperacion);
+				free(request_fin);
+				t_result *result_fin = _finalizar_pedido(request_fin);
+				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, result_fin);
+	   			free_t_result(result_fin);
 				break;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

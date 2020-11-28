@@ -8,9 +8,10 @@ t_result* _guardar_pedido(t_request *request){
 		//Crear el segmento *restaurante* y la tabla de pagina *pedidos*
 		char* nombre_rest = string_new();
 		string_append_with_format(&nombre_rest, "%s", request->nombre);
+		
 		t_restaurante *restaurante_creado = crear_restaurante(nombre_rest);
 		int id_pedido = request->idPedido;
-		
+
 		if(restaurante_creado == NULL){
 			t_result * result = getTResult("[GUARDAR_PEDIDO] Fail.", true);
 			return result;
@@ -54,6 +55,9 @@ t_result* _guardar_plato(t_req_plato *request){
 	
 	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
+	char* nombre_plato = string_new();
+	string_append_with_format(&nombre_plato, "%s", request->plato);
+
 	if(pedido == NULL){
 		t_result * result = getTResult("[GUARDAR_PLATO] Fail. No existe el pedido", true);	
 		return result;
@@ -65,7 +69,7 @@ t_result* _guardar_plato(t_req_plato *request){
 	}
 
 	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces tiene que sacarlo a mp 
-	t_page *page = find_plato(pedido, request->plato);
+	t_page *page = find_plato(pedido, nombre_plato);
 
 	if(page == NULL){
 		t_page *plato_creado = asignar_frame(request->plato, request->cantidadPlato);
@@ -75,8 +79,8 @@ t_result* _guardar_plato(t_req_plato *request){
 
 			print_swap();
 			print_memory();
-			/*Validarrrrr si se guardo*/
-			//t_page *plato_enc = find_plato(pedido, request->plato);
+			/*Validarrrrr si se guardo
+			t_page *plato_enc = find_plato(pedido, request->plato);
 			
 			if(1){
 				t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
@@ -85,7 +89,10 @@ t_result* _guardar_plato(t_req_plato *request){
 			else{
 				t_result * result = getTResult("[GUARDAR_PLATO] Fail. Somenthing went wrong.", true);				
 				return result;
-			}
+			}*/
+
+			t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
+			return result;
 		}
 	}
 
@@ -207,8 +214,11 @@ t_result* _plato_listo(t_plato_listo* request) {
 		return result;
 	}
 
+	char* nombre_plato = string_new();
+	string_append_with_format(&nombre_plato, "%s", request->plato);
+
 	// Buscar nombre_plato_listo en pages del pedido
-	t_page *pl_page = find_plato(pedido, request->plato);
+	t_page *pl_page = find_plato(pedido, nombre_plato);
 
 	if(pl_page == NULL){
 		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);

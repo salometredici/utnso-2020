@@ -21,6 +21,7 @@ void init_mutexs() {
 	pthread_mutex_init(&mutex_asignar_pagina, NULL);
 	pthread_mutex_init(&mx_find_frame_in_memory, NULL);
 	pthread_mutex_init(&mx_find_frame_in_swap, NULL);
+	pthread_mutex_init(&write_memory, NULL);
 }
 
 void init_memory(){

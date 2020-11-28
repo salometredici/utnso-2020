@@ -32,6 +32,7 @@ pthread_mutex_t mutex_paginas_en_memoria;
 pthread_mutex_t mx_find_frame_in_memory;
 pthread_mutex_t mx_find_frame_in_swap;
 pthread_mutex_t mutex_asignar_pagina;
+pthread_mutex_t write_memory;
 
 /*Tabla de segmentos*/
 t_list *restaurantes;
@@ -90,6 +91,10 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
 t_page* find_plato(t_pedidoc *pedido, char *plato);
 t_page* asignar_frame(char *plato, int cantidad);
 t_list* find_frames(t_pedidoc *pedido);
+bool increase_cantidad_plato(t_page* page, int new_cantidad_plato);
+void update_cantidad_lista(t_page* page);
+
 void print_swap();
 void print_memory();
+
 #endif

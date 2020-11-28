@@ -268,11 +268,13 @@ t_page* find_frame_victim(){
 }
 
 void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantidad_lista, int frame_number){
+	pthread_mutex_lock(&write_memory);
 	void* frame = MEMORIA[frame_number];
 
 	memcpy(frame, &cantidad_pedida, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
+	pthread_mutex_unlock(&write_memory);
 }
 
 //te devuelve el nro de victima para setearlo al que lo necesita
@@ -329,8 +331,6 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 			return value;
 		}
 
-		// TODO: Filtrar pages con presencia en MP (flag == 1), para no hacer find_frame_in_memory sobre elementos que no estén en MP
-
 		t_page *plato = list_find(pedido->pages, &_find_plato);
 
 		if(plato == NULL){
@@ -340,6 +340,20 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 		return plato;
 	}
 	return NULL;
+}
+
+bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
+	t_frame* frame = find_frame_in_memory(page);
+	int sum = frame->cantidad_pedida + new_cantidad_plato;
+	write_frame_memory(frame->comida, sum, frame->cantidad_lista, page->frame);
+	return true;
+}
+
+void update_cantidad_lista(t_page* page){
+	t_frame *frame_a_actualizar = find_frame_in_memory(page->frame);
+	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+
+	write_frame_memory(frame_a_actualizar->comida, frame_a_actualizar->cantidad_pedida, cantidad_lista, page->frame);
 }
 
 int get_available_blocks_number() {

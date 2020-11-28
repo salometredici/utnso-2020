@@ -79,11 +79,15 @@ t_result* _guardar_plato(t_req_plato *request){
 			}
 		}
 	}
-	else{
-		//deberia de incrementar en la cantidad pedida 
+
+	int done = increase_cantidad_plato(page, request->cantidadPlato);
+
+	if(!done){
+		t_result* result = getTResult("[GUARDAR_PLATO] Fail. Something went wrong", true);
+		return result;
 	}
 
-	t_result *result = getTResult("[GUARDAR_PLATO] Este plato ya existe en memoria", false);
+	t_result *result = getTResult("[GUARDAR_PLATO] Ok", false);
 	return result;
 }
 
@@ -189,30 +193,20 @@ t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_list
 		return result;
 	}
 
-	// Buscar nombre_plato_listo en pages del pedido
-	t_page *pl_page = find_plato(pedido, nombre_plato_listo);
-
-	if (pl_page == NULL) { // PAGE_FAULT
-		// TODO: Ejecutar ALGORITMO_REEMPLAZO
-	}
-
 	if (pedido->estado != CONFIRMADO) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar y/o finalizado.", true);	
+		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar.", true);	
 		return result;
 	}
 
-	t_frame *frame_a_actualizar = find_frame_in_memory(pl_page->frame);
-	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+	// Buscar nombre_plato_listo en pages del pedido
+	t_page *pl_page = find_plato(pedido, nombre_plato_listo);
 
-	// Actualizar cantidad_lista de la página en MP
-	void *frame = MEMORIA[pl_page->frame];
-	memcpy(frame + (PAGE_SIZE * pl_page->frame) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
+	if(pl_page == NULL){
+		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);
+		return result;
+	}
 
-	// Marcar página como modified
-	pl_page->modified = true;
-
-	// TODO: Verificar si todos los platos del pedido están listos
-	// Nota: Vamos a tener que traer todas las páginas del pedido a MP para hacer esta validación
+	update_cantidad_lista(pl_page);
 
 	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	
 	return result;

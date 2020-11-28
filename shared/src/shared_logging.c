@@ -412,6 +412,16 @@ void log_blocks_assignment() {
 	log_debug(logger, "Iniciando la reserva de bloques...");
 }
 
+void log_assigned_blocks(int *assigned_blocks) {
+	int size = sizeof assigned_blocks / sizeof *assigned_blocks;
+	printf("Hay "BOLD"%d"RESET" bloques asignados:"BREAK, size);
+	log_debug(logger, "Hay %d bloques asignados:", size);
+	for (int i = 0; i < size; i++) {
+		printf(TAB"[Bloque #%d] - %d.AFIP"BREAK, i+1, assigned_blocks[i]);
+		log_debug(logger, TAB"[Bloque #%d] - %d.AFIP", i+1, assigned_blocks[i]);
+	}
+}
+
 // File content
 
 void log_full_blocks_content(char *content) {
@@ -490,18 +500,26 @@ void log_bitmap_reload_success() {
 // Bitmap updates
 
 void log_bit_state(int pos, int bit) {
-	printf(TAB BOLD"→"RESET" El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
-	log_debug(logger, "El bit [%d] se encuentra en estado %d", pos, bit);
+	//printf(TAB BOLD"→"RESET" El bit [%d] se encuentra en estado %d"BREAK, pos, bit);
+	log_debug(logger, "→ El bit [%d] se encuentra en estado %d", pos, bit);
 }
 
 void log_bit_update(int pos, t_bitarray *bitarray) {
-	printf(TAB BOLD"→"RESET" Ahora el bit %d se encuentra en estado %d"BREAK, pos, bitarray_test_bit(bitarray, pos));
-	log_debug(logger, TAB"Ahora el bit %d se encuentra en estado %d", pos, bitarray_test_bit(bitarray, pos));
+	int estado = bitarray_test_bit(bitarray, pos);
+	char *mensaje = string_new(); string_append_with_format(&mensaje, "%s%d%s", "El bloque ", pos, estado ? " ha sido asignado -" : "ha sido desasignado -");
+	printf(TAB BOLD"→"RESET" %s El bit %d ha cambiado al estado %d"BREAK, mensaje, pos, estado);
+	log_info(logger, TAB"→ %s El bit %d ha cambiado al estado %d"BREAK, mensaje, pos, estado);
+	free(mensaje);
 }
 
 void log_unavailable_bit(int pos) {
-	printf(TAB TAB BOLD"→"RESET" El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
+	//printf(TAB TAB BOLD"→"RESET" El bit [%d] está ocupado, buscando al siguiente..."BREAK, pos);
 	log_debug(logger, TAB TAB"El bit [%d] está ocupado, buscando al siguiente...", pos);
+}
+
+void log_bit_already_free(int bit_pos, int estado) {
+	printf("El bit %d ya se encontraba en estado %d, no se actualizará"BREAK, bit_pos, estado);
+	log_info(logger, "El bit %d ya se encontraba en estado %d, no se actualizará", bit_pos, estado);
 }
 
 // CREAR_RESTAURANTE

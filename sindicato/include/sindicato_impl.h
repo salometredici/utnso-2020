@@ -26,6 +26,12 @@ void crear_restaurante(char **params);
 void crear_receta(char **params);
 void crear_pedido(t_request *request);
 
+typedef enum {
+    MISMOS_BLOQUES = 1,
+    AGREGAR_BLOQUES = 2,
+    QUITAR_BLOQUES = 3
+} op_bloques;
+
 // crear archivo
 // borrar archivo
 // validar archivo

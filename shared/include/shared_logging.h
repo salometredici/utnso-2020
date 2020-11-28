@@ -69,6 +69,8 @@ void log_Info_AFIP(char *rest);
 void log_Pedido_AFIP(int nroPedido);
 void log_Receta_AFIP(char *receta);
 
+// Bloques
+void log_assigned_blocks(int *assigned_blocks);
 // Bitmap
 void log_bitmap_file_error();
 void log_bitmap_error();
@@ -81,6 +83,7 @@ void log_bitmap_reload_success();
 void log_bit_state(int pos, int bit);
 void log_bit_update(int pos, t_bitarray *bitarray);
 void log_unavailable_bit(int pos);
+void log_bit_already_free(int bit_pos, int estado);
 
 // CREAR_RESTAURANTE
 

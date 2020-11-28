@@ -19,14 +19,6 @@ int find_char_index(char *string, char caracter) {
 	}
 }
 
-bool existe_plato_en_pedido(char *plato, t_pedido *pedido) {
-	bool es_plato_actual(void *actual) {
-		t_plato *plato_pedido = actual;
-		return string_equals_ignore_case(plato, plato_pedido->plato);
-	};
-	return list_any_satisfy(pedido->platos, &es_plato_actual);
-}
-
 /* Utils Restaurantes */
 
 char *get_restaurant_path(char *restaurante) { // Retorna, por ejemplo: /Restaurantes/BK
@@ -87,6 +79,14 @@ bool existe_pedido(t_request *request) {
 	return fdExists(path_pedido);	
 }
 
+bool existe_plato_en_pedido(char *plato, t_pedido *pedido) {
+	bool es_plato_actual(void *actual) {
+		t_plato *plato_pedido = actual;
+		return string_equals_ignore_case(plato, plato_pedido->plato);
+	};
+	return list_any_satisfy(pedido->platos, &es_plato_actual);
+}
+
 // Actualizar bitmap.bin
 
 int buscar_bloque_libre_y_ocupar() {
@@ -110,7 +110,49 @@ void asignar_bloques(uint32_t *bloquesAsignados, int bloquesReq) {
 	}
 }
 
-// .AFIP files
+void buscar_bloque_y_limpiar(int bit_a_limpiar) {
+	int estado_bit = bitarray_test_bit(bitarray, bit_a_limpiar);
+	log_bit_state(bit_a_limpiar, estado_bit);
+	if (!estado_bit) {
+		log_bit_already_free(bit_a_limpiar, estado_bit);
+	} else {
+		bitarray_clean_bit(bitarray, bit_a_limpiar);
+		log_bit_update(bit_a_limpiar, bitarray);
+	}
+}
+
+void desasignar_bloques(uint32_t *bloquesAsignados, int cant_bloques) {
+	for (int i = 0; i < cant_bloques; i++) {
+		pthread_mutex_lock(&mutexBitmap);
+		buscar_bloque_y_limpiar(bloquesAsignados[i]);
+		pthread_mutex_unlock(&mutexBitmap);
+	}
+}
+
+void get_assigned_blocks_numbers(int total_size, int fst_block_number, int *assigned_blocks, int total_blocks) {
+	int bytes_checked = 0;
+	assigned_blocks[0] = fst_block_number;
+	int curr_block_size = total_size < maxContentSize ? total_size : maxContentSize;
+
+	for (int i = 0; i < total_blocks; i++) {		
+		char *curr_block_path = string_new();
+		string_append_with_format(&curr_block_path, "%s%d%s", blocksPath, assigned_blocks[i], ".AFIP");
+		FILE *fp = fopen(curr_block_path, "r");
+		if (fp != NULL) {
+			char *next_block = malloc(sizeof(uint32_t) + 1);
+			fseek (fp, curr_block_size, SEEK_SET);
+			fread(next_block, sizeof(uint32_t), 1, fp);
+			assigned_blocks[i+1] = atoi(string_substring_until(next_block, sizeof(uint32_t)-1));
+			int remaining_bytes = total_size - bytes_checked;
+			curr_block_size = remaining_bytes < maxContentSize ? remaining_bytes : maxContentSize;
+			free(curr_block_path);
+			free(next_block);
+			fclose(fp);
+		}
+	}
+}
+
+/* .AFIP files */
 
 char *new_AFIP_file_content(int fullSize, int initialBlock) {
 	char *fileContent = string_new();
@@ -152,6 +194,7 @@ void save_empty_AFIP_file(char *path_pedido) {
 	check_AFIP_file(PEDIDO, AFIP_file_content, path_pedido);
 }
 
+// Retorna el contenido de los archivos Info.AFIP, Receta.AFIP o Pedido#.AFIP
 char *get_content_from_AFIP_file(int option, char *object) {	
 	char *AFIP_file_path = string_new();
 	switch (option) {
@@ -183,7 +226,21 @@ char *get_content_from_AFIP_file(int option, char *object) {
 	return file_content;
 }
 
-// Métodos y funciones para bloques
+int get_total_size_from_AFIP(char *afip_content) {
+	// Primer línea del archivo .AFIP - Ej.: "SIZE=45\n"
+	int fst_equal_i = find_char_index(afip_content, '=');
+	int fst_endl_i = find_char_index(afip_content, '\n');
+	return get_int_file_value(afip_content, fst_equal_i, fst_endl_i);
+}
+
+int get_fst_block_from_AFIP(char *afip_content) {
+	// Segunda línea del archivo .AFIP - Ej.: "INITIAL_BLOCK=2\n"
+	char *snd_line = string_substring(afip_content, find_char_index(afip_content, '\n'), strlen(afip_content)-1);
+	int snd_equal_i = find_char_index(snd_line, '=');
+	return get_int_file_value(snd_line, snd_equal_i, strlen(snd_line)-2);
+}
+
+/* Métodos y funciones para bloques */
 
 void save_content(int reqBlocks, char *fileContent, uint32_t *bloquesAsignados) {
 	int start = 0;
@@ -211,7 +268,7 @@ void save_content(int reqBlocks, char *fileContent, uint32_t *bloquesAsignados) 
 }
 
 // Método para la primer asignación de bloques y el guardado del contenido en los archivos
-void save_in_blocks(int option, char *object, char *fileContent, int bloquesReq) {
+void fst_save_in_blocks(int option, char *object, char *fileContent, int bloquesReq) {
 	int contentSize = strlen(fileContent);
 	// Creamos el array para guardar los números de bloques asignados
 	uint32_t bloquesAsignados[bloquesReq]; log_blocks_assignment();
@@ -264,31 +321,87 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 	return full_content;
 }
 
-void update_blocks_content() {
+// 
 
+void get_assigned_blocks(char *afip_content, int *assigned_blocks, int cant_actual) {
+	if (afip_content != NULL) {
+		int total_size = get_total_size_from_AFIP(afip_content);
+		int fst_block_number = get_fst_block_from_AFIP(afip_content);
+		get_assigned_blocks_numbers(total_size, fst_block_number, assigned_blocks, cant_actual);
+		log_assigned_blocks(assigned_blocks);
+	} else {
+		log_no_AFIP_content();
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+
+void update_content(char *object, int option, char *new_content, op_bloques operacion) {
+	// Contenido actual del archivo .AFIP y los bloques
+	char *AFIP_content_actual = get_content_from_AFIP_file(option, object);
+	char *pedido_actual = string_new(); string_append_with_format(&pedido_actual, "%s", get_info(option, object));
+	int bloques_actuales = get_required_blocks_number(strlen(pedido_actual));
+	uint32_t assigned_blocks[bloques_actuales]; get_assigned_blocks(AFIP_content_actual, assigned_blocks, bloques_actuales);
+	// Contenido nuevo
+	char *updated_AFIP_file_content = new_AFIP_file_content(strlen(new_content), assigned_blocks[0]);
+	int bloques_actualizados = get_required_blocks_number(strlen(new_content));
+	// Actualizamos el archivo .AFIP
+	check_AFIP_file(option, updated_AFIP_file_content, object);
+	// Actualizamos el contenido de los bloques según corresponda
+
+	//agregar
+			uint32_t new_assigned_blocks[bloques_actualizados];
+			uint32_t new_blocks[bloques_actualizados - bloques_actuales];
+	//quitar
+			uint32_t fewer_blocks[bloques_actualizados];
+			uint32_t blocks_to_remove[bloques_actuales - bloques_actualizados];
+
+	switch (operacion) {
+		case MISMOS_BLOQUES:;
+			save_content(bloques_actualizados, new_content, assigned_blocks);
+			break;
+		case AGREGAR_BLOQUES:;
+			asignar_bloques(new_blocks, bloques_actualizados - bloques_actuales);
+			for (int i = 0; i < bloques_actualizados; i++) {
+				if (i < bloques_actuales) {
+					new_assigned_blocks[i] = assigned_blocks[i];
+				} else {
+					new_assigned_blocks[i] = new_blocks[bloques_actualizados - i-1];
+				}
+			}
+			save_content(bloques_actualizados, new_content, new_assigned_blocks);
+			break;
+		case QUITAR_BLOQUES:;
+
+			for (int i = 0; i < bloques_actuales; i++) {
+				if (i < bloques_actualizados) {
+					fewer_blocks[i] = assigned_blocks[i];
+				} else {
+					blocks_to_remove[i] = assigned_blocks[bloques_actuales - i-1];
+				}
+			}
+			desasignar_bloques(blocks_to_remove, bloques_actualizados - bloques_actuales);
+			save_content(bloques_actualizados, new_content, fewer_blocks);
+			break;
+	}
 }
 
 // Busca la información del archivo .AFIP correspondiente, y retorna el conjunto de información de los bloques en base a ello
 char *get_info(int option, char *object) {
 	char *afip_content = get_content_from_AFIP_file(option, object);
 	if (afip_content != NULL) {
-		/* Obtenemos los índices de los caracteres '=' y '\n' de cada línea */
-			// Primer línea - Ej.: "SIZE=45\n"
-			int fst_equal_i = find_char_index(afip_content, '='); int fst_endl_i = find_char_index(afip_content, '\n');
-			// Segunda línea - Ej.: "INITIAL_BLOCK=2\n"
-			char *snd_line = string_substring(afip_content, fst_endl_i, strlen(afip_content)-1);
-			int snd_equal_i = find_char_index(snd_line, '=');
-		/* Parseamos cada string a int */
-		int total_size = get_int_file_value(afip_content, fst_equal_i, fst_endl_i);
-		int fst_block_number = get_int_file_value(snd_line, snd_equal_i, strlen(snd_line)-2);
-		
+
+		int total_size = get_total_size_from_AFIP(afip_content);
+		int fst_block_number = get_fst_block_from_AFIP(afip_content);
+
 		if (total_size == 0 && fst_block_number == ERROR) {
 			return BLOQUES_NO_ASIGNADOS;
 		}
 
 		char *content = get_full_blocks_content(total_size, fst_block_number);
 		log_full_blocks_content(content);
-		free(afip_content); free(snd_line);
+		free(afip_content); //free(snd_line);
 		return content;
 	} else {
 		log_no_AFIP_content();
@@ -528,9 +641,11 @@ char *get_GuardarPlato_Data(t_req_plato *request, int precio_plato, bool es_plat
 			} else {
 				string_append_with_format(&new_cant_platos_line, "%d%s", atoi(list_get(cantidades, i)), i+1 == total_platos ? "]\n" : ",");
 			}
+			free(plato_actual);
 		}
 		// CANTIDAD_LISTA queda igual
 		string_append_with_format(&new_cant_lista_platos_line, "%s%s", lines[3], "\n");
+		free(platos); free(cantidades);
 	}
 
 	// La actualización del precio total es igual en ambos casos
@@ -540,6 +655,7 @@ char *get_GuardarPlato_Data(t_req_plato *request, int precio_plato, bool es_plat
 	// Finalmente, agregamos todas las líneas actualizadas al char* del contenido actualizado
 	string_append_with_format(&updated_file_content, "%s%s%s%s%s%s", lines[0], "\n", new_lista_platos_line, new_cant_platos_line, new_cant_lista_platos_line, new_precio_total_line);
 
+	free(req_pedido); free(file_content_pedido);
 	return updated_file_content;
 }
 
@@ -547,9 +663,9 @@ char *get_GuardarPlato_Data(t_req_plato *request, int precio_plato, bool es_plat
 
 /* Primeras asignaciones/creaciones */
 
-void check_and_save(int option, char *object, char *content, int reqBlocks) {
+void fst_check_and_save(int option, char *object, char *content, int reqBlocks) {
 	if (enough_blocks_available(reqBlocks)) {
-		save_in_blocks(option, object, content, reqBlocks);
+		fst_save_in_blocks(option, object, content, reqBlocks);
 	} else {
 		free(object); free(content);
 		log_full_FS(reqBlocks, get_available_blocks_number());
@@ -561,7 +677,7 @@ void guardar_primer_plato(t_req_plato *request, int precio) {
 	char *fst_fileContent = get_IniciarPedido_Data(request, precio);
 	int reqBlocks = get_required_blocks_number(strlen(fst_fileContent));
 	t_request *req_a_guardar = getTRequest(request->idPedido, request->restaurante);
-	check_and_save(PEDIDO, get_full_pedido_path(req_a_guardar), fst_fileContent, reqBlocks);
+	fst_check_and_save(PEDIDO, get_full_pedido_path(req_a_guardar), fst_fileContent, reqBlocks);
 	free(fst_fileContent); free(req_a_guardar);
 }
 
@@ -569,14 +685,14 @@ void crear_restaurante(char **params) {
 	char *rest = params[1]; create_rest_dir(rest);
 	char *fileContent = get_CrearRestaurante_Data(params);
 	int reqBlocks = get_required_blocks_number(strlen(fileContent));
-	check_and_save(RESTAURANTE, rest, fileContent, reqBlocks);
+	fst_check_and_save(RESTAURANTE, rest, fileContent, reqBlocks);
 }
 
 void crear_receta(char **params) {
 	char *plato = params[1];
 	char *fileContent = get_CrearReceta_Data(params);
 	int reqBlocks = get_required_blocks_number(strlen(fileContent));
-	check_and_save(RECETA, plato, fileContent, reqBlocks);
+	fst_check_and_save(RECETA, plato, fileContent, reqBlocks);
 }
 
 void crear_pedido(t_request *request) {

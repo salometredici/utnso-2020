@@ -82,12 +82,41 @@ t_pedido *obtener_pedido(t_request *request) {
 }
 
 void incrementar_plato_en_pedido(t_req_plato *request, int precio_plato) {
+	t_request *req = getTRequest(request->idPedido, request->restaurante);
+	char *pedido_path = get_full_pedido_path(req);
+	char *pedido_actual = get_info(PEDIDO, pedido_path);
+	int cant_actual = get_required_blocks_number(strlen(pedido_actual));
+
 	char *pedido_actualizado = get_GuardarPlato_Data(request, precio_plato, false);
+	int cant_actualizada = get_required_blocks_number(strlen(pedido_actualizado));
+
+	free(pedido_actual); free(req);
+
+	update_content(pedido_path, PEDIDO, pedido_actualizado, cant_actual == cant_actualizada ?
+																MISMOS_BLOQUES :
+																(cant_actual < cant_actualizada ?
+																	AGREGAR_BLOQUES :
+																	QUITAR_BLOQUES));
+
 	printf("%s", pedido_actualizado);
 }
 
 void guardar_plato_en_pedido(t_req_plato *request, int precio_plato) {
+	t_request *req = getTRequest(request->idPedido, request->restaurante);
+	char *pedido_path = get_full_pedido_path(req);
+	char *pedido_actual = get_info(PEDIDO, pedido_path);
+	int cant_actual = get_required_blocks_number(strlen(pedido_actual));
+
 	char *pedido_actualizado = get_GuardarPlato_Data(request, precio_plato, true);
+	int cant_actualizada = get_required_blocks_number(strlen(pedido_actualizado));
+	free(pedido_actual); free(req);
+
+	update_content(pedido_path, PEDIDO, pedido_actualizado, cant_actual == cant_actualizada ?
+																MISMOS_BLOQUES :
+																(cant_actual < cant_actualizada ?
+																	AGREGAR_BLOQUES :
+																	QUITAR_BLOQUES));
+
 	printf("%s", pedido_actualizado);
 }
 
@@ -96,7 +125,7 @@ void agregar_plato_a_pedido(t_req_plato *request, t_pedido *pedido_actual) {
 	int precio_plato = obtener_precio_plato(request->plato, info_restaurante);
 	if (list_is_empty(pedido_actual->platos)) {
 		guardar_primer_plato(request, precio_plato);
-	} else if(existe_plato_en_pedido(request->plato, pedido_actual)) {
+	} else if (existe_plato_en_pedido(request->plato, pedido_actual)) {
 		incrementar_plato_en_pedido(request, precio_plato);
 	} else {
 		guardar_plato_en_pedido(request, precio_plato);

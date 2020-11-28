@@ -265,11 +265,11 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 			log_t_plato_list(pedido->platos);
 		break;
 		case REST_INEXISTENTE:
-			printf(TAB RED"[ERROR] %s - [%s, Pedido #%d]"RESET BREAK, REST_NO_EXISTE, request->nombre, request->idPedido);
+			printf(TAB BOLDRED"[ERROR]"RESET RED" %s - [%s, Pedido #%d]"RESET BREAK, REST_NO_EXISTE, request->nombre, request->idPedido);
 			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, REST_NO_EXISTE);
 			break;
 		case PEDIDO_INEXISTENTE:
-			printf(TAB RED"[ERROR] %s - [%s, Pedido #%d]"RESET BREAK, PEDIDO_NO_EXISTE, request->nombre, request->idPedido);
+			printf(TAB BOLDRED"[ERROR]"RESET RED" %s - [%s, Pedido #%d]"RESET BREAK, PEDIDO_NO_EXISTE, request->nombre, request->idPedido);
 			log_error(logger, "Pedido %d, Restaurante %s - %s", request->idPedido, request->nombre, PEDIDO_NO_EXISTE);
 			break;
 		case PENDIENTE:
@@ -313,7 +313,7 @@ void log_ObtenerRestaurante(char *restaurante) {
 
 void log_rta_ObtenerRestaurante(t_md *md) {
 	if (md->cantidadCocineros == ERROR){
-		printf(TAB RED"[ERROR] %s"RESET BREAK, REST_NO_EXISTE);
+		printf(TAB BOLDRED"[ERROR]"RESET RED" %s"RESET BREAK, REST_NO_EXISTE);
 		log_error(logger, "%s", REST_NO_EXISTE);
 	} else {
 		printf(BOLD"[Metadata del restaurante]:"RESET BREAK);
@@ -341,11 +341,11 @@ void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 
 void log_rta_ConsultarPlatos(t_list *platos) {
 	if (list_is_empty(platos)) {
-		printf("El restaurante no posee platos"BREAK);
+		printf(BOLD"El restaurante no posee platos"RESET BREAK);
 		log_info(logger, "El restaurante no posee platos");
 	} else if (list_size(platos) == 1 &&
-			   string_equals_ignore_case(list_get(platos, 0), REST_NO_EXISTE)) {
-		printf(TAB RED"[ERROR] %s"RESET BREAK, REST_NO_EXISTE);
+		string_equals_ignore_case(list_get(platos, 0), REST_NO_EXISTE)) {
+		printf(TAB BOLDRED"[ERROR]"RESET RED" %s"RESET BREAK, REST_NO_EXISTE);
 		log_error(logger, "%s", REST_NO_EXISTE);
 	} else {
 		log_lista_strings(platos);
@@ -380,7 +380,7 @@ void log_receta_e_instrucciones(t_receta *receta) {
 
 void log_rta_ObtenerReceta(t_receta *receta) {
 	if (string_equals_ignore_case(receta->plato, RECETA_NO_EXISTE)) {
-		printf(TAB RED"[ERROR] %s"RESET BREAK, RECETA_NO_EXISTE);
+		printf(TAB BOLDRED"[ERROR]"RESET RED" %s"RESET BREAK, RECETA_NO_EXISTE);
 		log_error(logger, "%s", RECETA_NO_EXISTE);
 	} else {
 		log_receta_e_instrucciones(receta);
@@ -433,7 +433,7 @@ void log_full_blocks_content(char *content) {
 // .AFIP files
 
 void log_no_AFIP_content() {
-	printf(RED"[ERROR] El archivo .AFIP no tenía contenido. No es posible recuperar la información de los bloques."RESET BREAK);
+	printf(BOLDRED"[ERROR]"RESET RED" El archivo .AFIP no tenía contenido. No es posible recuperar la información de los bloques."RESET BREAK);
 	log_error(logger, "El archivo .AFIP no tenía contenido. No es posible recuperar la información de los bloques.");
 }
 
@@ -455,12 +455,12 @@ void log_Receta_AFIP(char *receta) {
 // Bitmap
 
 void log_bitmap_file_error() {
-	printf(RED"[ERROR] Error al abrir el archivo Bitmap.bin"RESET BREAK);
+	printf(BOLDRED"[ERROR]"RESET RED" Error al abrir el archivo Bitmap.bin"RESET BREAK);
 	log_error(logger, "Error al abrir el archivo Bitmap.bin");
 }
 
 void log_bitmap_error() {
-	printf(RED"[ERROR] Error al realizar mmap"RESET BREAK);
+	printf(BOLDRED"[ERROR]"RESET RED" Error al realizar mmap"RESET BREAK);
 	log_error(logger, "Error al realizar mmap");
 }
 

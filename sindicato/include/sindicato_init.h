@@ -34,18 +34,6 @@ t_bitarray *bitarray;
 pthread_mutex_t mutexBitmap;
 
 void init();
-
-typedef struct {
-    char *content;
-    uint32_t next;
-} t_block;
-
-// crear archivo
-// borrar archivo
-// validar archivo
-// obtener data
-// guardar data
-// borrar data
-// actualizar data
+int get_available_blocks_number();
 
 #endif

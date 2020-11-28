@@ -41,7 +41,7 @@ char *get_InfoAFIP_path(char *restaurante) {
 
 /* Utils Pedidos */
 
-char *get_filename_pedido(int idPedido) {
+char *get_filename_pedido(int idPedido) { // Retorna sólo el nombre del archivo del pedido, por ejemplo Pedido1.AFIP
 	char *filename = string_new();
 	string_append_with_format(&filename, "Pedido%d.AFIP", idPedido);
 	return filename;
@@ -87,7 +87,7 @@ bool existe_plato_en_pedido(char *plato, t_pedido *pedido) {
 	return list_any_satisfy(pedido->platos, &es_plato_actual);
 }
 
-// Actualizar bitmap.bin
+/* Blocks */
 
 int buscar_bloque_libre_y_ocupar() {
     for (int i = 0; i < blocksQuantity; i++) {
@@ -129,7 +129,8 @@ void desasignar_bloques(uint32_t *bloquesAsignados, int cant_bloques) {
 	}
 }
 
-void get_assigned_blocks_numbers(int total_size, int fst_block_number, int *assigned_blocks, int total_blocks) {
+// Asigna los valores de los bloques asociados en orden en el array assigned_blocks
+void set_assigned_blocks_numbers(int total_size, int fst_block_number, int *assigned_blocks, int total_blocks) {
 	int bytes_checked = 0;
 	assigned_blocks[0] = fst_block_number;
 	int curr_block_size = total_size < maxContentSize ? total_size : maxContentSize;
@@ -152,8 +153,20 @@ void get_assigned_blocks_numbers(int total_size, int fst_block_number, int *assi
 	}
 }
 
+void get_assigned_blocks(char *afip_content, int *assigned_blocks, int cant_actual) {
+	if (afip_content != NULL) {
+		int total_size = get_total_size_from_AFIP(afip_content);
+		int fst_block_number = get_fst_block_from_AFIP(afip_content);
+		set_assigned_blocks_numbers(total_size, fst_block_number, assigned_blocks, cant_actual);
+	} else {
+		log_no_AFIP_content();
+		exit(EXIT_FAILURE);
+	}
+}
+
 /* .AFIP files */
 
+// Retorna el contenido para un archivo principal .AFIP con los parámetros indicados
 char *new_AFIP_file_content(int fullSize, int initialBlock) {
 	char *fileContent = string_new();
 	string_append_with_format(&fileContent, "SIZE=%d\n", fullSize);
@@ -161,6 +174,12 @@ char *new_AFIP_file_content(int fullSize, int initialBlock) {
 	return fileContent;
 }
 
+/* Parámetros:
+	int option -> RESTAURANTE, PEDIDO o RECETA
+	char *object -> Para un restaurante, es el nombre del mismo. Ej.: PAROLACCIA
+					Para una receta, es el nombre de la misma. Ej.: PapasAlHorno
+					Para un pedido, es la ruta absoluta del mismo. Ej.: /home/utnso/desktop/Files/Restaurantes/PAROLACCIA/Pedido1.AFIP
+*/
 char *get_AFIP_file_path(int option, char *object) {
 	char *AFIP_file_path = string_new();
 	switch (option) {
@@ -187,6 +206,7 @@ void check_AFIP_file(int option, char *fileContent, char *object) {
 		fputs(fileContent, fp);
 		fclose(fp);
 	}
+	free(AFIP_file_path); // Para bajar el leak
 }
 
 void save_empty_AFIP_file(char *path_pedido) {
@@ -240,7 +260,7 @@ int get_fst_block_from_AFIP(char *afip_content) {
 	return get_int_file_value(snd_line, snd_equal_i, strlen(snd_line)-2);
 }
 
-/* Métodos y funciones para bloques */
+/* Métodos y funciones para guardar contenido y recuperarlo */
 
 void save_content(int reqBlocks, char *fileContent, uint32_t *bloquesAsignados) {
 	int start = 0;
@@ -264,7 +284,9 @@ void save_content(int reqBlocks, char *fileContent, uint32_t *bloquesAsignados) 
 			fprintf(fp, "%s%d", aux, i+1 >= reqBlocks ? ERROR : bloquesAsignados[i+1]);
 			fclose(fp);
 		}
-	}	
+		free(block_to_assign_path); // Para bajar el leak
+	}
+	free(aux); // Para bajar el leak	
 }
 
 // Método para la primer asignación de bloques y el guardado del contenido en los archivos
@@ -280,6 +302,7 @@ void fst_save_in_blocks(int option, char *object, char *fileContent, int bloques
 	char *AFIP_file_content = new_AFIP_file_content(contentSize, bloquesAsignados[0]);
 	check_AFIP_file(option, AFIP_file_content, object);
 	save_content(bloquesReq, fileContent, bloquesAsignados);
+	free(AFIP_file_content); // Para bajar el leak
 }
 
 // Retorna un string con el contenido total de los bloques según lo informado en el archivo .AFIP
@@ -321,21 +344,15 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 	return full_content;
 }
 
-// 
-
-void get_assigned_blocks(char *afip_content, int *assigned_blocks, int cant_actual) {
-	if (afip_content != NULL) {
-		int total_size = get_total_size_from_AFIP(afip_content);
-		int fst_block_number = get_fst_block_from_AFIP(afip_content);
-		get_assigned_blocks_numbers(total_size, fst_block_number, assigned_blocks, cant_actual);
-	} else {
-		log_no_AFIP_content();
-		exit(EXIT_FAILURE);
-	}
-}
-
-
-
+/* Parámetros:
+	char *object: Para un restaurante, es el nombre del mismo. Ej.: PAROLACCIA
+				  Para un pedido, es la ruta absoluta del mismo. Ej.: /home/utnso/desktop/Files/Restaurantes/PAROLACCIA/Pedido1.AFIP
+	int option: RESTAURANTE o PEDIDO
+	char *new_content: Es el contenido del pedido/restaurante actualizado a grabar
+	op_bloques operacion: Indica el tipo de actualización que se realizará -> MISMOS_BLOQUES: Actualización simple
+																		   -> AGREGAR_BLOQUES: Actualización + Reserva y grabado de bloques nuevos
+																		   -> QUITAR_BLOQUES: Actualización + Desasignación de bloques innecesarios
+*/
 void update_content(char *object, int option, char *new_content, op_bloques operacion) {
 	// Contenido actual del archivo .AFIP y los bloques
 	char *AFIP_content_actual = get_content_from_AFIP_file(option, object);
@@ -391,17 +408,14 @@ void update_content(char *object, int option, char *new_content, op_bloques oper
 char *get_info(int option, char *object) {
 	char *afip_content = get_content_from_AFIP_file(option, object);
 	if (afip_content != NULL) {
-
 		int total_size = get_total_size_from_AFIP(afip_content);
 		int fst_block_number = get_fst_block_from_AFIP(afip_content);
-
 		if (total_size == 0 && fst_block_number == ERROR) {
 			return BLOQUES_NO_ASIGNADOS;
 		}
-
 		char *content = get_full_blocks_content(total_size, fst_block_number);
 		log_full_blocks_content(content);
-		free(afip_content); //free(snd_line);
+		free(afip_content);
 		return content;
 	} else {
 		log_no_AFIP_content();
@@ -686,6 +700,7 @@ void crear_restaurante(char **params) {
 	char *fileContent = get_CrearRestaurante_Data(params);
 	int reqBlocks = get_required_blocks_number(strlen(fileContent));
 	fst_check_and_save(RESTAURANTE, rest, fileContent, reqBlocks);
+	free(rest); free(fileContent); // Para bajar el leak
 }
 
 void crear_receta(char **params) {
@@ -693,6 +708,7 @@ void crear_receta(char **params) {
 	char *fileContent = get_CrearReceta_Data(params);
 	int reqBlocks = get_required_blocks_number(strlen(fileContent));
 	fst_check_and_save(RECETA, plato, fileContent, reqBlocks);
+	free(plato); free(fileContent); // Para bajar el leak
 }
 
 void crear_pedido(t_request *request) {

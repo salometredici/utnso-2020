@@ -424,10 +424,10 @@ void log_assigned_blocks(int *assigned_blocks, int size) {
 // File content
 
 void log_full_blocks_content(char *content) {
-	log_debug(logger, "El contenido del archivo obtenido fue:");
-	log_debug(logger, "--------------------------------------------------");
+	log_debug(logger, "El contenido del archivo leído es:");
+	//log_debug(logger, "--------------------------------------------------");
 	log_debug(logger, BREAK"%s", content);
-	log_debug(logger, "--------------------------------------------------");
+	//log_debug(logger, "--------------------------------------------------");
 }
 
 // .AFIP files
@@ -471,7 +471,7 @@ void log_bitarray_info(t_bitarray *bitarray, int available_blocks) {
 	printf(TAB BOLD"→"RESET" Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
 	printf(TAB BOLD"→"RESET" Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
 	log_debug(logger, "→ Tamaño del bitmap: %d", lastBit);
-	log_debug(logger, "→ Cant. de bloques disponibles: %d"BREAK, available_blocks);
+	log_debug(logger, "→ Cant. de bloques disponibles: %d", available_blocks);
 	log_debug(logger, TAB"→ Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
 	log_debug(logger, TAB"→ Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
 }
@@ -507,7 +507,7 @@ void log_bit_update(int pos, t_bitarray *bitarray) {
 	int estado = bitarray_test_bit(bitarray, pos);
 	char *mensaje = string_new(); string_append_with_format(&mensaje, "%s%d%s", "El bloque ", pos, estado ? " ha sido asignado -" : "ha sido desasignado -");
 	printf(TAB BOLD"→"RESET" %s El bit %d ha cambiado al estado %d"BREAK, mensaje, pos, estado);
-	log_info(logger, TAB"→ %s El bit %d ha cambiado al estado %d"BREAK, mensaje, pos, estado);
+	log_info(logger, TAB"→ %s El bit %d ha cambiado al estado %d", mensaje, pos, estado);
 	free(mensaje);
 }
 
@@ -545,15 +545,15 @@ void log_CrearReceta_Data(char **params) {
 // CREAR_PEDIDO
 
 void log_CrearPedido_Data(t_request *request) {
-	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
-	log_info(logger, "Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->nombre);
+	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s"BREAK, request->idPedido, request->nombre);
+	log_info(logger, "Creando el archivo Pedido%d.AFIP para el restaurante %s", request->idPedido, request->nombre);
 }
 
 // INICIAR PEDIDO
 
 void log_IniciarPedido_Data(t_req_plato *request) {
 	printf("Inicializando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->restaurante);
-	log_info(logger, "Inicializando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s:"BREAK, request->idPedido, request->restaurante);
+	log_info(logger, "Inicializando el archivo Pedido%d.AFIP para el restaurante %s:", request->idPedido, request->restaurante);
 }
 
 /***********************MENSAJE CONSOLA GENERAL***************************/

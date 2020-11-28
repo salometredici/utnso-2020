@@ -344,6 +344,36 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 	return full_content;
 }
 
+// Caso AGREGAR_BLOQUES: Asigna los bloques extras necesarios y los añade al array de bloques actualizado
+void set_extra_blocks_in_array(uint32_t *assigned_blocks, uint32_t *updated_blocks, int cant_nueva_bloques, int cant_actual_bloques) {
+	uint32_t extra_blocks[cant_nueva_bloques - cant_actual_bloques];
+	asignar_bloques(extra_blocks, cant_nueva_bloques - cant_actual_bloques);
+	int count = 0;
+	for (int i = 0; i < cant_nueva_bloques; i++) {
+		if (i < cant_actual_bloques) {
+			updated_blocks[i] = assigned_blocks[i];
+		} else {
+			updated_blocks[i] = extra_blocks[count];
+			count++;
+		}
+	}
+}
+
+// Caso QUITAR_BLOQUES: Setea los bloques restantes en el array y desasigna los que sobran
+void remove_unnecessary_blocks(uint32_t *assigned_blocks, uint32_t *updated_blocks, int cant_nueva_bloques, int cant_actual) {
+	uint32_t blocks_to_remove[cant_actual - cant_nueva_bloques];
+	int count = 0;
+	for (int i = 0; i < cant_actual; i++) {
+		if (i < cant_nueva_bloques) {
+			updated_blocks[i] = assigned_blocks[i];
+		} else {
+			blocks_to_remove[count] = assigned_blocks[i];
+			count++;
+		}
+	}
+	desasignar_bloques(blocks_to_remove, cant_actual - cant_nueva_bloques);
+}
+
 /* Parámetros:
 	char *object: Para un restaurante, es el nombre del mismo. Ej.: PAROLACCIA
 				  Para un pedido, es la ruta absoluta del mismo. Ej.: /home/utnso/desktop/Files/Restaurantes/PAROLACCIA/Pedido1.AFIP
@@ -357,49 +387,27 @@ void update_content(char *object, int option, char *new_content, op_bloques oper
 	// Contenido actual del archivo .AFIP y los bloques
 	char *AFIP_content_actual = get_content_from_AFIP_file(option, object);
 	char *pedido_actual = string_new(); string_append_with_format(&pedido_actual, "%s", get_info(option, object));
-	int bloques_actuales = get_required_blocks_number(strlen(pedido_actual));
-	uint32_t assigned_blocks[bloques_actuales]; get_assigned_blocks(AFIP_content_actual, assigned_blocks, bloques_actuales);
-	log_assigned_blocks(assigned_blocks, bloques_actuales);
+	int cant_actual_bloques = get_required_blocks_number(strlen(pedido_actual));
+	uint32_t assigned_blocks[cant_actual_bloques]; get_assigned_blocks(AFIP_content_actual, assigned_blocks, cant_actual_bloques);
+	log_assigned_blocks(assigned_blocks, cant_actual_bloques);
 	// Contenido nuevo
 	char *updated_AFIP_file_content = new_AFIP_file_content(strlen(new_content), assigned_blocks[0]);
-	int bloques_actualizados = get_required_blocks_number(strlen(new_content));
+	int cant_actualizada_bloques = get_required_blocks_number(strlen(new_content));
 	// Actualizamos el archivo .AFIP
 	check_AFIP_file(option, updated_AFIP_file_content, object);
 	// Actualizamos el contenido de los bloques según corresponda
-
-	//agregar
-			uint32_t new_assigned_blocks[bloques_actualizados];
-			uint32_t new_blocks[bloques_actualizados - bloques_actuales];
-	//quitar
-			uint32_t fewer_blocks[bloques_actualizados];
-			uint32_t blocks_to_remove[bloques_actuales - bloques_actualizados];
-
+	uint32_t updated_blocks[cant_actualizada_bloques];
 	switch (operacion) {
 		case MISMOS_BLOQUES:;
-			save_content(bloques_actualizados, new_content, assigned_blocks);
+			save_content(cant_actualizada_bloques, new_content, assigned_blocks);
 			break;
 		case AGREGAR_BLOQUES:;
-			asignar_bloques(new_blocks, bloques_actualizados - bloques_actuales);
-			for (int i = 0; i < bloques_actualizados; i++) {
-				if (i < bloques_actuales) {
-					new_assigned_blocks[i] = assigned_blocks[i];
-				} else {
-					new_assigned_blocks[i] = new_blocks[bloques_actualizados - i-1];
-				}
-			}
-			save_content(bloques_actualizados, new_content, new_assigned_blocks);
+			set_extra_blocks_in_array(assigned_blocks, updated_blocks, cant_actualizada_bloques, cant_actual_bloques);
+			save_content(cant_actualizada_bloques, new_content, updated_blocks);
 			break;
 		case QUITAR_BLOQUES:;
-
-			for (int i = 0; i < bloques_actuales; i++) {
-				if (i < bloques_actualizados) {
-					fewer_blocks[i] = assigned_blocks[i];
-				} else {
-					blocks_to_remove[i] = assigned_blocks[bloques_actuales - i-1];
-				}
-			}
-			desasignar_bloques(blocks_to_remove, bloques_actualizados - bloques_actuales);
-			save_content(bloques_actualizados, new_content, fewer_blocks);
+			remove_unnecessary_blocks(assigned_blocks, updated_blocks, cant_actualizada_bloques, cant_actual_bloques);
+			save_content(cant_actualizada_bloques, new_content, updated_blocks);
 			break;
 	}
 }

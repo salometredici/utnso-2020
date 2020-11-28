@@ -71,7 +71,7 @@ void *threadLecturaConsola(void *args) {
 							guardarPlato(parametro1, atoi(parametro2), parametro3, atoi(parametro4));
 							break;
 						case CONFIRMAR_PEDIDO:
-							confirmarPedido(atoi(parametro2), parametro1);
+							confirmarPedido(atoi(parametro1), parametro2);
 							break;
 						case PLATO_LISTO:
 							platoListo(parametro1, atoi(parametro2), parametro3);

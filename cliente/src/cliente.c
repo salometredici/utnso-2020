@@ -297,16 +297,14 @@ void terminar_pedido(int idPedido, char *nombreRestaurante) {
 	free(header);
 }
 
-void platoListo(char *nombreRestaurante, int idPedido, char *plato) {
-	t_plato_listo *platoListo = malloc(sizeof(t_plato_listo));
-	platoListo->restaurante = nombreRestaurante;
-	platoListo->idPedido = idPedido;
-	platoListo->plato = plato;
-	enviarPaquete(conexion, CLIENTE, PLATO_LISTO, platoListo);
+void platoListo(char *rest, int idPedido, char *plato) {
+	t_plato_listo *plato_listo = getTPlatoListo(rest, idPedido, plato);
+	enviarPaquete(conexion, CLIENTE, PLATO_LISTO, plato_listo);
 	t_header *header = recibirHeaderPaquete(conexion);
-	t_result *resPL = recibirPayloadPaquete(header, conexion);
-	logTResult(resPL);
-	free(resPL);
+	free(plato_listo);
+	t_result *result_plato_listo = recibirPayloadPaquete(header, conexion);
+	log_PlatoListo(result_plato_listo);
+	free(result_plato_listo);
 	free(header);
 }
 

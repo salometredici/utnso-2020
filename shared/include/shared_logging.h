@@ -57,6 +57,8 @@ void log_ObtenerRestaurante(char *restaurante);
 void log_rta_ObtenerRestaurante(t_md *md);
 void log_GuardarPlato(t_req_plato *request_plato);
 void log_rta_GuardarPlato(t_result *result);
+void log_PlatoListo(t_plato_listo *plato_listo);
+void log_rta_PlatoListo(t_result *result);
 
 // APP
 void logClientInfo(t_cliente *cliente);

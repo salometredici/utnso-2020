@@ -76,3 +76,11 @@ t_req_plato *getTReqPlato(char *rest, int idPedido, char *plato, int cantidad) {
     request->cantidadPlato = cantidad;
     return request;
 }
+
+t_plato_listo *getTPlatoListo(char *rest, int idPedido, char *plato) {
+    t_plato_listo *request = malloc(sizeof(t_plato_listo));
+    request->restaurante = rest;
+    request->idPedido = idPedido;
+    request->plato = plato;
+    return request;
+}

@@ -314,6 +314,20 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 	}
 }
 
+// PLATO_LISTO
+
+void log_PlatoListo(t_plato_listo *req_plato) {
+	printf("Datos del plato finalizado:"BREAK);
+	printf(TAB"Restaurante: "BOLDMAGENTA"[%s]"RESET BREAK, req_plato->restaurante);
+	printf(TAB"Pedido: "BOLD"[%d]"RESET BREAK, req_plato->idPedido);
+	printf(TAB"Plato: "BOLD"[%s]"RESET BREAK, req_plato->plato); 
+	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s", req_plato->restaurante, req_plato->idPedido, req_plato->plato);
+}
+
+void log_rta_PlatoListo(t_result *result) {
+	logTResult(result);
+}
+
 // GUARDAR_PLATO
 
 void log_GuardarPlato(t_req_plato *req_plato) {

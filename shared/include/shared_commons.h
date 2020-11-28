@@ -195,6 +195,12 @@ typedef struct {
 } t_request;
 
 typedef struct {
+	char *restaurante;
+	int idPedido;
+	char *plato;
+} t_plato_listo;
+
+typedef struct {
 	char *idCliente; // Instancias de CLIENTE: CLIENTE_ID, Instancias de RESTAURANTE: NOMBRE_RESTAURANTE
 	int socketCliente;
 	bool esRestaurante;
@@ -245,12 +251,6 @@ typedef struct {
 	int cantidadPedida;
 	int cantidadLista;
 } t_plato;
-
-typedef struct {
-	char *restaurante;
-	int idPedido;
-	char *plato;
-} t_plato_listo;
 
 typedef struct {
 	char *restaurante;

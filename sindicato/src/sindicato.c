@@ -9,7 +9,7 @@ void* thread_lectura_consola(void * args) {
 	char **parametros;
 	char *mensaje;
 	int opcion;
-    char *comandoLeido = readline(CYAN"(=^.^=)~>"RESET);
+    char *comandoLeido = readline("(=^.^=)~>");
 
     while (1) {
 		if (!string_is_empty(comandoLeido)) {
@@ -51,7 +51,7 @@ void* thread_lectura_consola(void * args) {
 			free(comandoLeido);
 			if (opcion == OPT_BAI) { break; }
 		}
-		comandoLeido = readline(CYAN"(=^.^=)~>"RESET);
+		comandoLeido = readline("(=^.^=)~>");
 	}
 
     pthread_exit(EXIT_SUCCESS);
@@ -172,7 +172,12 @@ void *atender_conexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PEDIDO, pedido);
 				free(req_obtener_pedido); free(pedido);
 				break;
-			case PLATO_LISTO:; // TODO
+			case PLATO_LISTO:;
+				t_plato_listo *plato_listo = recibirPayloadPaquete(header, socketCliente);
+				log_PlatoListo(plato_listo);
+				t_result *result_plato_listo;
+
+				free(plato_listo); //free(result_plato_listo);
 				break;
 			case TERMINAR_PEDIDO:;
 				t_request *req_terminar_pedido = recibirPayloadPaquete(header, socketCliente);

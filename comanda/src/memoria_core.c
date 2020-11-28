@@ -440,3 +440,22 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	}
 }
 
+void free_pages(t_list* pages){
+	for(int i = 0; i < list_size(pages); i++){
+		t_page* page= list_get(pages, i);
+		
+		if(page->flag == IN_MEMORY){
+			pthread_mutex_lock(&memory_frames_bitarray);
+			bitarray_clean_bit(frame_usage_bitmap, page->frame);
+			pthread_mutex_unlock(&memory_frames_bitarray);
+		}
+
+		pthread_mutex_lock(&swap_frames_bitarray);
+		bitarray_clean_bit(swap_usage_bitmap, page->frame_mv);
+		pthread_mutex_unlock(&swap_frames_bitarray);		
+	}
+
+	list_destroy_and_destroy_elements(pages, &free);
+}
+
+

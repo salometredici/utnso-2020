@@ -85,16 +85,17 @@ typedef struct{
     char *comida;
 } t_frame;
 
-t_restaurante *crear_restaurante(char *nombre_rest);
-t_pedidoc *crear_pedido(int id_pedido);
-t_restaurante *find_restaurante(char *nombre);
-void add_pedido_to_restaurante(t_restaurante *restaurante, t_pedidoc *pedido);
+t_restaurante* crear_restaurante(char* nombre_rest);
+t_pedidoc* crear_pedido(int id_pedido);
+t_restaurante* find_restaurante(char* nombre);
+void add_pedido_to_restaurante(t_restaurante* restaurante, t_pedidoc* pedido);
 t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
-t_page* find_plato(t_pedidoc *pedido, char *plato);
-t_page* asignar_frame(char *plato, int cantidad);
-t_list* find_frames(t_pedidoc *pedido);
+t_page* find_plato(t_pedidoc* pedido, char *plato);
+t_page* asignar_frame(char* plato, int cantidad);
+t_list* find_frames(t_pedidoc* pedido);
 bool increase_cantidad_plato(t_page* page, int new_cantidad_plato);
 int update_cantidad_lista(t_page* page);
+void free_pages(t_list* pages);
 
 void print_swap();
 void print_memory();

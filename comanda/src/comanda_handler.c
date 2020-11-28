@@ -225,9 +225,9 @@ t_result* _plato_listo(t_plato_listo* request) {
 		return result;
 	}
 
-	int result = update_cantidad_lista(pl_page);
+	int response = update_cantidad_lista(pl_page);
 
-	if(result == PLATO_TERMINADO){
+	if(response == PLATO_TERMINADO){
 		//validar que todos los platos del pedido esten terminados
 		t_list *marcos = find_frames(pedido);
 
@@ -261,15 +261,25 @@ t_result* _finalizar_pedido(t_request* request){
 	t_restaurante *rest = find_restaurante(request->nombre);
 
 	if (rest == NULL) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe tabla de segmentos.", true);	
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. No existe tabla de segmentos.", true);	
 		return result;
 	}
 
 	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
 	if (pedido == NULL) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe segmento.", true);	
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. No existe segmento.", true);	
 		return result;
 	}
 
+	free_pages(pedido->pages);
+
+	if(pedido->pages){
+		free(pedido);
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Ok.", false);	
+		return result;
+	}
+
+	t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Somethin wen wrong", false);	
+	return result;
 }

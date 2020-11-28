@@ -61,7 +61,7 @@ t_pedido *getEmptyPedido() {
 
 t_pedido *getEmptyPedido_with_error(t_estado error_code) {
     t_pedido *pedido = malloc(sizeof(t_pedido));
-    pedido->restaurante = string_new();
+    pedido->restaurante = error_code == SIN_PLATOS ? BLOQUES_NO_ASIGNADOS : string_new();
     pedido->estado = error_code == SIN_PLATOS ? PENDIENTE : error_code;
     pedido->platos = list_create();
     pedido->precioTotal = ERROR;

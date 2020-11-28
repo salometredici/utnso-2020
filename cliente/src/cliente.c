@@ -196,9 +196,10 @@ void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
 void obtenerRestaurante(char *nombre_restaurante) {
 	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombre_restaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
+	free(nombre_restaurante);
+
 	t_md *md = recibirPayloadPaquete(header, conexion);
 	log_rta_ObtenerRestaurante(md);
-	free(nombre_restaurante);
 	free(md);
 	free(header);
 }
@@ -206,6 +207,8 @@ void obtenerRestaurante(char *nombre_restaurante) {
 void consultarPlatos(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
+	free(nombreRestaurante);
+
 	t_list *platos = recibirPayloadPaquete(header, conexion);
 	log_rta_ConsultarPlatos(platos);
 	free(platos);
@@ -215,6 +218,8 @@ void consultarPlatos(char *nombreRestaurante) {
 void obtener_receta(char *receta_a_buscar) {
 	enviarPaquete(conexion, CLIENTE, OBTENER_RECETA, receta_a_buscar);
 	t_header *header = recibirHeaderPaquete(conexion);
+	free(receta_a_buscar);
+
 	t_receta *receta = recibirPayloadPaquete(header, conexion);
 	log_rta_ObtenerReceta(receta);
 	free(receta);
@@ -299,11 +304,13 @@ void terminar_pedido(int idPedido, char *nombreRestaurante) {
 
 void platoListo(char *rest, int idPedido, char *plato) {
 	t_plato_listo *plato_listo = getTPlatoListo(rest, idPedido, plato);
+
 	enviarPaquete(conexion, CLIENTE, PLATO_LISTO, plato_listo);
 	t_header *header = recibirHeaderPaquete(conexion);
 	free(plato_listo);
+	
 	t_result *result_plato_listo = recibirPayloadPaquete(header, conexion);
-	log_PlatoListo(result_plato_listo);
+	log_rta_PlatoListo(result_plato_listo);
 	free(result_plato_listo);
 	free(header);
 }

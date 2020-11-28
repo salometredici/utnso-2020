@@ -418,10 +418,10 @@ void *srlzTPlatoListo(t_plato_listo *platoListo) {
 
 	void *magic = malloc(size);
 
-	memcpy(magic + desplazamiento, &platoListo->idPedido, sizeof(int));
+	memcpy(magic, &platoListo->idPedido, sizeof(int));
 	desplazamiento += sizeof(int);
 
-	memcpy(magic, &longPlato, sizeof(int));
+	memcpy(magic + desplazamiento, &longPlato, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &longRestaurante, sizeof(int));
 	desplazamiento += sizeof(int);
@@ -766,9 +766,9 @@ t_plato_listo *dsrlzTPlatoListo(void *buffer) {
 	int desplazamiento = 0;
 	t_plato_listo *platoListo = malloc(sizeof(t_plato_listo));
 
-	memcpy(&platoListo->idPedido, buffer, sizeof(int));
+	memcpy(&platoListo->idPedido, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
-	memcpy(&longPlato, buffer, sizeof(int));
+	memcpy(&longPlato, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(&longRestaurante, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);

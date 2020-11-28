@@ -138,6 +138,9 @@ void *threadLecturaConsola(void *args) {
 						case OBTENER_RECETA:
 							obtener_receta(parametro1);
 							break;
+						case TERMINAR_PEDIDO:
+							terminar_pedido(atoi(parametro1), parametro2);
+							break;
 						case ERROR:
 						default:
 							showInvalidCommandMsg(SINDICATO);
@@ -195,9 +198,10 @@ void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
 void obtenerRestaurante(char *nombre_restaurante) {
 	enviarPaquete(conexion, CLIENTE, OBTENER_RESTAURANTE, nombre_restaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
+	free(nombre_restaurante);
+
 	t_md *md = recibirPayloadPaquete(header, conexion);
 	log_rta_ObtenerRestaurante(md);
-	free(nombre_restaurante);
 	free(md);
 	free(header);
 }
@@ -205,6 +209,8 @@ void obtenerRestaurante(char *nombre_restaurante) {
 void consultarPlatos(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
+	free(nombreRestaurante);
+
 	t_list *platos = recibirPayloadPaquete(header, conexion);
 	log_rta_ConsultarPlatos(platos);
 	free(platos);
@@ -214,6 +220,8 @@ void consultarPlatos(char *nombreRestaurante) {
 void obtener_receta(char *receta_a_buscar) {
 	enviarPaquete(conexion, CLIENTE, OBTENER_RECETA, receta_a_buscar);
 	t_header *header = recibirHeaderPaquete(conexion);
+	free(receta_a_buscar);
+
 	t_receta *receta = recibirPayloadPaquete(header, conexion);
 	log_rta_ObtenerReceta(receta);
 	free(receta);
@@ -257,48 +265,55 @@ void aniadirPlato(char *nombrePlato, int idPedido) {
 	free(header);
 }
 
-void guardarPlato(char *nombreRestaurante, int idPedido, char *nombrePlato, int cantidadPlato) {
-	t_req_plato *reqPlato = malloc(sizeof(t_req_plato));
-	reqPlato->restaurante = nombreRestaurante;
-	reqPlato->idPedido = idPedido;
-	reqPlato->plato = nombrePlato;
-	reqPlato->cantidadPlato = cantidadPlato;
+void guardarPlato(char *rest, int idPedido, char *plato, int cantPedida) {
+	t_req_plato *req_guardar_plato = getTReqPlato(rest, idPedido, plato, cantPedida);
 
-	enviarPaquete(conexion, CLIENTE, GUARDAR_PLATO, reqPlato);
+	enviarPaquete(conexion, CLIENTE, GUARDAR_PLATO, req_guardar_plato);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(reqPlato);
+	free(req_guardar_plato);
 
-	t_result *resultGuardarPlato = recibirPayloadPaquete(header, conexion);
-	logTResult(resultGuardarPlato);
-	free(resultGuardarPlato);
+	t_result *result_guardar_plato = recibirPayloadPaquete(header, conexion);
+	log_rta_GuardarPlato(result_guardar_plato);
+	free(result_guardar_plato);
 	free(header);
 }
 
 void confirmarPedido(int idPedido, char *nombreRestaurante) {
-	t_request *pedidoConf = malloc(sizeof(t_request));
-	pedidoConf->idPedido = idPedido;
-	pedidoConf->nombre = nombreRestaurante; // Va a ser un string vacío
+	t_request *req_confirmar_pedido = getTRequest(idPedido, nombreRestaurante);
 
-	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, pedidoConf);
+	enviarPaquete(conexion, CLIENTE, CONFIRMAR_PEDIDO, req_confirmar_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(pedidoConf);
+	free(req_confirmar_pedido);
 
-	t_result *resultConfPedido = recibirPayloadPaquete(header, conexion);
-	logTResult(resultConfPedido);
-	free(resultConfPedido);
+	t_result *result_confirmar_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_ConfirmarPedido(result_confirmar_pedido);
+	free(result_confirmar_pedido);
 	free(header);
 }
 
-void platoListo(char *nombreRestaurante, int idPedido, char *plato) {
-	t_plato_listo *platoListo = malloc(sizeof(t_plato_listo));
-	platoListo->restaurante = nombreRestaurante;
-	platoListo->idPedido = idPedido;
-	platoListo->plato = plato;
-	enviarPaquete(conexion, CLIENTE, PLATO_LISTO, platoListo);
+void terminar_pedido(int idPedido, char *nombreRestaurante) {
+	t_request *req_terminar_pedido = getTRequest(idPedido, nombreRestaurante);
+
+	enviarPaquete(conexion, CLIENTE, TERMINAR_PEDIDO, req_terminar_pedido);
 	t_header *header = recibirHeaderPaquete(conexion);
-	t_result *resPL = recibirPayloadPaquete(header, conexion);
-	logTResult(resPL);
-	free(resPL);
+	free(req_terminar_pedido);
+
+	t_result *result_terminar_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_TerminarPedido(result_terminar_pedido);
+	free(result_terminar_pedido);
+	free(header);
+}
+
+void platoListo(char *rest, int idPedido, char *plato) {
+	t_plato_listo *plato_listo = getTPlatoListo(rest, idPedido, plato);
+
+	enviarPaquete(conexion, CLIENTE, PLATO_LISTO, plato_listo);
+	t_header *header = recibirHeaderPaquete(conexion);
+	free(plato_listo);
+	
+	t_result *result_plato_listo = recibirPayloadPaquete(header, conexion);
+	log_rta_PlatoListo(result_plato_listo);
+	free(result_plato_listo);
 	free(header);
 }
 

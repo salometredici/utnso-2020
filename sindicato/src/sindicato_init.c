@@ -15,7 +15,10 @@ char *get_full_bitmap_path() {
 }
 
 bool existe_bitmap_previo() {
-	return fdExists(get_full_bitmap_path());
+	char *path = get_full_bitmap_path();
+	bool existe_bitmap = fdExists(path);
+	free(path); // Para bajar el leak
+	return existe_bitmap;
 }
 
 int get_available_blocks_number() {
@@ -27,6 +30,8 @@ int get_available_blocks_number() {
 	pthread_mutex_unlock(&mutexBitmap);
 	return cont;
 }
+
+/* Inicializaciones */
 
 void setBasePath() {
 	// Obtener la ruta del punto de montaje sin el dir /afip
@@ -44,7 +49,7 @@ void setBaseDirs() {
 	string_append_with_format(&filesPath, "%s%s", dirInicial, FILES_PATH);
 }
 
-// Setea blockSize y blocksQuantity
+// Setea blockSize, blocksQuantity y maxContentSize
 void setMetadata(t_config *metadata) {
 	blockSize = config_get_int_value(metadata, "BLOCK_SIZE");
 	blocksQuantity = config_get_int_value(metadata, "BLOCKS");
@@ -56,6 +61,7 @@ void initFromBaseDir(char *dir) {
 	char *newDir = string_new();
 	string_append_with_format(&newDir, "%s%s", dirInicial, dir);
 	createDirectory(newDir);
+	free(newDir); // Para bajar el leak
 }
 
 // Seteamos las variables globales
@@ -157,6 +163,7 @@ void init_bitmap() {
 		close(bitmap_file);
 		log_bitmap_reload_success();
 	}
+	free(bitmap_path); // Para bajar el leak
 }
 
 /* Init */

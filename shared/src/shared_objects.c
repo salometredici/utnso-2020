@@ -61,9 +61,26 @@ t_pedido *getEmptyPedido() {
 
 t_pedido *getEmptyPedido_with_error(t_estado error_code) {
     t_pedido *pedido = malloc(sizeof(t_pedido));
-    pedido->restaurante = string_new();
+    pedido->restaurante = error_code == SIN_PLATOS ? BLOQUES_NO_ASIGNADOS : string_new();
     pedido->estado = error_code == SIN_PLATOS ? PENDIENTE : error_code;
     pedido->platos = list_create();
     pedido->precioTotal = ERROR;
     return pedido;
+}
+
+t_req_plato *getTReqPlato(char *rest, int idPedido, char *plato, int cantidad) {
+    t_req_plato *request = malloc(sizeof(t_req_plato));
+    request->restaurante = rest;
+    request->idPedido = idPedido;
+    request->plato = plato;
+    request->cantidadPlato = cantidad;
+    return request;
+}
+
+t_plato_listo *getTPlatoListo(char *rest, int idPedido, char *plato) {
+    t_plato_listo *request = malloc(sizeof(t_plato_listo));
+    request->restaurante = rest;
+    request->idPedido = idPedido;
+    request->plato = plato;
+    return request;
 }

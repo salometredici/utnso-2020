@@ -57,6 +57,7 @@ void mostrarComandosValidos(char *modulo) {
 				printf(YELLOW"CONFIRMAR_PEDIDO"RESET" [ID_PEDIDO] [NOMBRE_RESTAURANTE]"BREAK);
 				printf(YELLOW"PLATO_LISTO"RESET" [NOMBRE_RESTAURANTE] [ID_PEDIDO] [NOMBRE_COMIDA]"BREAK);
 				printf(YELLOW"OBTENER_PEDIDO"RESET" [NOMBRE_RESTAURANTE] [ID_PEDIDO]"BREAK);
+				printf(YELLOW"TERMINAR_PEDIDO"RESET" [ID_PEDIDO] [NOMBRE_RESTAURANTE]"BREAK);
 				break;
 			default:
 				mensajesValidos();
@@ -130,7 +131,23 @@ int validate_confirmar_pedido(char** parameters){
 		return ERROR;
 	}
 
-	if (!only_contains_numbers(parameters[2])) {
+	if (!only_contains_numbers(parameters[1])) {
+		show_NaN_error_msg();
+		return ERROR;
+	}
+	return 0;
+}
+
+int validate_terminar_pedido(char** parameters){
+	if (!parameters[1] || !parameters[2]) {
+		showCommandErrorMsg(TERMINAR_PEDIDO);
+		printf(BOLDYELLOW"TERMINAR_PEDIDO [ID_PEDIDO] [NOMBRE_RESTAURANTE]"RESET BREAK);
+		printf(TAB"[!] "BOLD"[ID_PEDIDO]: int"RESET BREAK);
+		printf(TAB"[!] "BOLD"[NOMBRE_RESTAURANTE]: char*"RESET BREAK);
+		return ERROR;
+	}
+
+	if (!only_contains_numbers(parameters[1])) {
 		show_NaN_error_msg();
 		return ERROR;
 	}
@@ -348,6 +365,13 @@ int validateCommand(int option, int command, char **parameters) {
 				case OBTENER_PEDIDO:
 					validate_obtener_pedido(parameters);
 					break;
+				case TERMINAR_PEDIDO:
+					res = validate_terminar_pedido(parameters);
+
+					if(res == ERROR)
+						return ERROR;
+					break;
+
 			}
 			break;
 		default:

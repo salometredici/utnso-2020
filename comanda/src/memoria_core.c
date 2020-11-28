@@ -11,6 +11,7 @@ t_restaurante *crear_restaurante(char *nombre_rest){
     restaurante->pedidos = create_list();
     log_comanda("Se creo un restaurante.");
     list_add(restaurantes, restaurante);
+	print_restaurante();
 	return restaurante;
 }
 
@@ -84,8 +85,31 @@ t_frame* get_frame_from_memory(int frame_number){
 	return marco;
 }
 
+void print_restaurante(){
+	printf("--------------------------------RESTAURANTES------------------------------\n");
+	for(int i = 0; i < list_size(restaurantes); i++){
+		t_restaurante* rest= list_get(restaurantes, i);
+		printf("| Indice: %d | Nombre del restaurante: %s \n", i, rest->nombre);
+	}	
+}
+
+void print_pedidos(t_restaurante* rest){
+	printf("----------------------------------PEDIDOS--------------------------------\n");
+	for(int i = 0; i < list_size(rest->pedidos); i++){
+		t_pedidoc* pedido = list_get(rest->pedidos, i);
+		printf("| Indice: %d | Pedido ID : %d \n", i, pedido->id_pedido);
+		free(pedido);
+	}		
+}
+
 t_frame* find_frame_in_memory(t_page* page){
+	if(page == NULL){
+		printf("Hubo un problema");
+		return NULL;
+	}
+
 	if(page->flag == IN_MEMORY){
+		page->timestamp = get_current_time();
 		t_frame *frame = get_frame_from_memory(page->frame);	
 		return frame; 
 	}
@@ -120,10 +144,11 @@ t_restaurante* find_restaurante(char *nombre){
     bool es_restaurante_buscado(void *elemento){
 		t_restaurante *x = (t_restaurante*) elemento;
 		return string_equals_ignore_case(x->nombre, nombre);
-	}
+	};
 
 	t_restaurante *rest = list_find(restaurantes,&es_restaurante_buscado);
 	
+	//print_restaurante();
 	return rest;
 }
 
@@ -135,10 +160,20 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
     bool _find_pedido(void *elemento){
 		t_pedidoc *x = (t_pedidoc*) elemento;
 		return x->id_pedido == id;
-	}
+	};
 
 	t_pedidoc *pedido = list_find(restaurante->pedidos,&_find_pedido);
 	return pedido;	
+}
+
+void delete_pedido_from_restaurant(t_list* pedidos, int nro_pedido){
+	for(int i = 0; i < list_size(pedidos); i++){
+		t_pedidoc* pedido = list_get(pedidos, i);
+
+		if(pedido->id_pedido == nro_pedido){
+			list_remove_and_destroy_element(pedidos, i, &free);
+		}
+	}
 }
 
 void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, int page_swap){
@@ -213,7 +248,6 @@ t_frame* get_frame_from_swap(int frame_swap){
 	marco->cantidad_lista = cantidad_lista;
 	marco->comida = plato_encontrado;
 
-	free(plato_encontrado);
 	free(buffer);
 	return marco;
 }
@@ -223,6 +257,7 @@ void print_swap(){
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
 		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		free(swap_frame->comida);
 		free(swap_frame);
 	}
 }
@@ -232,6 +267,7 @@ void print_memory(){
 	for(int i = 0; i < frames; i++){
 		t_frame* mp_frame = get_frame_from_memory(i);
 		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
+		free(mp_frame->comida);
 		free(mp_frame);
 	}
 }
@@ -254,7 +290,7 @@ t_page* find_frame_victim(){
 			victim_page->modified = page->modified;
 			victim_page->timestamp = page->timestamp;
 		}
-		else if(page->flag == 1 || page->timestamp < victim_page->timestamp){
+		else if(page->flag == 1 && page->timestamp < victim_page->timestamp){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
 			victim_page->flag = page->flag;//deberia de estar en memoria principal
@@ -267,11 +303,13 @@ t_page* find_frame_victim(){
 }
 
 void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantidad_lista, int frame_number){
+	pthread_mutex_lock(&write_memory);
 	void* frame = MEMORIA[frame_number];
 
 	memcpy(frame, &cantidad_pedida, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
+	pthread_mutex_unlock(&write_memory);
 }
 
 //te devuelve el nro de victima para setearlo al que lo necesita
@@ -295,7 +333,9 @@ int find_victim_and_update_swap(){
 	victim_page->flag = 0;
 
 	int frame_victim_nro = victim_page->frame;
+	free(frame_victim->comida);
 	free(frame_victim);
+	free(victim_page);
 	return frame_victim_nro;	
 }
 
@@ -320,10 +360,11 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 			t_page *x = (t_page*)element;
 			int frame_number = x->frame;
 			t_frame *plato_a_encontrar = find_frame_in_memory(x);
-			return string_equals_ignore_case(plato, plato_a_encontrar->comida);
+			bool value = string_equals_ignore_case(plato, plato_a_encontrar->comida);
+			free(plato_a_encontrar->comida);
+			free(plato_a_encontrar);
+			return value;
 		}
-
-		// TODO: Filtrar pages con presencia en MP (flag == 1), para no hacer find_frame_in_memory sobre elementos que no estén en MP
 
 		t_page *plato = list_find(pedido->pages, &_find_plato);
 
@@ -334,6 +375,30 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 		return plato;
 	}
 	return NULL;
+}
+
+bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
+	t_frame* frame = find_frame_in_memory(page);
+	int sum = frame->cantidad_pedida + new_cantidad_plato;
+	write_frame_memory(frame->comida, sum, frame->cantidad_lista, page->frame);
+	return true;
+}
+
+int update_cantidad_lista(t_page* page){
+	t_frame *frame_a_actualizar = find_frame_in_memory(page);
+	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+
+	if(frame_a_actualizar->cantidad_lista == frame_a_actualizar->cantidad_pedida){
+		return PLATO_TERMINADO;
+	}
+
+	write_frame_memory(frame_a_actualizar->comida, frame_a_actualizar->cantidad_pedida, cantidad_lista, page->frame);
+
+	if(frame_a_actualizar->cantidad_pedida == cantidad_lista){
+		return PLATO_TERMINADO;
+	}
+
+	return PLATO_NO_TERMINADO;
 }
 
 int get_available_blocks_number() {
@@ -384,4 +449,23 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 		return new_page;
 	}
 }
+
+void free_pages(t_list* pages){
+	for(int i = 0; i < list_size(pages); i++){
+		t_page* page= list_get(pages, i);
+		
+		if(page->flag == IN_MEMORY){
+			pthread_mutex_lock(&memory_frames_bitarray);
+			bitarray_clean_bit(frame_usage_bitmap, page->frame);
+			pthread_mutex_unlock(&memory_frames_bitarray);
+		}
+
+		pthread_mutex_lock(&swap_frames_bitarray);
+		bitarray_clean_bit(swap_usage_bitmap, page->frame_mv);
+		pthread_mutex_unlock(&swap_frames_bitarray);		
+	}
+
+	list_destroy_and_destroy_elements(pages, &free);
+}
+
 

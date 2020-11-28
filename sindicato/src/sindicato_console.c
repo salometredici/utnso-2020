@@ -40,23 +40,35 @@ int getValuesQuantity(char *input) {
 }
 
 bool only_numbers_list(char *input) {
-	char *inputs = string_substring(input, 1, strlen(input) - 2);
-	int values_quantity = getValuesQuantity(inputs);
-	char **values = string_split(inputs, ",");
-	for (int i = 0; i < values_quantity; i++) {
-		char *current = values[i];
-		if (!only_contains_numbers(current)) { return false;}
+	int inicio = find_char_index(input, '[');
+	int fin = find_char_index(input, ']');
+	if (inicio == fin - 1) {
+		return true;
+	} else {
+		char *inputs = string_substring(input, inicio, fin - 2);
+		int values_quantity = getValuesQuantity(inputs);
+		char **values = string_split(inputs, ",");
+		for (int i = 0; i < values_quantity; i++) {
+			char *current = values[i];
+			if (!only_contains_numbers(current)) { return false;}
+		}
 	}
 	return true;
 }
 
 bool only_strings_list(char *input) {
-	char *inputs = string_substring(input, 1, strlen(input) - 2);
-	int values_quantity = getValuesQuantity(inputs);
-	char **values = string_split(inputs, ",");
-	for (int i = 0; i < values_quantity; i++) {
-		char *current = values[i];
-		if (!only_contains_chars(current)) { return false;}
+	int inicio = find_char_index(input, '[');
+	int fin = find_char_index(input, ']');
+	if (inicio == fin - 1) {
+		return true;
+	} else {
+		char *inputs = string_substring(input, inicio, fin - 2);
+		int values_quantity = getValuesQuantity(inputs);
+		char **values = string_split(inputs, ",");
+		for (int i = 0; i < values_quantity; i++) {
+			char *current = values[i];
+			if (!only_contains_chars(current)) { return false;}
+		}
 	}
 	return true;
 }

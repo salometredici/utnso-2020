@@ -10,14 +10,14 @@ bool enough_blocks_available(int bloquesReq) {
 	return bloquesReq <= get_available_blocks_number();
 }
 
-int find_char_index(char *string, char caracter) {
-	char *found_char = strchr(string, caracter);
-	if (found_char != NULL) {
-		return found_char - string + 1;
-	} else {
-		return ERROR;
-	}
-}
+// int find_char_index(char *string, char caracter) {
+// 	char *found_char = strchr(string, caracter);
+// 	if (found_char != NULL) {
+// 		return found_char - string + 1;
+// 	} else {
+// 		return ERROR;
+// 	}
+// }
 
 /* Utils Restaurantes */
 
@@ -468,12 +468,18 @@ t_list *get_list_from_string(char *info, int line_number, int start_index) {
 	char *line_to_use = lines[line_number];
 	char *list = strrchr(line_to_use, '[');
 	char *string_list = string_substring(list, 1, strlen(list)-2);
-	int values_quantity = getValuesQuantity(string_list);
-	char **values = string_split(string_list, ",");
-	for (int i = 0; i < values_quantity; i ++) {
-		list_add(new_list, values[i]);
+	if (string_is_empty(string_list)) {
+		free(lines); free(line_to_use); free(string_list);
+		return new_list;
+	} else {
+		int values_quantity = getValuesQuantity(string_list);
+		char **values = string_split(string_list, ",");
+		for (int i = 0; i < values_quantity; i ++) {
+			list_add(new_list, values[i]);
+		}
+		free(values);
 	}
-	free(lines); free(line_to_use); free(string_list); free(values);
+	free(lines); free(line_to_use); free(string_list);
 	return new_list;
 }
 
@@ -605,6 +611,21 @@ char *get_CrearReceta_Data(char **params) {
 	log_CrearReceta_Data(params);
 	return fileContent;
 }
+
+/* ACTUALIZAR_REST */
+
+ char *get_aumentar_pedidos_en_rest(t_request *request) {
+	 char *info_restaurante = get_info(RESTAURANTE, request->nombre);
+	 t_md *md = obtener_restaurante(request->nombre);
+	 char *updated_file_content = string_new();
+	 // Actualizamos la línea de la cantidad de pedidos
+	 char **lines = string_split(info_restaurante, "\n");
+	 char *new_cant_pedidos_line = string_new(); new_cant_pedidos_line = string_substring_until(lines[6], find_char_index(lines[6], '='));
+	 string_append_with_format(&new_cant_pedidos_line, "%d\n", md->cantidadPedidos + 1);
+	 // Agregamos todas las líneas al char* del contenido actualizado
+	 string_append_with_format(&updated_file_content, "%s\n%s\n%s\n%s\n%s\n%s\n%s", lines[0], lines[1], lines[2], lines[3], lines[4], lines[5], new_cant_pedidos_line);
+	 return updated_file_content;
+ }
 
 /* CREAR_PEDIDO */
 
@@ -781,5 +802,10 @@ void crear_receta(char **params) {
 void crear_pedido(t_request *request) {
 	create_pedido_dir(request);
 	save_empty_AFIP_file(get_full_pedido_path(request));
+
+	char *info_rest_actualizada = get_aumentar_pedidos_en_rest(request);
+	update_content(request->nombre, RESTAURANTE, info_rest_actualizada, MISMOS_BLOQUES);
+	printf("Cantidad de pedidos del restaurante actualizada."BREAK);
+
 	log_CrearPedido_Data(request);
 }

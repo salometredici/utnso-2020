@@ -6,13 +6,18 @@ t_result* _guardar_pedido(t_request *request){
 	
 	if(rest == NULL){
 		//Crear el segmento *restaurante* y la tabla de pagina *pedidos*
-		t_restaurante *restaurante_creado = crear_restaurante(request->nombre);
+		char* nombre_rest = string_new();
+		string_append_with_format(&nombre_rest, "%s", request->nombre);
+		
+		t_restaurante *restaurante_creado = crear_restaurante(nombre_rest);
+		int id_pedido = request->idPedido;
 
 		if(restaurante_creado == NULL){
 			t_result * result = getTResult("[GUARDAR_PEDIDO] Fail.", true);
 			return result;
 		}
-		t_pedidoc *pedido = crear_pedido(request->idPedido);
+
+		t_pedidoc *pedido = crear_pedido(id_pedido);
 
 		add_pedido_to_restaurante(restaurante_creado, pedido);
 
@@ -20,8 +25,15 @@ t_result* _guardar_pedido(t_request *request){
 		return result;
 	}
 
-	t_pedidoc *pedido = crear_pedido(request->idPedido); 
-	add_pedido_to_restaurante(rest, pedido);
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
+
+	if (pedido) {
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Se ha creado un pedido con ese numero.", true);	
+		return result;
+	}
+
+	t_pedidoc *pedido_creado = crear_pedido(request->idPedido); 
+	add_pedido_to_restaurante(rest, pedido_creado);
 	
 	t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);	
 	return result;
@@ -50,13 +62,21 @@ t_result* _guardar_plato(t_req_plato *request){
 	
 	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
+	char* nombre_plato = string_new();
+	string_append_with_format(&nombre_plato, "%s", request->plato);
+
 	if(pedido == NULL){
 		t_result * result = getTResult("[GUARDAR_PLATO] Fail. No existe el pedido", true);	
 		return result;
 	}
 
+	if(pedido->estado == CONFIRMADO || pedido->estado == FINALIZADO){
+		t_result* result = getTResult("[GUARDAR_PLATO] Fail. El pedido tiene que estar en estado PENDIENTE", true);
+		return result;
+	}
+
 	//el find plato tiene que buscarse en memoria principal y si esta apuntando a swap entonces tiene que sacarlo a mp 
-	t_page *page = find_plato(pedido, request->plato);
+	t_page *page = find_plato(pedido, nombre_plato);
 
 	if(page == NULL){
 		t_page *plato_creado = asignar_frame(request->plato, request->cantidadPlato);
@@ -64,10 +84,10 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
-			//print_swap();
-			//print_memory();
-			/*Validarrrrr si se guardo*/
-			//t_page *plato_enc = find_plato(pedido, request->plato);
+			print_swap();
+			print_memory();
+			/*Validarrrrr si se guardo
+			t_page *plato_enc = find_plato(pedido, request->plato);
 			
 			if(1){
 				t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
@@ -76,14 +96,21 @@ t_result* _guardar_plato(t_req_plato *request){
 			else{
 				t_result * result = getTResult("[GUARDAR_PLATO] Fail. Somenthing went wrong.", true);				
 				return result;
-			}
+			}*/
+
+			t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
+			return result;
 		}
 	}
-	else{
-		//deberia de incrementar en la cantidad pedida 
+
+	int done = increase_cantidad_plato(page, request->cantidadPlato);
+
+	if(!done){
+		t_result* result = getTResult("[GUARDAR_PLATO] Fail. Something went wrong", true);
+		return result;
 	}
 
-	t_result *result = getTResult("[GUARDAR_PLATO] Este plato ya existe en memoria", false);
+	t_result *result = getTResult("[GUARDAR_PLATO] Ok", false);
 	return result;
 }
 
@@ -174,45 +201,57 @@ t_result* _confirmar_pedido(t_request *request){
  * del pedido a TERMINADO  --> 50% done
  * 5° Responder el mensaje con Ok/Fail --> done
  */
-t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_listo) {
-	t_restaurante *rest = find_restaurante(nombre_rest);
+t_result* _plato_listo(t_plato_listo* request) {
+	t_restaurante *rest = find_restaurante(request->restaurante);
 
 	if (rest == NULL) {
 		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe tabla de segmentos.", true);	
 		return result;
 	}
 
-	t_pedidoc *pedido = find_pedido(rest, id_pedido);
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
 	if (pedido == NULL) {
 		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe segmento.", true);	
 		return result;
 	}
 
-	// Buscar nombre_plato_listo en pages del pedido
-	t_page *pl_page = find_plato(pedido, nombre_plato_listo);
-
-	if (pl_page == NULL) { // PAGE_FAULT
-		// TODO: Ejecutar ALGORITMO_REEMPLAZO
-	}
-
 	if (pedido->estado != CONFIRMADO) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar y/o finalizado.", true);	
+		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar.", true);	
 		return result;
 	}
 
-	t_frame *frame_a_actualizar = find_frame_in_memory(pl_page->frame);
-	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+	char* nombre_plato = string_new();
+	string_append_with_format(&nombre_plato, "%s", request->plato);
 
-	// Actualizar cantidad_lista de la página en MP
-	void *frame = MEMORIA[pl_page->frame];
-	memcpy(frame + (PAGE_SIZE * pl_page->frame) + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
+	// Buscar nombre_plato_listo en pages del pedido
+	t_page *pl_page = find_plato(pedido, nombre_plato);
 
-	// Marcar página como modified
-	pl_page->modified = true;
+	if(pl_page == NULL){
+		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);
+		return result;
+	}
 
-	// TODO: Verificar si todos los platos del pedido están listos
-	// Nota: Vamos a tener que traer todas las páginas del pedido a MP para hacer esta validación
+	int response = update_cantidad_lista(pl_page);
+
+	if(response == PLATO_TERMINADO){
+		//validar que todos los platos del pedido esten terminados
+		t_list *marcos = find_frames(pedido);
+
+		bool _is_plato_terminado(void * elemento){
+			t_frame* marco = elemento;
+			return marco->cantidad_lista == marco->cantidad_pedida; 
+		};
+
+		int value = list_all_satisfy(marcos, &_is_plato_terminado);
+
+		if(value){
+			pedido->estado = TERMINADO;
+			t_result *result = getTResult("[PLATO_LISTO] Ok.Todos los platos estan terminados. Se termino el pedido", false);	
+			return result;
+		}
+
+	}
 
 	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	
 	return result;
@@ -225,7 +264,30 @@ t_result* _plato_listo(char *nombre_rest, int id_pedido, char *nombre_plato_list
  * 4° Se elimina el segmento
  * 5° Responder el mensaje con Ok/Fail
  */
-void _finalizar_pedido(char *nombre_rest, int id_pedido)
-{
+t_result* _finalizar_pedido(t_request* request){
+	t_restaurante *rest = find_restaurante(request->nombre);
 
+	if (rest == NULL) {
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. No existe tabla de segmentos.", true);	
+		return result;
+	}
+
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
+
+	if (pedido == NULL) {
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. No existe segmento.", true);	
+		return result;
+	}
+
+	free_pages(pedido->pages);
+
+	if(pedido->pages){
+		//free(pedido);
+		delete_pedido_from_restaurant(rest->pedidos, request->idPedido);
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Ok.", false);	
+		return result;
+	}
+
+	t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Somethin wen wrong", false);	
+	return result;
 }

@@ -61,10 +61,10 @@ void *atenderConexiones(void *conexionNueva)
 			case FINALIZAR_PEDIDO:;
 				t_request *request_fin = recibirPayloadPaquete(header, socketCliente);
 				logRequest(request_fin, header->codigoOperacion);
-				free(request_fin);
 				t_result *result_fin = _finalizar_pedido(request_fin);
 				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, result_fin);
 	   			free_t_result(result_fin);
+				free(request_fin);
 				break;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

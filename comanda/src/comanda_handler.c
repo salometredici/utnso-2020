@@ -25,8 +25,15 @@ t_result* _guardar_pedido(t_request *request){
 		return result;
 	}
 
-	t_pedidoc *pedido = crear_pedido(pedido); 
-	add_pedido_to_restaurante(rest, pedido);
+	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
+
+	if (pedido) {
+		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Se ha creado un pedido con ese numero.", true);	
+		return result;
+	}
+
+	t_pedidoc *pedido_creado = crear_pedido(request->idPedido); 
+	add_pedido_to_restaurante(rest, pedido_creado);
 	
 	t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);	
 	return result;
@@ -275,7 +282,8 @@ t_result* _finalizar_pedido(t_request* request){
 	free_pages(pedido->pages);
 
 	if(pedido->pages){
-		free(pedido);
+		//free(pedido);
+		delete_pedido_from_restaurant(rest->pedidos, request->idPedido);
 		t_result *result = getTResult("[FINALZAR_PEDIDO] Ok.", false);	
 		return result;
 	}

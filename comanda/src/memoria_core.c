@@ -166,6 +166,16 @@ t_pedidoc* find_pedido(t_restaurante *restaurante, int id){
 	return pedido;	
 }
 
+void delete_pedido_from_restaurant(t_list* pedidos, int nro_pedido){
+	for(int i = 0; i < list_size(pedidos); i++){
+		t_pedidoc* pedido = list_get(pedidos, i);
+
+		if(pedido->id_pedido == nro_pedido){
+			list_remove_and_destroy_element(pedidos, i, &free);
+		}
+	}
+}
+
 void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, int page_swap){
 	int offset = 0;
 

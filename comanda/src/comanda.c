@@ -51,7 +51,13 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, result_conf);
 				free(result_conf);
 				break;
-			case PLATO_LISTO:; // TODO: struct que recibe restaurante, idPedido y plato
+			case PLATO_LISTO:;
+				t_plato_listo *request_pl = recibirPayloadPaquete(header, socketCliente);
+				// TODO: Log?
+				t_result *result_pl = _plato_listo(request_pl->restaurante, request_pl->idPedido, request_pl->plato);
+				free(request_pl);
+				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, result_pl);
+				free(result_pl);
 				break;
 			case FINALIZAR_PEDIDO:;
 				/*t_request *reqFin = recibirPayloadPaquete(header, socketCliente);

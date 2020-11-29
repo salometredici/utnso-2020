@@ -123,11 +123,7 @@ t_frame* find_frame_in_memory(t_page* page){
 		page->modified = 0;
 		page->frame = frame_victim;
 		
-<<<<<<< Updated upstream
-		t_frame* frame = find_frame_in_memory(page->frame);
-=======
 		t_frame* frame = get_frame_from_memory(page->frame);
->>>>>>> Stashed changes
 		
 		return frame;
 	}
@@ -330,13 +326,6 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
 
-<<<<<<< Updated upstream
-	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = 0;
-	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
-
-	return victim_page->frame;
-=======
 	//printf("------------------ANTES DE ESCRIBIR EN SWAP----------------\n");
 	//print_swap();
 	//ACTUALIZAR EL SWAP CON EL CONTENIDO DE MP DEL FRAME VICTIM
@@ -365,7 +354,6 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	free(frame_victim);
 	free(victim_page);
 	return frame_victim_nro;
->>>>>>> Stashed changes
 }
 
 int find_victim_and_update_swap(){

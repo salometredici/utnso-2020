@@ -48,7 +48,11 @@ t_result* _guardar_pedido(t_request *request){
  * disclaimer: responde el mensaje indicando si se puedo realizar
  */
 t_result* _guardar_plato(t_req_plato *request){
-	if(strlen(request->plato) + 1 > 24){
+	char* nombre_plato = string_new();
+	string_append_with_format(&nombre_plato, "%s", request->plato);
+	
+	int size_name = strlen(nombre_plato) + 1;
+	if(size_name > 24){
 		t_result * result = getTResult("[GUARDAR_PLATO] Fail. El nombre exede los 24 bytes", true);	
 		return result;		
 	}
@@ -61,9 +65,6 @@ t_result* _guardar_plato(t_req_plato *request){
 	}
 	
 	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
-
-	char* nombre_plato = string_new();
-	string_append_with_format(&nombre_plato, "%s", request->plato);
 
 	if(pedido == NULL){
 		t_result * result = getTResult("[GUARDAR_PLATO] Fail. No existe el pedido", true);	
@@ -79,7 +80,7 @@ t_result* _guardar_plato(t_req_plato *request){
 	t_page *page = find_plato(pedido, nombre_plato);
 
 	if(page == NULL){
-		t_page *plato_creado = asignar_frame(request->plato, request->cantidadPlato);
+		t_page *plato_creado = asignar_frame(nombre_plato, request->cantidadPlato);
 
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
@@ -110,6 +111,8 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
+	print_swap();
+	print_memory();
 	t_result *result = getTResult("[GUARDAR_PLATO] Ok", false);
 	return result;
 }
@@ -156,6 +159,8 @@ t_pedido* _obtener_pedido(t_request* request){
 	pedido_info->platos = platos;
 	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
 
+	print_swap();
+	print_memory();
 	//list_destroy_and_destroy_elements(frames, &free);
 	return pedido_info;
 }
@@ -246,6 +251,8 @@ t_result* _plato_listo(t_plato_listo* request) {
 		int value = list_all_satisfy(marcos, &_is_plato_terminado);
 
 		if(value){
+			print_swap();
+			print_memory();
 			pedido->estado = TERMINADO;
 			t_result *result = getTResult("[PLATO_LISTO] Ok.Todos los platos estan terminados. Se termino el pedido", false);	
 			return result;
@@ -253,6 +260,8 @@ t_result* _plato_listo(t_plato_listo* request) {
 
 	}
 
+	print_swap();
+	print_memory();
 	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	
 	return result;
 }

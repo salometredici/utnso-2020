@@ -23,7 +23,6 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case GUARDAR_PEDIDO:;
 				t_request *request_gp = recibirPayloadPaquete(header, socketCliente);				
-				logRequest(request_gp, header->codigoOperacion);				
 				t_result *result_gp = _guardar_pedido(request_gp);
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, result_gp);
 				free_t_request(request_gp);
@@ -31,7 +30,6 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case GUARDAR_PLATO:;
 				t_req_plato *request_gpl = recibirPayloadPaquete(header, socketCliente);
-				logRequest(request_gpl, header->codigoOperacion);
 				t_result *result_gpl = _guardar_plato(request_gpl);
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, result_gpl);
 				free_t_req_plato(request_gpl);
@@ -55,17 +53,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;
 			case PLATO_LISTO:;
 				t_plato_listo *request_pl = recibirPayloadPaquete(header, socketCliente);
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-				// TODO: Log?
-				t_result *result_pl = _plato_listo(request_pl->restaurante, request_pl->idPedido, request_pl->plato);
-=======
-				logRequest(request_pl, header->codigoOperacion);
 				t_result *result_pl = _plato_listo(request_pl);
->>>>>>> Stashed changes
-=======
-				t_result *result_pl = _plato_listo(request_pl);
->>>>>>> master
 				free(request_pl);
 				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, result_pl);
 				free(result_pl);

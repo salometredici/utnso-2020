@@ -47,7 +47,7 @@ void* create_swap(){
 		exit(EXIT_FAILURE);
 	}
 	
-	int truncate_result = ftruncate(fd, SWAP_SIZE);
+	ftruncate(fd, SWAP_SIZE);
 	void * archivo_data = mmap(NULL, SWAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		
 	memset(archivo_data, 0, SWAP_SIZE);

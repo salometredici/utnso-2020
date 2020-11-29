@@ -1138,7 +1138,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			break;
 	}
 
-	log_info(logger, "Payload size: %d, Cliente: %d", size, socket);
+	//log_info(logger, "Payload size: %d, Cliente: %d", size, socket);
 	return buffer;
 }
 

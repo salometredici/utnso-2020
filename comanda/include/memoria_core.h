@@ -96,10 +96,14 @@ t_list* find_frames(t_pedidoc* pedido);
 bool increase_cantidad_plato(t_page* page, int new_cantidad_plato);
 int update_cantidad_lista(t_page* page);
 void free_pages(t_list* pages);
+void delete_pedido_from_restaurant(t_list* pedidos, int nro_pedido);
 
 void print_swap();
 void print_memory();
+void print_pages_in_memory();
 
 t_frame* get_frame_from_swap(int frame_swap);
+void clear_bitmap(t_bitarray* bitmap, int bits);
+int find_victim_and_bring_it_to_mp(t_page* page);
 
 #endif

@@ -179,7 +179,6 @@ void* get_content(int frame){
 t_list* paginas_en_memoria() {
 	t_list* op(t_list* acum, t_restaurante* restaurante) {
 		t_list* paginas = list_create();
-		t_page* pagina;
 
 		for(int i = 0; i < list_size(restaurante->pedidos); i++){
 			t_pedidoc* pedido = list_get(restaurante->pedidos, i);
@@ -351,7 +350,6 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 	if(size > 0){ //se fija si hay algun plato cargado
 		bool _find_plato(void* element){
 			t_page *x = (t_page*)element;
-			int frame_number = x->frame;
 			t_frame *plato_a_encontrar = find_frame_in_memory(x);
 			bool value = string_equals_ignore_case(plato, plato_a_encontrar->comida);
 			free(plato_a_encontrar->comida);
@@ -388,9 +386,13 @@ int update_cantidad_lista(t_page* page){
 	write_frame_memory(frame_a_actualizar->comida, frame_a_actualizar->cantidad_pedida, cantidad_lista, page->frame);
 
 	if(frame_a_actualizar->cantidad_pedida == cantidad_lista){
+		free(frame_a_actualizar->comida);
+		free(frame_a_actualizar);
 		return PLATO_TERMINADO;
 	}
 
+	free(frame_a_actualizar->comida);
+	free(frame_a_actualizar);
 	return PLATO_NO_TERMINADO;
 }
 
@@ -512,7 +514,7 @@ void print_pedidos(t_restaurante* rest){
 void print_status_bitmap(t_bitarray* bitmap){
 	int available_blocks = get_available_blocks_number();
 	int lastBit = bitarray_get_max_bit(bitmap);
-	
+
 	printf("Tamaño del bitmap: %d\n"BREAK, lastBit);
 	printf("Cant. de bloques disponibles: %d\n"BREAK, available_blocks);
 	printf("Valor del primer bit: %d\n"BREAK, bitarray_test_bit(bitmap, 0));

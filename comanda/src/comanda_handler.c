@@ -87,6 +87,7 @@ t_result* _guardar_plato(t_req_plato *request){
 
 			print_swap();
 			print_memory();
+			
 			/*Validarrrrr si se guardo
 			t_page *plato_enc = find_plato(pedido, request->plato);
 			

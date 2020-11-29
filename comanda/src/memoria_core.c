@@ -9,9 +9,10 @@ t_restaurante *crear_restaurante(char *nombre_rest){
     t_restaurante *restaurante = malloc(sizeof(restaurante));
     restaurante->nombre = nombre_rest;
     restaurante->pedidos = create_list();
-    log_comanda("Se creo un restaurante.");
     list_add(restaurantes, restaurante);
-	print_restaurante();
+
+    log_info(logger, "Se creo el restaurante %s ....", nombre_rest);
+
 	return restaurante;
 }
 
@@ -19,8 +20,10 @@ t_pedidoc *crear_pedido(int id_pedido){
 	t_pedidoc *pedido = malloc(sizeof(t_pedidoc));
 	pedido->id_pedido = id_pedido;
 	pedido->pages = create_list();
-    pedido->estado = PENDIENTE; //veo si agrego otro estado 
-	log_info(logger, "Se cre la tabla de Paginas para id_pedido-(%d) creado.", id_pedido);
+    pedido->estado = PENDIENTE;
+	
+	log_info(logger, "La tabla de Paginas para id_pedido-(%d) creado.", id_pedido);
+	
 	return pedido;
 }
 
@@ -48,20 +51,10 @@ int find_free_swap_frame(){
 	return free_bit;	
 }
 
-void print_status_bitmap(t_bitarray* bitmap){
-	int available_blocks = get_available_blocks_number();
-	int lastBit = bitarray_get_max_bit(bitmap);
-	printf("Tamaño del bitmap: %d"BREAK, lastBit);
-	printf("Cant. de bloques disponibles: %d"BREAK, available_blocks);
-	printf("Valor del primer bit: %d"BREAK, bitarray_test_bit(bitmap, 0));
-	printf("Valor del último bit: %d"BREAK, bitarray_test_bit(bitmap, lastBit));
-}
-
 void clear_bitmap(t_bitarray* bitmap, int bits) {
 	for (int var = 0; var < bits; var++) {
 		bitarray_clean_bit(bitmap, var);
 	}
-	//print_status_bitmap(bitmap);
 }
 
 t_frame* get_frame_from_memory(int frame_number){
@@ -85,29 +78,9 @@ t_frame* get_frame_from_memory(int frame_number){
 	return marco;
 }
 
-void print_restaurante(){
-	printf("--------------------------------RESTAURANTES------------------------------\n");
-	for(int i = 0; i < list_size(restaurantes); i++){
-		t_restaurante* rest= list_get(restaurantes, i);
-		if(rest)
-			printf("| Indice: %d | Nombre del restaurante: %s \n", i, rest->nombre);
-		//free(rest);
-	}	
-}
-
-void print_pedidos(t_restaurante* rest){
-	printf("----------------------------------PEDIDOS--------------------------------\n");
-	for(int i = 0; i < list_size(rest->pedidos); i++){
-		t_pedidoc* pedido = list_get(rest->pedidos, i);
-		if(pedido)
-			printf("| Indice: %d | Pedido ID : %d \n", i, pedido->id_pedido);
-		//free(pedido);
-	}		
-}
-
 t_frame* find_frame_in_memory(t_page* page){
 	if(page == NULL){
-		printf("Hubo un problema");
+		printf("[FIND_FRAME_IN_MEMORY] Hubo un problema....");
 		return NULL;
 	}
 
@@ -131,7 +104,7 @@ t_frame* find_frame_in_memory(t_page* page){
 	}
 }
 
-t_page* create_page(int frame_in_mp, int frame_swap){
+t_page* create_page(int frame_in_mp, int frame_swap){	
 	t_page *new_plato = malloc(sizeof(t_page));
 	new_plato->frame = frame_in_mp;
 	new_plato->in_use = 1;
@@ -143,15 +116,14 @@ t_page* create_page(int frame_in_mp, int frame_swap){
 	return new_plato;		
 }
 
-t_restaurante* find_restaurante(char *nombre){	
-    bool es_restaurante_buscado(void *elemento){
+t_restaurante* find_restaurante(char *nombre_rest){    
+	bool es_restaurante_buscado(void *elemento){
 		t_restaurante *x = (t_restaurante*) elemento;
-		return string_equals_ignore_case(x->nombre, nombre);
+		return string_equals_ignore_case(x->nombre, nombre_rest);
 	};
 
 	t_restaurante *rest = list_find(restaurantes,&es_restaurante_buscado);
 	
-	//print_restaurante();
 	return rest;
 }
 
@@ -194,10 +166,7 @@ void escribir_swap(char* nombre_plato, int cantidad_pedida, int cantidad_lista, 
 	msync(archivo_swap, PAGE_SIZE, MS_SYNC);
 	free(contenido);
 
-	// printf("---------------------Escrimos en disco\n");
-	//print_status_bitmap(swap_usage_bitmap);
 	bitarray_set_bit(swap_usage_bitmap, page_swap);
-	//print_status_bitmap(swap_usage_bitmap);
 }
 
 void* get_content(int frame){
@@ -255,43 +224,18 @@ t_frame* get_frame_from_swap(int frame_swap){
 	return marco;
 }
 
-void print_swap(){
-	printf("-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
-	for(int i = 0; i < swap_frames; i++){
-		t_frame* swap_frame = get_frame_from_swap(i);
-		if(!string_is_empty(swap_frame->comida))
-			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
-		free(swap_frame->comida);
-		free(swap_frame);
-	}
-}
-
-void print_memory(){
-	printf("-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
-	for(int i = 0; i < frames; i++){
-		t_frame* mp_frame = get_frame_from_memory(i);
-		if(!string_is_empty(mp_frame->comida))
-			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
-		free(mp_frame->comida);
-		free(mp_frame);
-	}
-}
-
 //tengo que recorrer la tabla de paginas 
 //primero fijarme si hay un espacio libre en la mp
 t_page* find_frame_victim(){
 	t_page* victim_page = malloc(sizeof(t_page));
 	
 	victim_page->timestamp = 0;
+	
+	log_info(logger, "[FIND_FRAME_VICITIM]Se busca una victima .....");
+
+	print_pages_in_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
-
-	for(int i = 0; i < list_size(memory_pages); i++){
-		t_page* page = list_get(memory_pages, i);
-		printf("-----------------Paginas en Memoria---------------\n");
-		printf("| Indice: %d | frame: %d | frame_in_mv: %d  | timestamp: %f\n", i, page->frame, page->frame_mv, page->timestamp);
-	}
-
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
 		if(victim_page->timestamp == 0 && page->flag == 1){
@@ -311,6 +255,8 @@ t_page* find_frame_victim(){
 			victim_page->timestamp = page->timestamp;
 		}			
 	}
+
+	log_info(logger, "[VICTIMA_ENCONTRADA] Frame %d de la Memoria Principal", victim_page->frame);
 	return victim_page;
 }
 
@@ -346,6 +292,7 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	//print_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
+	
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
 
@@ -462,10 +409,10 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	int swap_frame = find_free_swap_frame();
 	
 	if(frame_number == -1){
-		log_comanda("No hay espacio en la memoria.. hacer swap");
+		log_info(logger, "[ASIGNAR_FRAME]No hay espacio en la memoria.... hacer swap");
 
 		if(swap_frame == -1){
-			log_comanda("No hay espacio en swap");
+			log_info(logger, "[ASIGNAR_FRAME] No hay espacio en swap....");
 			return NULL;
 		}
 
@@ -480,9 +427,6 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 		return page;
 	}
 	else{
-		// printf("----------------------Escribo en RAM\n");
-		//print_status_bitmap(frame_usage_bitmap);
-
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
 		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_number);
 
@@ -490,8 +434,6 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 
 		bitarray_set_bit(frame_usage_bitmap, frame_number);
 
-		// printf("------------------------Update RAM\n");
-		//print_status_bitmap(frame_usage_bitmap);
 		pthread_mutex_unlock(&mutex_asignar_pagina);
 		return new_page;
 	}
@@ -513,5 +455,67 @@ void free_pages(t_list* pages){
 	}
 
 	list_destroy_and_destroy_elements(pages, &free);
+}
+
+/******************************PRINT's ESTRUCTURAS**********************************/
+
+void print_swap(){
+	printf("-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
+	for(int i = 0; i < swap_frames; i++){
+		t_frame* swap_frame = get_frame_from_swap(i);
+		if(!string_is_empty(swap_frame->comida))
+			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		free(swap_frame->comida);
+		free(swap_frame);
+	}
+}
+
+void print_memory(){
+	printf("-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
+	for(int i = 0; i < frames; i++){
+		t_frame* mp_frame = get_frame_from_memory(i);
+		if(!string_is_empty(mp_frame->comida))
+			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
+		free(mp_frame->comida);
+		free(mp_frame);
+	}
+}
+
+void print_pages_in_memory(){
+	t_list* memory_pages = paginas_en_memoria();
+
+	for(int i = 0; i < list_size(memory_pages); i++){
+		t_page* page = list_get(memory_pages, i);
+		printf("-----------------Paginas en Memoria---------------\n");
+		printf("| Indice: %d | frame: %d | frame_in_mv: %d  | timestamp: %f\n", i, page->frame, page->frame_mv, page->timestamp);
+	}
+}
+
+void print_restaurante(){
+	printf("--------------------------------RESTAURANTES------------------------------\n");
+	for(int i = 0; i < list_size(restaurantes); i++){
+		t_restaurante* rest= list_get(restaurantes, i);
+		if(rest)
+			printf("| Indice: %d | Nombre del restaurante: %s \n", i, rest->nombre);
+	}	
+}
+
+void print_pedidos(t_restaurante* rest){
+	printf("----------------------------------PEDIDOS--------------------------------\n");
+	for(int i = 0; i < list_size(rest->pedidos); i++){
+		t_pedidoc* pedido = list_get(rest->pedidos, i);
+		if(pedido)
+			printf("| Indice: %d | Pedido ID : %d \n", i, pedido->id_pedido);
+	}		
+}
+
+void print_status_bitmap(t_bitarray* bitmap){
+	int available_blocks = get_available_blocks_number();
+	int lastBit = bitarray_get_max_bit(bitmap);
+	
+	printf("Tamaño del bitmap: %d\n"BREAK, lastBit);
+	printf("Cant. de bloques disponibles: %d\n"BREAK, available_blocks);
+	printf("Valor del primer bit: %d\n"BREAK, bitarray_test_bit(bitmap, 0));
+	printf("Valor del último bit: %d\n"BREAK, bitarray_test_bit(bitmap, lastBit));
 }
 

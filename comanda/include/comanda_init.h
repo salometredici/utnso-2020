@@ -12,5 +12,6 @@
 #include "../include/comanda_handler.h"
 #include "tests.h"
 
-void init_sructures();
+void init_comanda();
+
 #endif

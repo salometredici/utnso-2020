@@ -100,4 +100,6 @@ void free_pages(t_list* pages);
 void print_swap();
 void print_memory();
 
+t_frame* get_frame_from_swap(int frame_swap);
+
 #endif

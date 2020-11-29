@@ -89,7 +89,9 @@ void print_restaurante(){
 	printf("--------------------------------RESTAURANTES------------------------------\n");
 	for(int i = 0; i < list_size(restaurantes); i++){
 		t_restaurante* rest= list_get(restaurantes, i);
-		printf("| Indice: %d | Nombre del restaurante: %s \n", i, rest->nombre);
+		if(rest)
+			printf("| Indice: %d | Nombre del restaurante: %s \n", i, rest->nombre);
+		//free(rest);
 	}	
 }
 
@@ -97,7 +99,8 @@ void print_pedidos(t_restaurante* rest){
 	printf("----------------------------------PEDIDOS--------------------------------\n");
 	for(int i = 0; i < list_size(rest->pedidos); i++){
 		t_pedidoc* pedido = list_get(rest->pedidos, i);
-		printf("| Indice: %d | Pedido ID : %d \n", i, pedido->id_pedido);
+		if(pedido)
+			printf("| Indice: %d | Pedido ID : %d \n", i, pedido->id_pedido);
 		free(pedido);
 	}		
 }
@@ -109,8 +112,8 @@ t_frame* find_frame_in_memory(t_page* page){
 	}
 
 	if(page->flag == IN_MEMORY){
-		page->timestamp = get_current_time();
 		t_frame *frame = get_frame_from_memory(page->frame);	
+		page->timestamp = get_current_time();
 		return frame; 
 	}
 	else{
@@ -122,7 +125,7 @@ t_frame* find_frame_in_memory(t_page* page){
 		page->modified = 0;
 		page->frame = frame_victim;
 		
-		t_frame* frame = find_frame_in_memory(page->frame);
+		t_frame* frame = find_frame_in_memory(page);
 		
 		return frame;
 	}
@@ -256,7 +259,8 @@ void print_swap(){
 	printf("-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
-		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+		if(!string_is_empty(swap_frame->comida))
+			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
 		free(swap_frame->comida);
 		free(swap_frame);
 	}
@@ -266,7 +270,8 @@ void print_memory(){
 	printf("-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
 	for(int i = 0; i < frames; i++){
 		t_frame* mp_frame = get_frame_from_memory(i);
-		printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
+		if(!string_is_empty(mp_frame->comida))
+			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
 		free(mp_frame->comida);
 		free(mp_frame);
 	}
@@ -309,6 +314,7 @@ void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantida
 	memcpy(frame, &cantidad_pedida, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
+	log_info(logger, "[MEMORIA_PRINCIPAL] En el frame %d se inserta el plato %s - cantidad_pedida: %d - cantidad_lista: %d", frame_number, comida, cantidad_pedida, cantidad_lista);
 	pthread_mutex_unlock(&write_memory);
 }
 
@@ -318,11 +324,34 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
 
+	printf("------------------ANTES DE ESCRIBIR EN SWAP----------------\n");
+	print_swap();
+	//ACTUALIZAR EL SWAP CON EL CONTENIDO DE MP DEL FRAME VICTIM
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = 0;
-	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
+	printf("--------------------DESPUES DE ESCRIBIR EN SWAP----------------\n");
+	print_swap();
 
-	return victim_page->frame;
+	//ACTUALIZAR LA MP CON EL CONTENIDO DE SWAP EN EL FRAME DE LA VICTIMA
+	printf("-------------------ANTES DE ESCRIBIR EN MEMORIA PRINCIPAL------\n");	
+	print_memory();
+	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
+	printf("-------------------DESPUES DE ESCRIBIR EN MEMORIA PRINCIPAL-----\n");
+	print_memory();
+
+	t_list* memory_pages = paginas_en_memoria();
+	for(int i = 0; i < list_size(memory_pages); i++){
+		t_page* page = list_get(memory_pages, i);
+
+		if(victim_page->frame_mv == page->frame_mv){
+			victim_page->flag = false;
+		}			
+	}
+
+	int frame_victim_nro = victim_page->frame;
+	free(frame_victim->comida);
+	free(frame_victim);
+	free(victim_page);
+	return frame_victim_nro;
 }
 
 int find_victim_and_update_swap(){
@@ -330,7 +359,17 @@ int find_victim_and_update_swap(){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = 0;
+	victim_page->flag = false;
+
+	t_list* memory_pages = paginas_en_memoria();
+
+	for(int i = 0; i < list_size(memory_pages); i++){
+		t_page* page = list_get(memory_pages, i);
+
+		if(victim_page->frame_mv == page->frame_mv){
+			page->flag = false;
+		}			
+	}
 
 	int frame_victim_nro = victim_page->frame;
 	free(frame_victim->comida);
@@ -424,6 +463,7 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 		}
 
 		int frame_in_mp = find_victim_and_update_swap();
+
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
 		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_in_mp);
 
@@ -467,5 +507,4 @@ void free_pages(t_list* pages){
 
 	list_destroy_and_destroy_elements(pages, &free);
 }
-
 

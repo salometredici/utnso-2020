@@ -112,8 +112,8 @@ t_frame* find_frame_in_memory(t_page* page){
 	}
 
 	if(page->flag == IN_MEMORY){
-		page->timestamp = get_current_time();
 		t_frame *frame = get_frame_from_memory(page->frame);	
+		page->timestamp = get_current_time();
 		return frame; 
 	}
 	else{
@@ -125,7 +125,7 @@ t_frame* find_frame_in_memory(t_page* page){
 		page->modified = 0;
 		page->frame = frame_victim;
 		
-		t_frame* frame = find_frame_in_memory(page->frame);
+		t_frame* frame = find_frame_in_memory(page);
 		
 		return frame;
 	}
@@ -324,11 +324,34 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
 
+	printf("------------------ANTES DE ESCRIBIR EN SWAP----------------\n");
+	print_swap();
+	//ACTUALIZAR EL SWAP CON EL CONTENIDO DE MP DEL FRAME VICTIM
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = 0;
-	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
+	printf("--------------------DESPUES DE ESCRIBIR EN SWAP----------------\n");
+	print_swap();
 
-	return victim_page->frame;
+	//ACTUALIZAR LA MP CON EL CONTENIDO DE SWAP EN EL FRAME DE LA VICTIMA
+	printf("-------------------ANTES DE ESCRIBIR EN MEMORIA PRINCIPAL------\n");	
+	print_memory();
+	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
+	printf("-------------------DESPUES DE ESCRIBIR EN MEMORIA PRINCIPAL-----\n");
+	print_memory();
+
+	t_list* memory_pages = paginas_en_memoria();
+	for(int i = 0; i < list_size(memory_pages); i++){
+		t_page* page = list_get(memory_pages, i);
+
+		if(victim_page->frame_mv == page->frame_mv){
+			victim_page->flag = false;
+		}			
+	}
+
+	int frame_victim_nro = victim_page->frame;
+	free(frame_victim->comida);
+	free(frame_victim);
+	free(victim_page);
+	return frame_victim_nro;
 }
 
 int find_victim_and_update_swap(){

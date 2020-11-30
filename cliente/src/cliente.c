@@ -81,6 +81,7 @@ void *threadLecturaConsola(void *args) {
 							break;
 						case FINALIZAR_PEDIDO:
 							finalizarPedido(parametro1, atoi(parametro2));
+							break;
 						case ERROR:
 						default:
 							showInvalidCommandMsg(COMANDA);

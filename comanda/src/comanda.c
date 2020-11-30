@@ -7,7 +7,6 @@ void *atenderConexiones(void *conexionNueva)
     free(t_data);
 	
 	while (1) {
-
         t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
@@ -31,21 +30,20 @@ void *atenderConexiones(void *conexionNueva)
 			case GUARDAR_PLATO:;
 				t_req_plato *request_gpl = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_gpl = _guardar_plato(request_gpl);
-				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, result_gpl);
 				free_t_req_plato(request_gpl);
+				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PLATO, result_gpl);
 				free_t_result(result_gpl);
 				break;
 			case OBTENER_PEDIDO:;
 				t_request *request_obp = recibirPayloadPaquete(header, socketCliente);
-				logRequest(request_obp, header->codigoOperacion);
 				t_pedido *pedido = _obtener_pedido(request_obp);
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
 				free_t_request(request_obp);
-				free(pedido); // creo que tengo que liberar lo que esta adentro
+				list_destroy_and_destroy_elements(pedido->platos, &free);
+				free(pedido);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *request_conf = recibirPayloadPaquete(header, socketCliente);
-				logRequest(request_conf, header->codigoOperacion);
 				t_result *result_conf = _confirmar_pedido(request_conf);
 				free_t_request(request_conf);
 				enviarPaquete(socketCliente, COMANDA, RTA_CONFIRMAR_PEDIDO, result_conf);
@@ -54,17 +52,16 @@ void *atenderConexiones(void *conexionNueva)
 			case PLATO_LISTO:;
 				t_plato_listo *request_pl = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_pl = _plato_listo(request_pl);
-				free(request_pl);
+				free_t_req_plato(request_pl);
 				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, result_pl);
-				free(result_pl);
+				free_t_result(result_pl);
 				break;
 			case FINALIZAR_PEDIDO:;
 				t_request *request_fin = recibirPayloadPaquete(header, socketCliente);
-				logRequest(request_fin, header->codigoOperacion);
 				t_result *result_fin = _finalizar_pedido(request_fin);
+				free_t_request(request_fin);				
 				enviarPaquete(socketCliente, COMANDA, RTA_FINALIZAR_PEDIDO, result_fin);
 	   			free_t_result(result_fin);
-				free(request_fin);
 				break;
 			default:
 				printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);

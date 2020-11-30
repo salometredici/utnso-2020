@@ -87,6 +87,7 @@ t_result* _guardar_plato(t_req_plato *request){
 
 			print_swap();
 			print_memory();
+			
 			/*Validarrrrr si se guardo
 			t_page *plato_enc = find_plato(pedido, request->plato);
 			
@@ -141,7 +142,6 @@ t_pedido* _obtener_pedido(t_request* request){
 
 	t_list *marcos = find_frames(pedido);
 
-	//realizo la struct para enviar
 	t_pedido *pedido_info = malloc(sizeof(t_pedido));
 
 	t_list *platos = list_create();
@@ -159,9 +159,9 @@ t_pedido* _obtener_pedido(t_request* request){
 	pedido_info->platos = platos;
 	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
 
+	list_destroy_and_destroy_elements(marcos, &free);
 	print_swap();
 	print_memory();
-	//list_destroy_and_destroy_elements(frames, &free);
 	return pedido_info;
 }
 
@@ -226,11 +226,8 @@ t_result* _plato_listo(t_plato_listo* request) {
 		return result;
 	}
 
-	char* nombre_plato = string_new();
-	string_append_with_format(&nombre_plato, "%s", request->plato);
-
 	// Buscar nombre_plato_listo en pages del pedido
-	t_page *pl_page = find_plato(pedido, nombre_plato);
+	t_page *pl_page = find_plato(pedido, request->plato);
 
 	if(pl_page == NULL){
 		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);
@@ -249,6 +246,8 @@ t_result* _plato_listo(t_plato_listo* request) {
 		};
 
 		int value = list_all_satisfy(marcos, &_is_plato_terminado);
+
+		list_destroy_and_destroy_elements(marcos, &free);
 
 		if(value){
 			print_swap();

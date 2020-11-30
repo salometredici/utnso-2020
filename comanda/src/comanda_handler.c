@@ -142,7 +142,6 @@ t_pedido* _obtener_pedido(t_request* request){
 
 	t_list *marcos = find_frames(pedido);
 
-	//realizo la struct para enviar
 	t_pedido *pedido_info = malloc(sizeof(t_pedido));
 
 	t_list *platos = list_create();
@@ -160,10 +159,9 @@ t_pedido* _obtener_pedido(t_request* request){
 	pedido_info->platos = platos;
 	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
 
-	list_destroy(marcos);
+	list_destroy_and_destroy_elements(marcos, &free);
 	print_swap();
 	print_memory();
-	//list_destroy_and_destroy_elements(frames, &free);
 	return pedido_info;
 }
 

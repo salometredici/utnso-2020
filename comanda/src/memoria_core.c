@@ -193,7 +193,7 @@ t_list* paginas_en_memoria() {
 		}
 
 		list_add_all(acum, paginas);
-		//list_destroy_and_destroy_elements(paginas, &free);
+		list_destroy(paginas);
 		return acum;
 	}
 	pthread_mutex_lock(&mutex_paginas_en_memoria);
@@ -345,6 +345,7 @@ t_list* find_frames(t_pedidoc *pedido){
 	for(int i = 0; i < size; i++){
 		t_page *page = list_get(pedido->pages, i);
 
+		//t_frame* frame = malloc(sizeof(t_frame));
 		t_frame* frame = find_frame_in_memory(page);
 		list_add(platos, frame);
 	}
@@ -361,6 +362,7 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 			bool value = string_equals_ignore_case(plato, plato_a_encontrar->comida);
 			free(plato_a_encontrar->comida);
 			free(plato_a_encontrar);
+			//free(x); a chequear
 			return value;
 		}
 

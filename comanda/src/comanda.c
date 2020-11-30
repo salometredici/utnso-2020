@@ -39,7 +39,8 @@ void *atenderConexiones(void *conexionNueva)
 				t_pedido *pedido = _obtener_pedido(request_obp);
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
 				free_t_request(request_obp);
-				free(pedido); // creo que tengo que liberar lo que esta adentro
+				list_destroy_and_destroy_elements(pedido->platos, &free);
+				free(pedido);
 				break;
 			case CONFIRMAR_PEDIDO:;
 				t_request *request_conf = recibirPayloadPaquete(header, socketCliente);

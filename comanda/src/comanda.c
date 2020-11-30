@@ -51,7 +51,7 @@ void *atenderConexiones(void *conexionNueva)
 			case PLATO_LISTO:;
 				t_plato_listo *request_pl = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_pl = _plato_listo(request_pl);
-				free_t_request(request_pl);
+				free_t_req_plato(request_pl);
 				enviarPaquete(socketCliente, COMANDA, RTA_PLATO_LISTO, result_pl);
 				free_t_result(result_pl);
 				break;

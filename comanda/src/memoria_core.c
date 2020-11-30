@@ -193,6 +193,7 @@ t_list* paginas_en_memoria() {
 		}
 
 		list_add_all(acum, paginas);
+		//list_destroy_and_destroy_elements(paginas, &free);
 		return acum;
 	}
 	pthread_mutex_lock(&mutex_paginas_en_memoria);
@@ -255,6 +256,7 @@ t_page* find_frame_victim(){
 		}			
 	}
 
+	list_destroy(memory_pages);
 	log_info(logger, "[VICTIMA_ENCONTRADA] Frame %d de la Memoria Principal", victim_page->frame);
 	return victim_page;
 }
@@ -301,6 +303,8 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	}
 
 	int frame_victim_nro = victim_page->frame;
+
+	list_destroy(memory_pages);
 	free(frame_victim->comida);
 	free(frame_victim);
 	free(frame_to_move->comida);
@@ -327,8 +331,9 @@ int find_victim_and_update_swap(){
 	}
 
 	int frame_victim_nro = victim_page->frame;
-	//free(frame_victim->comida);
-	//free(frame_victim);
+	free(frame_victim->comida);
+	free(frame_victim);
+	list_destroy(memory_pages);
 	free(victim_page);
 	return frame_victim_nro;	
 }
@@ -374,6 +379,8 @@ bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
 	t_frame* frame = find_frame_in_memory(page);
 	int sum = frame->cantidad_pedida + new_cantidad_plato;
 	write_frame_memory(frame->comida, sum, frame->cantidad_lista, page->frame);
+	free(frame->comida);
+	free(frame);
 	return true;
 }
 
@@ -493,6 +500,7 @@ void print_pages_in_memory(){
 		printf("-----------------Paginas en Memoria---------------\n");
 		printf("| Indice: %d | frame: %d | frame_in_mv: %d  | timestamp: %f\n", i, page->frame, page->frame_mv, page->timestamp);
 	}
+	list_destroy(memory_pages);
 }
 
 void print_restaurante(){

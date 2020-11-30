@@ -160,6 +160,7 @@ t_pedido* _obtener_pedido(t_request* request){
 	pedido_info->platos = platos;
 	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
 
+	list_destroy(marcos);
 	print_swap();
 	print_memory();
 	//list_destroy_and_destroy_elements(frames, &free);
@@ -247,6 +248,8 @@ t_result* _plato_listo(t_plato_listo* request) {
 		};
 
 		int value = list_all_satisfy(marcos, &_is_plato_terminado);
+
+		list_destroy_and_destroy_elements(marcos, &free);
 
 		if(value){
 			print_swap();

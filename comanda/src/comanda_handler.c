@@ -227,11 +227,8 @@ t_result* _plato_listo(t_plato_listo* request) {
 		return result;
 	}
 
-	char* nombre_plato = string_new();
-	string_append_with_format(&nombre_plato, "%s", request->plato);
-
 	// Buscar nombre_plato_listo en pages del pedido
-	t_page *pl_page = find_plato(pedido, nombre_plato);
+	t_page *pl_page = find_plato(pedido, request->plato);
 
 	if(pl_page == NULL){
 		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);

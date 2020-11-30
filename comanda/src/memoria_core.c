@@ -179,7 +179,7 @@ void* get_content(int frame){
 t_list* paginas_en_memoria() {
 	t_list* op(t_list* acum, t_restaurante* restaurante) {
 		t_list* paginas = list_create();
-
+		
 		for(int i = 0; i < list_size(restaurante->pedidos); i++){
 			t_pedidoc* pedido = list_get(restaurante->pedidos, i);
 
@@ -303,6 +303,8 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	int frame_victim_nro = victim_page->frame;
 	free(frame_victim->comida);
 	free(frame_victim);
+	free(frame_to_move->comida);
+	free(frame_to_move);
 	free(victim_page);
 	return frame_victim_nro;
 }

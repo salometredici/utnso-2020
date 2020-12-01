@@ -86,7 +86,7 @@ void *atenderConexiones(void *conexionNueva)
 				free(hConsulta);
 				// Se contesta con los platos obtenidos
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest);
-				free(platosRest);
+				//free(platosRest);
 				break;
 			case CREAR_PEDIDO:;
 				pthread_mutex_lock(&mutexQPedidos);

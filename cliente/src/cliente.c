@@ -210,8 +210,6 @@ void obtenerRestaurante(char *nombre_restaurante) {
 void consultarPlatos(char *nombreRestaurante) {
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexion);
-	free(nombreRestaurante);
-
 	t_list *platos = recibirPayloadPaquete(header, conexion);
 	log_rta_ConsultarPlatos(platos);
 	free(platos);

@@ -672,6 +672,7 @@ int enviarPorSocket(int socket, const void *mensaje, int totalAEnviar) {
 char *dsrlzString(void *buffer, int sizeString) {
 	char *cadena = malloc(sizeString);
 	memcpy(cadena, buffer, sizeString);
+	free(buffer);
 	return cadena;
 }
 
@@ -691,6 +692,7 @@ t_list *dsrlzListaInstrucciones(void *buffer, int sizeLista) {
 		list_add(valores, instruccion);
 	}
 
+	free(buffer);
 	return valores;
 }
 
@@ -709,6 +711,7 @@ t_list *dsrlzListaStrings(void *buffer, int sizeLista) {
 		list_add(valores, palabra);
 	}
 
+	free(buffer);
 	return valores;
 }
 
@@ -727,6 +730,8 @@ t_request *dsrlzRequest(void *buffer) {
 	memcpy(&request->idPedido, buffer + desplazamiento, sizeof(int));
 
 	request->nombre = restaurante;
+	
+	free(buffer);
 	return request;
 }
 
@@ -755,8 +760,7 @@ t_req_plato *dsrlzReqPlato(void *buffer) {
 	request->plato = plato;
 	request->restaurante = restaurante;
 	
-	free(buffer);
-	
+	free(buffer);	
 	return request;
 }
 
@@ -782,6 +786,9 @@ t_plato_listo *dsrlzTPlatoListo(void *buffer) {
 	
 	platoListo->plato = plato;
 	platoListo->restaurante = restaurante;
+
+	//free(plato);
+	free(buffer);
 	return platoListo;
 }
 
@@ -831,6 +838,8 @@ t_pedido *dsrlzPedido(void *buffer, int size) {
 	}
 
 	pedido->platos = platos;
+	
+	free(buffer);
 	return pedido;
 }
 
@@ -871,6 +880,8 @@ t_receta *dsrlzTReceta(void *buffer, int size) {
 	}
 
 	receta->instrucciones = instrucciones;
+	
+	free(buffer);
 	return receta;
 }
 
@@ -933,6 +944,8 @@ t_md *dsrlzMd(void *buffer, int size) {
 
 	md->platos = platos;
 	md->afinidades = afinidades;
+	
+	free(buffer);
 	return md;
 }
 
@@ -944,6 +957,7 @@ t_posicion *dsrlzTPosicion(void *buffer) {
 	desplazamiento += sizeof(int);
 	memcpy(&posicion->posY, buffer + desplazamiento, sizeof(int));
 
+	free(buffer);
 	return posicion;
 }
 
@@ -983,6 +997,8 @@ t_cliente *dsrlzTCliente(void *buffer) {
 	desplazamiento += sizeof(int);
 
 	cliente->idCliente = id; cliente->restSeleccionado = rest;
+
+	free(buffer);
 	return cliente;
 }
 
@@ -1001,6 +1017,8 @@ t_result *dsrlzTResult(void *buffer) {
 	memcpy(&result->hasError, buffer + desplazamiento, sizeof(bool));
 
 	result->msg = msg;
+
+	free(buffer);
 	return result;
 }
 
@@ -1025,12 +1043,16 @@ t_selecc_rest *dsrlzTSeleccRest(void *buffer) {
 	seleccRest->idCliente = idCliente;
 	seleccRest->restauranteSeleccionado = restaurante;
 
+	free(buffer);
 	return seleccRest;
 }
 
 int dsrlzInt(void *buffer) {
 	int valor;
+	
 	memcpy(&valor, buffer, sizeof(int));
+	
+	free(buffer);
 	return valor;
 }
 
@@ -1066,7 +1088,7 @@ void *recibirBuffer(int *size, int socket){
 	recv(socket, size, sizeof(int), MSG_WAITALL);
 	buffer = malloc(*size);
 	recv(socket, buffer, *size, MSG_WAITALL);
-
+	
 	return buffer;
 }
 
@@ -1138,6 +1160,25 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			break;
 	}
 
-	log_info(logger, "Payload size: %d, Cliente: %d", size, socket);
+	//log_info(logger, "Payload size: %d, Cliente: %d", size, socket);
+	//free(&size);
 	return buffer;
+}
+
+/***************FREE SERIALIZATION**********************/
+
+void free_t_request(t_request* request){
+	free(request->nombre);
+	free(request);
+}
+
+void free_t_result(t_result* result){
+	//free(result->msg);
+	free(result);
+}
+
+void free_t_req_plato(t_req_plato* req){
+	free(req->restaurante);
+	free(req->plato);
+	free(req);
 }

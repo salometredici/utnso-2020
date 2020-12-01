@@ -23,6 +23,8 @@
 #define RUTASWAP "/home/utnso/swap.txt"
 #define IN_MEMORY 1
 #define IN_SWAP 0
+#define PLATO_TERMINADO 2
+#define PLATO_NO_TERMINADO 3 
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -32,6 +34,7 @@ pthread_mutex_t mutex_paginas_en_memoria;
 pthread_mutex_t mx_find_frame_in_memory;
 pthread_mutex_t mx_find_frame_in_swap;
 pthread_mutex_t mutex_asignar_pagina;
+pthread_mutex_t write_memory;
 
 /*Tabla de segmentos*/
 t_list *restaurantes;
@@ -82,14 +85,25 @@ typedef struct{
     char *comida;
 } t_frame;
 
-t_restaurante *crear_restaurante(char *nombre_rest);
-t_pedidoc *crear_pedido(int id_pedido);
-t_restaurante *find_restaurante(char *nombre);
-void add_pedido_to_restaurante(t_restaurante *restaurante, t_pedidoc *pedido);
+t_restaurante* crear_restaurante(char* nombre_rest);
+t_pedidoc* crear_pedido(int id_pedido);
+t_restaurante* find_restaurante(char* nombre);
+void add_pedido_to_restaurante(t_restaurante* restaurante, t_pedidoc* pedido);
 t_pedidoc* find_pedido(t_restaurante *restaurante, int id);
-t_page* find_plato(t_pedidoc *pedido, char *plato);
-t_page* asignar_frame(char *plato, int cantidad);
-t_list* find_frames(t_pedidoc *pedido);
+t_page* find_plato(t_pedidoc* pedido, char *plato);
+t_page* asignar_frame(char* plato, int cantidad);
+t_list* find_frames(t_pedidoc* pedido);
+bool increase_cantidad_plato(t_page* page, int new_cantidad_plato);
+int update_cantidad_lista(t_page* page);
+void free_pages(t_list* pages);
+void delete_pedido_from_restaurant(t_list* pedidos, int nro_pedido);
+
 void print_swap();
 void print_memory();
+void print_pages_in_memory();
+
+t_frame* get_frame_from_swap(int frame_swap);
+void clear_bitmap(t_bitarray* bitmap, int bits);
+int find_victim_and_bring_it_to_mp(t_page* page);
+
 #endif

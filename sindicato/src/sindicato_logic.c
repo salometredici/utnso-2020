@@ -209,10 +209,7 @@ t_result *check_and_add_plato(t_req_plato *request) {
 		return getTResult(RECETA_NO_EXISTE, true);
 	} else {
 		t_pedido *pedido_a_guardar_plato = obtener_pedido(req_pedido_buscado);
-		if (string_equals_ignore_case(pedido_a_guardar_plato->restaurante, BLOQUES_NO_ASIGNADOS)) {
-			free(pedido_a_guardar_plato);
-			return getTResult(BLOQUES_NO_ASIGNADOS, true);
-		} else if (pedido_a_guardar_plato->estado != PENDIENTE) {
+		if (pedido_a_guardar_plato->estado != PENDIENTE) {
 			free(req_pedido_buscado); free(pedido_a_guardar_plato);
 			return getTResult(ESTADO_AVANZADO, true);
 		} else {

@@ -107,5 +107,7 @@ void log_CrearPedido_Data(t_request *request);
 // INICIAR PEDIDO
 
 void log_IniciarPedido_Data(t_req_plato *request);
-void log_planif_step(char *step);
+void log_planif_step(char *step, char *desc);
+void log_ConsultarPedido(int idPedido);
+void log_rta_Consultar_Pedido(t_pedido *pedido, int idPedido);
 #endif

@@ -36,12 +36,12 @@ void crearProceso(t_cliente *cliente, int idPedido, char *plato){
 	int conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RECETA, plato);
 	t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
-	t_list *instrucciones = recibirPayloadPaquete(hRConf, conexionSindicato);
+	t_receta *receta = recibirPayloadPaquete(hRConf, conexionSindicato);
 	liberarConexion(conexionSindicato);
 
-	t_receta *receta = malloc(sizeof(t_receta));
-	receta->plato = plato;
-	receta->instrucciones = instrucciones;
+	// t_receta *receta = malloc(sizeof(t_receta));
+	// receta->plato = plato;
+	// receta->instrucciones = instrucciones;
 
 	t_proceso *proceso = crearPcb(cliente, idPedido, receta);
 
@@ -124,52 +124,69 @@ void *atenderConexiones(void *conexionNueva)
 				// 	crearProceso(cliente, reqPlato->idPedido, reqPlato->plato);
 				// }
 				// ver si solo se puede hacer si el pedido no esta confirmado 
-				t_result *resAP = malloc(sizeof(t_result));
-				resAP->hasError = reqRtaGuardarPlato->hasError;
-				resAP->msg = "[ANIADIR_PLATO] OK";
-				enviarPaquete(socketCliente, RESTAURANTE, RTA_ANIADIR_PLATO, resAP);
-				free(resAP);
+				
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_ANIADIR_PLATO, reqRtaGuardarPlato);
 				break;
 			case CONFIRMAR_PEDIDO:;
-				t_request *reqConf = recibirPayloadPaquete(header, socketCliente);
-				logRequest(reqConf, header->codigoOperacion);
-				reqConf->nombre = nombreRestaurante;
+				t_request *reqConf2 = recibirPayloadPaquete(header, socketCliente);
+				logRequest(reqConf2, header->codigoOperacion);
+				reqConf2->nombre = nombreRestaurante;
+				t_result *resultadoGral = malloc(sizeof(t_result));
 
 				conexionSindicato = conectarseA(SINDICATO);
-				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf);
-				t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
-				t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+				enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, reqConf2);
+				t_header *hconfirmarpedido = recibirHeaderPaquete(conexionSindicato);
+				resultadoGral = recibirPayloadPaquete(hconfirmarpedido, conexionSindicato);
 				liberarConexion(SINDICATO);
-				t_list *aux2 = list_create();
-				list_add_all(aux2, pedidoConf2->platos);
 
-				// 2. Generar PCB de cada plato y dejarlo en el ciclo de planificación
-				// Obtener receta de Sindicato para saber trazabilidad al momento de ejecución
-				// El número de pedido se deberá guardar dentro del PCB
-				//crearProceso(cliente, reqConf->idPedido, list_get(pedidoConf->platos, 0));
-				// por cada plato pedir la receta y generar pcb
-				
-				// log_t_plato_list(pedidoConf2);
-				int cantDePlatos = list_size(aux2);
-				for (int i = 0; i < cantDePlatos; i++){
-					//conseguir receta de sindicato //MENSAJE OBTENER RECETA
-					char *platoActual = list_get(aux2,i);
-					crearProceso(cliente, reqConf->idPedido, platoActual);
+				if(!resultadoGral->hasError) {
+					conexionSindicato = conectarseA(SINDICATO);
+					enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf2);
+					t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
+					t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+					liberarConexion(SINDICATO);
+
+									// t_list *aux2 = list_create();
+					// list_add_all(aux2, pedidoConf2->platos);
+
+					// 2. Generar PCB de cada plato y dejarlo en el ciclo de planificación
+					// Obtener receta de Sindicato para saber trazabilidad al momento de ejecución
+					// El número de pedido se deberá guardar dentro del PCB
+					//crearProceso(cliente, reqConf->idPedido, list_get(pedidoConf->platos, 0));
+					// por cada plato pedir la receta y generar pcb
+					// void mappearPlatos(void *element){
+					// 	t_plato *platoActual = element;
+						
+					// 	crearProceso(cliente, reqConf2->idPedido,platoActual->);
+					// }
+					// list_map(pedidoConf2->platos,&mapearPlatos);
+					int cantDePlatos = list_size(pedidoConf2->platos);
+					for (int i = 0; i < cantDePlatos; i++){
+						//conseguir receta de sindicato //MENSAJE OBTENER RECETA
+						t_plato *platoActual = malloc(sizeof(t_plato));
+						// t_plato *current = list_get(pedidoConf2->platos,i);
+						platoActual = list_get(pedidoConf2->platos,i); //current->plato;
+						crearProceso(cliente, reqConf2->idPedido, platoActual->plato);
+					}
+					log_rta_ObtenerPedido(pedidoConf2,reqConf2);
+
+					//mostrarListaPlatos(pedidoConf->platos);
+
+					// 3. Informar a quien lo invocó que su pedido fue confirmado
+
+					resultadoGral->hasError = false;
+					resultadoGral->msg = "[CONFIRMAR_PEDIDO] OK";
 				}
-
-				//mostrarListaPlatos(pedidoConf->platos);
-
-				// 3. Informar a quien lo invocó que su pedido fue confirmado
-
-				t_result *resCP = malloc(sizeof(t_result));
-				resCP->hasError = false;
-				resCP->msg = "[CONFIRMAR_PEDIDO] OK";
-				enviarPaquete(socketCliente, SINDICATO, RTA_CONFIRMAR_PEDIDO, resCP);
-				free(resCP);
+					
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONFIRMAR_PEDIDO, resultadoGral);
+				free(resultadoGral);
 				break;
 			case CONSULTAR_PEDIDO:; // TODO: El model del TP incluye un restaurante, que falta agregar a nuestro t_pedido
-				t_request *reqConsultarPedido = recibirPayloadPaquete(header, socketCliente);
+				t_request *reqConsultarPedido = malloc(sizeof(t_request));
+				int idConsultPedido = recibirPayloadPaquete(header, socketCliente);
+				log_ConsultarPedido(idConsultPedido);
 				reqConsultarPedido->nombre = nombreRestaurante;
+				reqConsultarPedido->idPedido = idConsultPedido;
 				
 				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO , reqConsultarPedido);
@@ -195,13 +212,14 @@ void *planificar(void *arg) {
 	int queuePosition = (int)arg;
 	// TODO: Semáforo
 	t_queue_obj *currentCPU = list_get(queuesCocineros, queuePosition);
-	log_planif_step(currentCPU->afinidad);
+	log_planif_step(currentCPU->afinidad, NULL);
 	while (1) {
 		switch (algoritmoSeleccionado) {
 			case FIFO:
 				// Largo plazo
 				actualizarQB(currentCPU);
 				actualizarQRaQE(currentCPU);
+				ejecutarCicloIO(currentCPU);
 				
 				// Corto plazo
 				ejecutarCiclosFIFO(currentCPU);

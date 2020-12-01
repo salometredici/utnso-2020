@@ -600,6 +600,47 @@ void show_NaN_error_msg() {
 	log_error(logger, "Se ingresó un valor no numérico en algún/algunos parámetro/s");
 }
 
-void log_planif_step(char *step){
-	printf(TAB TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s]"RESET BREAK, step);
+void log_planif_step(char *step, char *desc){
+	printf(TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s] [%s]"RESET BREAK, step,desc);
+}
+
+void log_ConsultarPedido(int idPedido) {
+    printf("Consulta pedido #%d"BREAK, idPedido);
+    log_info(logger, "Consulta pedido #%d", idPedido);
+}
+
+void log_rta_ConsultarPedido(t_pedido *pedido, int idPedido) {
+	switch (pedido->estado) {
+        case CONFIRMADO:
+        case TERMINADO:
+        case FINALIZADO:
+            printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+            log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+            log_t_plato_list(pedido->platos);
+        break;
+		case REST_INEXISTENTE:
+            printf(TAB BOLDRED"[ERROR]"RESET RED" %s -  [ Pedido #%d]"RESET BREAK, REST_NO_EXISTE, pedido->restaurante, idPedido);
+            log_error(logger, "Pedido %d - %s", idPedido, REST_NO_EXISTE);
+            break;
+        case PEDIDO_INEXISTENTE:
+            printf(TAB BOLDRED"[ERROR]"RESET RED" %s - [Pedido #%d]"RESET BREAK, PEDIDO_NO_EXISTE, idPedido);
+            log_error(logger, "Pedido %d - %s", idPedido, PEDIDO_NO_EXISTE);
+            break;
+		case PENDIENTE:
+            if (list_is_empty(pedido->platos)) {
+                printf(TAB YELLOW"[WARNING]"RESET BOLD" PENDIENTE"RESET" - %s - [Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS,  idPedido);
+                log_error(logger, "Pedido %d - PENDIENTE - %s", idPedido, BLOQUES_NO_ASIGNADOS);
+            } else {
+                printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+                log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+                log_t_plato_list(pedido->platos);
+            }
+            break;
+		case SIN_PLATOS: // Revisar
+            printf(TAB YELLOW"[WARNING]"RESET" %s - [Pedido #%d]"BREAK, BLOQUES_NO_ASIGNADOS, idPedido);
+            log_error(logger, "Pedido %d - %s", idPedido, BLOQUES_NO_ASIGNADOS);
+            break;
+        default:
+            break;
+    }
 }

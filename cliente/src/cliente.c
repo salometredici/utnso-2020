@@ -319,7 +319,7 @@ void consultarPedido(int idPedido) {
 	enviarPaquete(conexion, CLIENTE, CONSULTAR_PEDIDO, idPedido);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_pedido *pedidoCons = recibirPayloadPaquete(header, conexion);
-	logConsultarPedido(pedidoCons, idPedido);
+	log_rta_ConsultarPedido(pedidoCons, idPedido);
 	free(pedidoCons);
 	free(header);
 }

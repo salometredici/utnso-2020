@@ -152,6 +152,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			break;
 		// Envío de t_pedido
 		case RTA_OBTENER_PEDIDO:
+		case RTA_CONSULTAR_PEDIDO:
 			payloadSize += getBytesPedido(stream);
 			break;
 		case ENVIAR_DATACLIENTE:
@@ -164,14 +165,13 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 		// Envío de int
 		case RTA_CREAR_PEDIDO:
 		case RTA_OBTENER_PROCESO:
+		case CONSULTAR_PEDIDO: // recibe id pedido
 			payloadSize += sizeof(int);
 			break;
 		// Envío de un sólo string
 		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
-		case CONSULTAR_PEDIDO: // recibe id pedido
 		case OBTENER_RESTAURANTE:
-		case RTA_CONSULTAR_PEDIDO:
 			payloadSize += getBytesString(stream);
 			break;
 		// Envío de un t_result
@@ -252,13 +252,12 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			break;
 		case RTA_CREAR_PEDIDO:
 		case RTA_OBTENER_PROCESO:
+		case CONSULTAR_PEDIDO: // recibe id pedido
 			buffer = srlzInt(stream);
 			break;
 		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
-		case CONSULTAR_PEDIDO:
 		case OBTENER_RESTAURANTE:
-		case RTA_CONSULTAR_PEDIDO:
 			buffer = srlzString(stream);
 			break;
 		case RTA_PLATO_LISTO:
@@ -275,6 +274,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 			buffer = srlzMd(stream);
 			break;
 		case RTA_OBTENER_PEDIDO:
+		case RTA_CONSULTAR_PEDIDO:
 			buffer = srlzPedido(stream);
 			break;
 		case PLATO_LISTO:
@@ -1100,13 +1100,12 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 	switch (header->codigoOperacion) {
 		case RTA_CREAR_PEDIDO:
 		case RTA_OBTENER_PROCESO:
+		case CONSULTAR_PEDIDO: // recibe id pedido
 			buffer = dsrlzInt(buffer);
 			break;
 		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
-		case CONSULTAR_PEDIDO: // recibe id pedido
 		case OBTENER_RESTAURANTE:
-		case RTA_CONSULTAR_PEDIDO:
 			buffer = dsrlzString(buffer, size);
 			break;
 		case RTA_PLATO_LISTO:
@@ -1123,6 +1122,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 			buffer = dsrlzMd(buffer, size);			
 			break;
 		case RTA_OBTENER_PEDIDO:
+		case RTA_CONSULTAR_PEDIDO:
 			buffer = dsrlzPedido(buffer, size);
 			break;
 		case SELECCIONAR_RESTAURANTE:

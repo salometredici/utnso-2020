@@ -141,7 +141,7 @@ void mostrarListaPlatos(t_list *listaPlatos) {
 		printf("\tCantidad lista: %d\n", platoActual->cantidadLista);
 		// log_info(logger, "Plato %d: [%s], $%d, Pedido: %d, Listo: %d", i, platoActual->plato, platoActual->precio, platoActual->cantidadPedida, platoActual->cantidadLista);
 		log_info(logger, "Plato %d: [%s], Pedido: %d, Listo: %d", i, platoActual->plato, platoActual->cantidadPedida, platoActual->cantidadLista);
-		free(platoActual);
+		//free(platoActual);
 	}
 }
 

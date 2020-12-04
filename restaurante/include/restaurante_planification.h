@@ -7,7 +7,6 @@
 #include "../include/restaurante_init.h"
 #include "tests.h"
 
-// pthread_mutex_t mutexQB;
 pthread_mutex_t mutexQF;
 
 t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta);
@@ -16,6 +15,7 @@ void ejecutarCiclosFIFO();
 void ejecutarCiclosRR();
 
 void ejecutarCicloIO();
+void ejecutarCicloIORR();
 
 // void actualizarQE();
 void actualizarQRaQE(t_queue_obj *currentCPU);

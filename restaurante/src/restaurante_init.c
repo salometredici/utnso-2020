@@ -48,6 +48,7 @@ int getTiempoRetardoCpu() {
 }
 
 void obtenerMetadata() {
+	int conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
@@ -55,6 +56,7 @@ void obtenerMetadata() {
 	logMetadata(md);
 	free(header);
 	free(md);
+	//liberarConexion(SINDICATO);
 }
 
 void inicializarVariablesMd(t_md *md) {
@@ -128,9 +130,15 @@ void inicializarListaCocineros()
 		t_queue *qE = queue_create(); cpuActual->qE = qE;
 		t_queue *qB = queue_create(); cpuActual->qB = qB;
 
-		pthread_mutex_t mutexQR; cpuActual->mutexQR = mutexQR;
-		pthread_mutex_t mutexQE; cpuActual->mutexQE = mutexQE;
-		pthread_mutex_t mutexQB; cpuActual->mutexQB = mutexQB;
+		pthread_mutex_t mutexQR; 
+		pthread_mutex_init(&mutexQR, NULL);
+		cpuActual->mutexQR = mutexQR;
+		pthread_mutex_t mutexQE; 
+		pthread_mutex_init(&mutexQE, NULL);
+		cpuActual->mutexQE = mutexQE;
+		pthread_mutex_t mutexQB; 
+		pthread_mutex_init(&mutexQB, NULL);
+		cpuActual->mutexQB = mutexQB;
 
 		list_add(queuesCocineros, cpuActual);
 	}
@@ -154,10 +162,13 @@ void inicializarVariablesGlobales() {
 }
 
 void initRestaurante() {
-	conexionSindicato = conectarseA(SINDICATO);
+	//int conexionSindicato = conectarseA(SINDICATO);
 	inicializarVariablesGlobales();
 	obtenerMetadata();
 	inicializarQueuesGlobales();
 	inicializarListaCocineros();
 	inicializarQueuesIO();
+	// pthread_mutex_init(&mutexEjecutaIO, NULL);
+	// pthread_mutex_init(&mutexEsperaIO, NULL);
+	// pthread_mutex_init(&mutexQPedidos, NULL);
 }

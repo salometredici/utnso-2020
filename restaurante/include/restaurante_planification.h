@@ -7,6 +7,7 @@
 #include "../include/restaurante_init.h"
 #include "tests.h"
 
+// pthread_mutex_t mutexQB;
 pthread_mutex_t mutexQF;
 
 t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta);

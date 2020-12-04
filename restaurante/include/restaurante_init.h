@@ -8,7 +8,7 @@
 #include <math.h>
 
 int socketServidor;
-// int conexionSindicato;
+int conexionSindicato;
 char *nombreRestaurante;
 
 pthread_t threadConexiones;

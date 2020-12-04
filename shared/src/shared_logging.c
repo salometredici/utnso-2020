@@ -606,7 +606,7 @@ void show_NaN_error_msg() {
 }
 
 void log_planif_step(char *step, char *desc){
-	printf(TAB TAB TAB MAGENTA"[Planif] - "BOLD"%s %s"RESET BREAK, step,desc);
+	printf(TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s] [%s]"RESET BREAK, step,desc);
 }
 
 void log_ConsultarPedido(int idPedido) {

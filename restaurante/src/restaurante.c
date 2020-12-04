@@ -212,14 +212,14 @@ void *planificar(void *arg) {
 	int queuePosition = (int)arg;
 	// TODO: Semáforo
 	t_queue_obj *currentCPU = list_get(queuesCocineros, queuePosition);
-	log_planif_step(currentCPU->afinidad, NULL);
+	log_planif_step("Hilo para:", currentCPU->afinidad);
 	while (1) {
 		switch (algoritmoSeleccionado) {
 			case FIFO:
 				// Largo plazo
 				actualizarQB(currentCPU);
 				actualizarQRaQE(currentCPU);
-				ejecutarCicloIO();
+				ejecutarCicloIO(currentCPU);
 				
 				// Corto plazo
 				ejecutarCiclosFIFO(currentCPU);
@@ -228,7 +228,7 @@ void *planificar(void *arg) {
 				// Largo plazo //se pueden reutilizar??
 				actualizarQB(currentCPU);
 				actualizarQRaQE(currentCPU);		
-				ejecutarCicloIORR();
+				ejecutarCicloIO(currentCPU);
 
 				// Corto plazo
 				ejecutarCiclosRR(currentCPU);

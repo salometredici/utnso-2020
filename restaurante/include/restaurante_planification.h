@@ -15,8 +15,7 @@ t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta);
 void ejecutarCiclosFIFO();
 void ejecutarCiclosRR();
 
-void ejecutarCicloIO();
-void ejecutarCicloIORR();
+void ejecutarCicloIO(t_queue_obj *currentCPU);
 
 // void actualizarQE();
 void actualizarQRaQE(t_queue_obj *currentCPU);

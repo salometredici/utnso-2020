@@ -336,9 +336,12 @@ char *get_full_blocks_content(int total_size, int fst_block_number) {
 			curr_block_size = remaining_bytes < maxContentSize ? remaining_bytes : maxContentSize;
 
 			free(curr_block_path);
-			free(aux);
 			free(next_block);
+			free(aux);
 			fclose(fp);
+		} else {
+			free(curr_block_path);
+			free(aux);
 		}
 	}
 	return full_content;

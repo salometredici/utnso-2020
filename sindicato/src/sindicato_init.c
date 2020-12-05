@@ -98,6 +98,7 @@ void init_blocks() {
 			string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
 			FILE *fp = fopen(fullPath, "w");
 			fclose(fp);
+			//free(fullPath);
 		}
 	}
 }

@@ -52,7 +52,7 @@ t_list *afinidadesUnicas;
 
 t_list *queuesCocineros;
 t_queue *qF;
-
+pthread_mutex_t mutexQF;
 
 typedef struct {
     char *afinidad;

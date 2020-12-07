@@ -18,16 +18,16 @@ t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta) {
     return pcb;
 }
 
-void agregarQueue(int opcion, t_proceso *pcb) {
+void aReadyPorAfinidad(t_proceso *pcb) {
 	bool correspondeAfinidad(void *element){
 		t_queue_obj *actual = element;
 		return string_equals_ignore_case(actual->afinidad, pcb->plato);
 	};
 	t_queue_obj *encontrado = list_find(queuesCocineros, &correspondeAfinidad);
 	if(encontrado != NULL){
-		pthread_mutex_lock(opcion ? &encontrado->mutexQR : &encontrado->mutexQE);
-			queue_push(opcion ? encontrado->qR : encontrado->qE, pcb); 
-		pthread_mutex_unlock(opcion ? &encontrado->mutexQR : &encontrado->mutexQE);
+		pthread_mutex_lock(&encontrado->mutexQR);
+			queue_push(encontrado->qR, pcb); 
+		pthread_mutex_unlock(&encontrado->mutexQR);
 		log_planif_step("agregado a Queue", encontrado->afinidad);
 	} else {
 		bool esGeneral(void *element){
@@ -35,12 +35,13 @@ void agregarQueue(int opcion, t_proceso *pcb) {
 			return string_equals_ignore_case(actual->afinidad, "General");
 		};
 		t_queue_obj *general = list_find(queuesCocineros, &esGeneral);
-		pthread_mutex_lock(opcion ? &general->mutexQR : &general->mutexQE);
-			queue_push(opcion ? general->qR : general->qE, pcb);
-		pthread_mutex_unlock(opcion ? &general->mutexQR : &general->mutexQE);
+		pthread_mutex_lock(&general->mutexQR);
+			queue_push(general->qR, pcb);
+		pthread_mutex_unlock(&general->mutexQR);
 		log_planif_step("agregado a Queue", "GENERAL");
 	} 
 }
+
 
 
 /* Planificación */
@@ -90,13 +91,15 @@ void actualizarQB(t_queue_obj *currentCPU) {
 }
 
 void actualizarQRaQE(t_queue_obj *currentCPU) {
+		pthread_mutex_lock(&currentCPU->mutexQR);
+	
 	if (!queue_is_empty(currentCPU->qR))  {
 		if(queue_size(currentCPU->qE) < currentCPU->instanciasTotales) {
 			int disponibles = currentCPU->instanciasTotales - queue_size(currentCPU->qE);
 			for(int i = 0; i < disponibles; i++) {
-				pthread_mutex_lock(&currentCPU->mutexQR);
+				//pthread_mutex_lock(&currentCPU->mutexQR);
 				t_proceso *sigARevisar = queue_pop(currentCPU->qR); // Lo sacamos de la cola de ready
-				pthread_mutex_unlock(&currentCPU->mutexQR);
+				//pthread_mutex_unlock(&currentCPU->mutexQR);
 				
 				pthread_mutex_lock(&currentCPU->mutexQE);
 				queue_push(currentCPU->qE,sigARevisar);
@@ -104,6 +107,7 @@ void actualizarQRaQE(t_queue_obj *currentCPU) {
 			}
 		}
 	}
+		pthread_mutex_unlock(&currentCPU->mutexQR);
 }
 
 void ejecutarCicloIO(t_queue_obj *currentCPU) {
@@ -127,7 +131,7 @@ void ejecutarCicloIO(t_queue_obj *currentCPU) {
 					pthread_mutex_unlock(&currentCPU->mutexQB);
 				} else{
 					log_planif_step("de IO", "A READY");
-					agregarQueue(1, sigARevisar); //agrego a ready slds
+					aReadyPorAfinidad(sigARevisar); //agrego a ready slds
 				}
 			} else {
 				sigARevisar->qEjecutada++;
@@ -187,7 +191,7 @@ void ejecutarFinalizar(t_proceso *currentProc){
 }
 
 void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
-	pthread_mutex_lock(&currentCPU->mutexQE);
+	// pthread_mutex_lock(&currentCPU->mutexQE);
 	t_proceso *currentProc = queue_pop(currentCPU->qE);
 	
 	while (currentProc != NULL) {
@@ -222,14 +226,18 @@ void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
 					currentProc->instruccionActual = pasoSig->paso;
 					currentProc->qInstruccionActual = pasoSig->qPaso;
 					currentProc->qEjecutada = 0;
-
+					
+					pthread_mutex_lock(&currentCPU->mutexQE);
 					queue_push(currentCPU->qE, currentProc);
+					pthread_mutex_unlock(&currentCPU->mutexQE);
 				}
 			} else {
 				ejecutarFinalizar(currentProc);
 			}
 		} else {
+			pthread_mutex_lock(&currentCPU->mutexQE);
 			queue_push(currentCPU->qE,currentProc);
+			pthread_mutex_unlock(&currentCPU->mutexQE);
 		}
 		
 		ejecutarCicloIO(currentCPU);
@@ -237,7 +245,8 @@ void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
 		if(queue_size(currentCPU->qB)) {
 			actualizarEsperaQB(currentCPU);
 		}
-		
+
+		pthread_mutex_lock(&currentCPU->mutexQE);
 		currentProc = queue_pop(currentCPU->qE); // Continúa el ciclo con el siguiente PCB
 		pthread_mutex_unlock(&currentCPU->mutexQE);
 		sleep(tiempoRetardoCpu);

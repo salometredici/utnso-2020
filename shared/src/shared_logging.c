@@ -107,7 +107,7 @@ void logListaRecetas(t_list *listaRecetas) {
 	int cantidadRecetas = list_size(listaRecetas);
 	for (int i = 0; i < cantidadRecetas; i++) {
 		t_md_receta *recetaActual = list_get(listaRecetas, i);
-		printf(TAB BOLD"[Receta #%d]"RESET BREAK);
+		printf(TAB BOLD"[Receta #%d]"RESET BREAK, i);
 		printf(TAB"Plato: "BOLD"[%s]"RESET BREAK, recetaActual->plato);
 		printf(TAB"Precio: "BOLD"$%d"RESET BREAK, recetaActual->precio);
 		log_info(logger, "Receta [%d] - Plato: [%s], Precio: $%d", i, recetaActual->plato, recetaActual->precio);
@@ -606,7 +606,8 @@ void show_NaN_error_msg() {
 }
 
 void log_planif_step(char *step, char *desc){
-	printf(TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s] [%s]"RESET BREAK, step,desc);
+	printf(TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s] [%s]"RESET BREAK, step, desc);
+    log_info(logger, "                        [PLANIF] - [%s] [%s]", step, desc);
 }
 
 void log_ConsultarPedido(int idPedido) {

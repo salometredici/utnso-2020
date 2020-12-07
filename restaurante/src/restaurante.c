@@ -45,7 +45,7 @@ void crearProceso(t_cliente *cliente, int idPedido, char *plato){
 
 	t_proceso *proceso = crearPcb(cliente, idPedido, receta);
 
-	agregarQueue(1, proceso); // agregar a queue de ready 
+	aReadyPorAfinidad(proceso); // agregar a queue de ready 
 }
 
 void *atenderConexiones(void *conexionNueva)
@@ -101,7 +101,11 @@ void *atenderConexiones(void *conexionNueva)
 				t_result *reqRtaGuardarPedido = recibirPayloadPaquete(hrRtaGuardarPedido, conexionSindicato);
 				liberarConexion(conexionSindicato);
 				//ta mal handleado fijarse si hay error pls tarada
-				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, cantidadPedidos);
+				
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, reqRtaGuardarPedido->hasError? ERROR : cantidadPedidos);
+				// free(hrRtaGuardarPedido);
+				// free(reqRtaGuardarPedido);
+				// free(reqcrearPedido);
 				break;
 			case ANIADIR_PLATO:;
 				// tiene que tener un plato y un id pedido
@@ -145,21 +149,7 @@ void *atenderConexiones(void *conexionNueva)
 					t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
 					t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
 					liberarConexion(SINDICATO);
-
-									// t_list *aux2 = list_create();
-					// list_add_all(aux2, pedidoConf2->platos);
-
-					// 2. Generar PCB de cada plato y dejarlo en el ciclo de planificación
-					// Obtener receta de Sindicato para saber trazabilidad al momento de ejecución
-					// El número de pedido se deberá guardar dentro del PCB
-					//crearProceso(cliente, reqConf->idPedido, list_get(pedidoConf->platos, 0));
-					// por cada plato pedir la receta y generar pcb
-					// void mappearPlatos(void *element){
-					// 	t_plato *platoActual = element;
-						
-					// 	crearProceso(cliente, reqConf2->idPedido,platoActual->);
-					// }
-					// list_map(pedidoConf2->platos,&mapearPlatos);
+					
 					int cantDePlatos = list_size(pedidoConf2->platos);
 					for (int i = 0; i < cantDePlatos; i++){
 						//conseguir receta de sindicato //MENSAJE OBTENER RECETA
@@ -170,14 +160,11 @@ void *atenderConexiones(void *conexionNueva)
 					}
 					log_rta_ObtenerPedido(pedidoConf2,reqConf2);
 
-					//mostrarListaPlatos(pedidoConf->platos);
-
-					// 3. Informar a quien lo invocó que su pedido fue confirmado
-
 					resultadoGral->hasError = false;
 					resultadoGral->msg = "[CONFIRMAR_PEDIDO] OK";
 				}
 					
+				// 3. Informar a quien lo invocó que su pedido fue confirmado
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONFIRMAR_PEDIDO, resultadoGral);
 				free(resultadoGral);
 				break;
@@ -212,7 +199,7 @@ void *planificar(void *arg) {
 	int queuePosition = (int)arg;
 	// TODO: Semáforo
 	t_queue_obj *currentCPU = list_get(queuesCocineros, queuePosition);
-	log_planif_step("Hilo para:", currentCPU->afinidad);
+	log_planif_step("Hilo afinidad", currentCPU->afinidad);
 	while (1) {
 		switch (algoritmoSeleccionado) {
 			case FIFO:

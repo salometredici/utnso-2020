@@ -194,6 +194,25 @@ t_result* _confirmar_pedido(t_request *request){
 
 	pedido->estado = CONFIRMADO;
 	t_result* result = getTResult("[CONFIRMAR_PEDIDO] Ok.", false);
+	
+	if(string_equals_ignore_case(request->nombre, REST_DEFAULT)){
+		t_list* platos = find_frames(pedido);
+
+		for(int i = 0; i < list_size(platos); i++){
+			t_frame* frame = list_get(platos, i);
+			
+			t_plato_listo* request_pl = getTPlatoListo(request->nombre, request->idPedido, frame->comida);
+			t_result* result = _plato_listo(request_pl);
+			
+			if(result->hasError){
+				t_result *result = getTResult(result->msg, true);
+				return result;
+			}
+
+			free_t_req_plato(request_pl);
+			free_t_result(result);
+		}
+	}
 	return result;
 }
 

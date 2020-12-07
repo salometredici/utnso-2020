@@ -344,8 +344,6 @@ t_list* find_frames(t_pedidoc *pedido){
 	int size = list_size(pedido->pages);
 	for(int i = 0; i < size; i++){
 		t_page *page = list_get(pedido->pages, i);
-
-		//t_frame* frame = malloc(sizeof(t_frame));
 		t_frame* frame = find_frame_in_memory(page);
 		list_add(platos, frame);
 	}

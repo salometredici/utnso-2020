@@ -201,16 +201,18 @@ t_result* _confirmar_pedido(t_request *request){
 		for(int i = 0; i < list_size(platos); i++){
 			t_frame* frame = list_get(platos, i);
 			
-			t_plato_listo* request_pl = getTPlatoListo(request->nombre, request->idPedido, frame->comida);
-			t_result* result = _plato_listo(request_pl);
+			for(int j = 0; j < frame->cantidad_pedida; j++){
+				t_plato_listo* request_pl = getTPlatoListo(request->nombre, request->idPedido, frame->comida);
+				t_result* result = _plato_listo(request_pl);
 			
-			if(result->hasError){
-				t_result *result = getTResult(result->msg, true);
-				return result;
-			}
+				if(result->hasError){
+					t_result *result = getTResult(result->msg, true);
+					return result;
+				}
 
-			free_t_req_plato(request_pl);
-			free_t_result(result);
+				free(request_pl);
+				free_t_result(result);
+			}
 		}
 	}
 	return result;

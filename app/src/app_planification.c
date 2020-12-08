@@ -78,7 +78,7 @@ bool platos_completos(t_list *platos_pedido) {
 }
 
 bool todos_platos_listos(t_pcb *pcb) {
-	log_checking_all_platos_listos(algoritmo, pcb->pid);
+	log_checking_all_platos_listos(pcb->pid);
 
 	if (string_equals_ignore_case(pcb->restaurante, rest_default)) {
 		return true;
@@ -93,7 +93,7 @@ bool todos_platos_listos(t_pcb *pcb) {
 }
 
 void informar_pedido_finalizado(t_pcb *pcb) {
-	log_app_FinalizarPedido(algoritmo, pcb->pid);
+	log_app_FinalizarPedido(pcb->pid);
 	int conexionComanda = conectarseA(COMANDA);
 	t_request *request = getTRequest(pcb->pid, pcb->restaurante);
 	enviarPaquete(conexionComanda, APP, FINALIZAR_PEDIDO, request);
@@ -107,7 +107,7 @@ void informar_pedido_finalizado(t_pcb *pcb) {
 }
 
 void informar_entrega_cliente(t_pcb *pcb) { // Revisar porque hay que dejar un socket de escucha en el cliente
-	log_app_entrega_a_cliente(algoritmo, pcb->pid, pcb->idCliente);
+	log_app_entrega_a_cliente(pcb->pid, pcb->idCliente);
 	t_request *request = getTRequest(pcb->pid, pcb->restaurante);
 	enviarPaquete(pcb->socketCliente, APP, FINALIZAR_PEDIDO, request);
 	t_header *header = recibirHeaderPaquete(conexionComanda);
@@ -148,7 +148,7 @@ t_posicion *get_next_step(t_posicion *posRepartidor, t_posicion *posObjetivo) {
 void update_posicion(t_pcb *current_pcb, tour_code code) {
 	current_pcb->qRecorrido++;
 	t_posicion *next_pos = malloc(sizeof(t_posicion));
-	log_app_repartidor_en_camino(algoritmo, current_pcb->pid, code);
+	log_app_repartidor_en_camino(current_pcb->pid, code);
 	switch (code) {
 		case HACIA_CLIENTE:
 			next_pos = get_next_step(current_pcb->repartidor->posRepartidor, current_pcb->posCliente);
@@ -157,7 +157,7 @@ void update_posicion(t_pcb *current_pcb, tour_code code) {
 			next_pos = get_next_step(current_pcb->repartidor->posRepartidor, current_pcb->posRest);
 			break;
 	}
-	log_app_traslado_repartidor(algoritmo, current_pcb->pid,
+	log_app_traslado_repartidor(current_pcb->pid,
 								current_pcb->repartidor->posRepartidor->posX,
 								current_pcb->repartidor->posRepartidor->posY,
 								next_pos->posX, next_pos->posY);
@@ -172,7 +172,7 @@ void liberar_repartidor(t_repartidor *repartidor) {
 	pthread_mutex_unlock(&mutexListaOcupados);
 	pthread_mutex_lock(&mutexListaDisponibles);
 	list_add(repartidores_disp, repartidor);
-	log_app_repartidor_libre(algoritmo, repartidor->idRepartidor, list_size(repartidores_disp));
+	log_app_repartidor_libre(repartidor->idRepartidor, list_size(repartidores_disp));
 	pthread_mutex_unlock(&mutexListaDisponibles);
 }
 
@@ -201,17 +201,17 @@ t_pcb *crear_pcb(t_cliente *cliente, int idPedido) {
 }
 
 void agregar_a_QN(t_pcb *pcb) {
-	log_app_adding_to_new(algoritmo, pcb->pid);
+	log_app_adding_to_new(pcb->pid);
 	pthread_mutex_lock(&mutexQN);
 	queue_push(qN, pcb);
-	log_app_added_to_new(algoritmo, pcb->pid);
+	log_app_added_to_new(pcb->pid);
 	pthread_mutex_unlock(&mutexQN);
 }
 
 void update_QR_con_QN() {
 	// Mientras haya repartidores disponibles y PCBs en NEW, los asigna y añade a READY
 	while (!list_is_empty(repartidores_disp) && !queue_is_empty(qN)) {
-		log_app_asignando_repartidores(algoritmo, list_size(repartidores_disp), grado_multiprocesamiento - queue_size(qE));
+		log_app_asignando_repartidores(list_size(repartidores_disp), grado_multiprocesamiento - queue_size(qE));
 
 		pthread_mutex_lock(&mutexQN);
 		t_pcb *next_in_line = queue_pop(qN);
@@ -219,12 +219,12 @@ void update_QR_con_QN() {
 		pthread_mutex_unlock(&mutexQN);
 		
 		next_in_line->repartidor = getRepartidorMasCercano(next_in_line->posRest);
-		log_app_repartidor_asignado(algoritmo, next_in_line->repartidor->idRepartidor, next_in_line->pid);
+		log_app_repartidor_asignado(next_in_line->repartidor->idRepartidor, next_in_line->pid);
 		next_in_line->estado = ESPERANDO_EJECUCION;
 
 		pthread_mutex_lock(&mutexQR);
 		queue_push(qR, next_in_line);
-		log_app_added_to_ready(algoritmo, next_in_line->pid);
+		log_app_added_to_ready(next_in_line->pid);
 		pthread_mutex_unlock(&mutexQR);
 	}
 }
@@ -237,12 +237,12 @@ void update_QR_con_QB() {
 		t_pcb *current = queue_pop(qB);
 		pthread_mutex_unlock(&mutexQB);
 		if (current->estado == REPARTIDOR_DESCANSANDO && repartidor_descansado(current)) {
-			log_app_pcb_rest_end(algoritmo, current->pid, current->qDescansado);
+			log_app_pcb_rest_end(current->pid, current->qDescansado);
 			current->estado = ESPERANDO_EJECUCION;
 			current->qDescansado = 0;
 			pthread_mutex_lock(&mutexQR);
 			queue_push(qR, current);
-			log_app_blocked_to_ready(algoritmo, current->pid);
+			log_app_blocked_to_ready(current->pid);
 			pthread_mutex_unlock(&mutexQR);
 		} else {
 			pthread_mutex_lock(&mutexQB);
@@ -284,7 +284,7 @@ void desbloquear_PCB(int idPedido) {
 	
 	pthread_mutex_lock(&mutexQR);
 	queue_push(qR, pcb_a_desbloquear);
-	log_app_blocked_to_ready(algoritmo, pcb_a_desbloquear->pid);
+	log_app_blocked_to_ready(pcb_a_desbloquear->pid);
 	pthread_mutex_unlock(&mutexQR);
 
 	free(pcb_a_desbloquear);
@@ -441,33 +441,33 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			// 1. Si debe descansar, pasa a BLOQUEADO
 			pasar_a_QB(current_pcb, REPARTIDOR_DESCANSANDO);
 			if (algoritmoSeleccionado == SJF) { update_estimacion(current_pcb); }
-			log_app_repartidor_cansado(algoritmo, current_pcb->pid);
+			log_app_repartidor_cansado(current_pcb->pid);
 			get_next_pcb = true;
 
 		} else if (current_pcb->estado == EN_CAMINO_A_RESTAURANTE && llego_al_rest(current_pcb)) {
 			
 			// 2. Si llegó al restaurante y tiene todos los platos listos, sigue hacia el cliente, sino, a BLOQUEADO
-			log_app_pcb_llego_al_rest(algoritmo, current_pcb->pid);
+			log_app_pcb_llego_al_rest(current_pcb->pid);
 			if (todos_platos_listos(current_pcb)) {
 				current_pcb->estado = EN_CAMINO_A_CLIENTE;
 				current_pcb->alcanzoRestaurante = true;
-				log_app_continua_hacia_cliente(algoritmo, current_pcb->pid);
+				log_app_continua_hacia_cliente(current_pcb->pid);
 				//queue_push(qE, current_pcb);
 			} else {
 				pasar_a_QB(current_pcb, ESPERANDO_PLATO);
 				if (algoritmoSeleccionado == SJF) { update_estimacion(current_pcb); }
-				log_app_platos_pendientes(algoritmo, current_pcb->pid);
+				log_app_platos_pendientes(current_pcb->pid);
 				get_next_pcb = true;				
 			}
 
 		} else if (current_pcb->estado == EN_CAMINO_A_CLIENTE && llego_al_cliente(current_pcb)) {
 
 			// 3. Si llegó al cliente, se da por concluido el pedido
-			log_app_pcb_llego_al_cliente(algoritmo, current_pcb->pid, current_pcb->idCliente);
+			log_app_pcb_llego_al_cliente(current_pcb->pid, current_pcb->idCliente);
 			informar_pedido_finalizado(current_pcb);
 			//informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
 			if (algoritmoSeleccionado == SJF) update_estimacion(current_pcb);
-			log_app_pcb_entregado_al_cliente(algoritmo, current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
+			log_app_pcb_entregado_al_cliente(current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
 			queue_push(current_pcb, qF);
 			liberar_repartidor(current_pcb);
 			get_next_pcb = true;			

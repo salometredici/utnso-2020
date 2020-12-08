@@ -74,6 +74,7 @@ void *atenderConexiones(void *conexionNueva)
 					result_selecc_rest = getTResult(REST_NO_CONECTADO, true);
 				} else {
 					bind_client_to_rest(cliente, seleccion->restSelecc);
+					log_SeleccionarRestaurante(seleccion);
 					result_selecc_rest = getTResult(REST_ASOCIADO, false);
 				}
 				enviarPaquete(socketCliente, APP, RTA_SELECCIONAR_RESTAURANTE, result_selecc_rest);

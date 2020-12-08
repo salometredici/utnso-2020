@@ -16,15 +16,6 @@ void log_lista_strings(t_list *lista_strings) {
 	}
 }
 
-/* APP */
-
-void logClientInfo(t_cliente *cliente) {
-	printf(TAB"Cliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s" BREAK, cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	printf(TAB"[Posición en el mapa]: [%d,%d]"BREAK, cliente->posCliente->posX, cliente->posCliente->posY);
-	log_info(logger, TAB"Cliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	log_info(logger, TAB"[Posición en el mapa]: [%d,%d]", cliente->posCliente->posX, cliente->posCliente->posY);
-}
-
 void logRtaConsultarPlatos(t_list *platosEnviados) {
 	printf("Platos enviados:"BREAK);
 	log_info(logger, "Platos enviados:");
@@ -83,6 +74,11 @@ void logClientDisconnection(int socketCliente) {
 void logNewClientConnection(int socket) {
 	printf(BOLDGREEN"Nuevo hilo para atender al cliente "RESET BOLDBLUE"%d"RESET BREAK, socket);
 	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
+}
+
+void log_TCliente_disconnection(t_cliente *cliente) {
+	printf(BOLDRED"El cliente "RESET BOLD"[Socket #%d - %s]"RESET BOLDRED" se desconectó"RESET BREAK, cliente->socketCliente, cliente->idCliente);
+	log_debug(logger, "El cliente [Socket #%d - %s] se desconectó", cliente->socketCliente, cliente->idCliente);
 }
 
 void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket) {
@@ -171,11 +167,6 @@ void logMetadata(t_md *md) { // ahora log_rta_obtenerrestaurante
 	mostrarListaStrings(md->afinidades);
 	printf(TAB BOLD"Recetas:"RESET BREAK);
 	logListaRecetas(md->platos);
-}
-
-void logSeleccionarRestaurante(t_selecc_rest *seleccion) {
-	printf("Se ha asociado al cliente "BOLD"%s"RESET" con el restaurante "BOLDMAGENTA"%s"RESET BREAK, seleccion->idCliente, seleccion->restauranteSeleccionado);
-	log_info(logger, "Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restauranteSeleccionado);
 }
 
 /* Lista de t_plato */
@@ -407,8 +398,8 @@ void log_app_FinalizarPedido(int pid) {
 }
 
 void log_app_entrega_a_cliente(int pid, char *cliente) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] al cliente "BOLD"%s"RESET"..."BREAK, pid, idCliente);
-	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] al cliente %s...", pid, idCliente);
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] al cliente "BOLD"%s"RESET"..."BREAK, pid, cliente);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] al cliente %s...", pid, cliente);
 }
 
 /* HRRN */
@@ -437,6 +428,15 @@ void log_app_next_pcb_SJF() {
 
 /* Mensajes */
 
+// ENVIAR_DATACLIENTE
+
+void log_rta_EnviarDataCliente(t_cliente *cliente) {
+	printf(TAB"Cliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s" BREAK, cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
+	printf(TAB"[Posición en el mapa]: [%d,%d]"BREAK, cliente->posCliente->posX, cliente->posCliente->posY);
+	log_info(logger, TAB"Cliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
+	log_info(logger, TAB"[Posición en el mapa]: [%d,%d]", cliente->posCliente->posX, cliente->posCliente->posY);
+}
+
 // TERMINAR_PEDIDO
 
 void log_TerminarPedido(t_request *request, m_code codigo_operacion) {
@@ -455,6 +455,13 @@ void log_ConfirmarPedido(t_request *request, m_code codigo_operacion) {
 
 void log_rta_ConfirmarPedido(t_result *result) {
 	logTResult(result);
+}
+
+// SELECCIONAR_RESTAURANTE
+
+void log_SeleccionarRestaurante(t_selecc_rest *seleccion) {
+	printf("Se ha asociado al cliente "BOLD"%s"RESET" con el restaurante "BOLDMAGENTA"%s"RESET BREAK, seleccion->idCliente, seleccion->restSelecc);
+	log_info(logger, "Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restSelecc);
 }
 
 // OBTENER_PEDIDO
@@ -555,6 +562,17 @@ void log_rta_ObtenerRestaurante(t_md *md) {
 }
 
 // CONSULTAR_PLATOS
+
+void log_ConsultarPlatos_default(t_list *platos_rest_default) {
+	printf("No hay restaurantes conectados, se enviará el "BOLDMAGENTA"RestauranteDefault"RESET"..."BREAK);
+	log_info(logger, "No hay restaurantes conectados, se enviará el RestauranteDefault...");
+	log_rta_ConsultarPlatos(platos_rest_default);
+}
+
+void log_ConsultarPlatos_a_rest(char *rest) {
+	printf("Consultando los platos del restaurante "BOLDMAGENTA"%s"RESET"..."BREAK, rest);
+	log_info(logger, "Consultando los platos del restaurante %s...", rest);
+}
 
 void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 	printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, restaurante);
@@ -766,9 +784,24 @@ void log_CrearReceta_Data(char **params) {
 
 // CREAR_PEDIDO
 
+void log_CrearPedido_app(char *idCliente, char *rest) {
+	printf("Solicitando un nuevo idPedido para el cliente "BOLD"%s"RESET" al RESTAURANTE "BOLDMAGENTA"%s"RESET"..."BREAK, idCliente, rest);
+	log_info(logger, "Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE %s...", idCliente, rest);				
+}
+
 void log_CrearPedido_Data(t_request *request) {
 	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s"BREAK, request->idPedido, request->nombre);
 	log_info(logger, "Creando el archivo Pedido%d.AFIP para el restaurante %s", request->idPedido, request->nombre);
+}
+
+void log_rta_CrearPedido(int new_id_pedido) {
+	if (new_id_pedido == ERROR) {
+		printf(BOLDRED"[ERROR]"RESET RED" No fue posible obtener un número de pedido nuevo"RESET BREAK);
+		log_error(logger, "No fue posible obtener un número de pedido nuevo");
+	} else {	
+		printf("Se ha creado el pedido #%d"BREAK, new_id_pedido);
+		log_info(logger, "Se ha creado el pedido #%d", new_id_pedido);
+	}
 }
 
 // INICIAR PEDIDO

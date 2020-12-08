@@ -108,5 +108,7 @@ void print_pages_in_memory();
 t_frame* get_frame_from_swap(int frame_swap);
 void clear_bitmap(t_bitarray* bitmap, int bits);
 int find_victim_and_bring_it_to_mp(t_page* page);
+t_page* find_victim_clock();
+t_page* find_victim_lru();
 
 #endif

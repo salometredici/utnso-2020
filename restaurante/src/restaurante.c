@@ -156,7 +156,7 @@ void *atenderConexiones(void *conexionNueva)
 						t_plato *platoActual = malloc(sizeof(t_plato));
 						// t_plato *current = list_get(pedidoConf2->platos,i);
 						platoActual = list_get(pedidoConf2->platos,i); //current->plato;
-						crearProceso(cliente, reqConf2->idPedido, platoActual->plato);
+						crearProceso(socketCliente, reqConf2->idPedido, platoActual->plato);
 					}
 					log_rta_ObtenerPedido(pedidoConf2,reqConf2);
 

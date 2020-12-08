@@ -1,10 +1,11 @@
 #include "../include/restaurante_planification.h"
 
 // PCB
-t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta) {
+t_proceso *crearPcb(int socketCliente, int idPedido, t_receta *receta) {
     t_proceso *pcb = malloc(sizeof(t_proceso));
     pcb->pid = idPedido;
-    //pcb->idCliente = cliente->idCliente;
+    // pcb->idCliente = cliente->idCliente; //creo que no me llega
+	pcb->socketCliente = socketCliente;
     pcb->estado = ESPERANDO_EJECUCION;
 	pcb->plato= receta->plato;
 	pcb->pasosReceta=receta->instrucciones;
@@ -187,7 +188,36 @@ void ejecutarFinalizar(t_proceso *currentProc){
 	t_header *hrRtaPlatoListo = recibirHeaderPaquete(conexionSindicato);
 	t_result *reqRtaPlatoListo = recibirPayloadPaquete(hrRtaPlatoListo, conexionSindicato);
 
-	//todo avisar al modulo q solicito
+	//avisar al modulo q solicito
+	// si es un cliente no funciona ndea ver dsps
+	// enviarPaquete(currentProc->socketCliente, RESTAURANTE, PLATO_LISTO, platoListo);
+	// t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketCliente);
+	// t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketCliente);
+	
+	//revisar que el pedido haya terminado
+	//consultar si puedo volver a usar mismo socket 
+	//conexionSindicato = conectarseA(SINDICATO);
+	t_request *consultaPedido = malloc(sizeof(t_request));
+	consultaPedido->idPedido = currentProc->pid;
+	consultaPedido->nombre = nombreRestaurante;
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, consultaPedido);
+	t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
+	t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+
+	bool pedidoFinalizado(void *actual) {
+		t_plato *platoActual = actual;
+		return platoActual->cantidadPedida != platoActual->cantidadLista;
+	};
+
+	t_list *filtradas = list_filter(pedidoConf2->platos, &pedidoFinalizado); 
+	
+	if (list_is_empty(filtradas)) {
+		enviarPaquete(conexionSindicato, RESTAURANTE, TERMINAR_PEDIDO, consultaPedido);
+		t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
+		t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+	}
+
+	liberarConexion(SINDICATO);
 }
 
 void ejecutarCiclosFIFO(t_queue_obj *currentCPU){

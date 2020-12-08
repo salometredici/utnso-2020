@@ -93,8 +93,8 @@ t_list *clientesConectados; //por socket
 typedef struct {
     int pid;
     t_list *pasosReceta; //instrucciones
-    char *idCliente;
-    int socketCliente; //todo
+    //char *idCliente;
+    int socketCliente;
     char *plato;
     t_estado_proceso *estado;
     char *instruccionActual;

@@ -229,45 +229,85 @@ t_page* find_frame_victim(){
 	
 	if(string_equals_ignore_case(ALGORITMO_REEMPLAZO, LRU))
 		victim_page = find_victim_lru();
+
 	if(string_equals_ignore_case(ALGORITMO_REEMPLAZO, CLOCK))
 		victim_page = find_victim_clock();
 	
 	return victim_page;
 }
 
-t_page* find_victim_clock(){
-	int indiceDeMarco = -1;
-	t_page* aux = NULL;
-	t_page* victim_page = NULL;
+t_page* find_page_by_frame(int nro_frame, t_list* pages){
+	bool _find_frame(void *elemento){
+		t_page* x = (t_page*) elemento;
+		return x->frame == nro_frame;
+	};
+
+	t_page* page = list_find(pages, &_find_frame);
+	
+	list_destroy(pages);
+	
+	return page;
+}
+
+t_page* victima_0_0() {
+	t_list* paginas = paginas_en_memoria();
+
+	if (puntero_clock ==  frames - 1)
+		puntero_clock = 0;
+	
+	for(int i = puntero_clock; i < puntero_clock; i++){
+		t_page* page = find_page_by_frame(puntero_clock, paginas);
+
+		if(page->in_use == false && page->modified == false){
+			list_destroy(paginas);
+			return page;
+		}			
+	}
+
+	return -1;
+}
+
+t_page* victima_0_1() {
+	t_list* paginas = paginas_en_memoria();
 
 	if (puntero_clock ==  frames - 1)
 		puntero_clock = 0;
 
-	for (int j = puntero_clock; j < frames; j++) {
-		puntero_clock = j;
-		
-		aux = buscarFrameEnTablasDePaginas(paginaGlobal);
-		
-		if (aux->flag == true && aux->in_use == true)
-			 aux->in_use = false; 
-		else if (aux->flag == true && aux->in_use == false ) {
-			victim_page = aux;
-			victim_page->flag = false;
-			break;
+	for(int i = puntero_clock; i < puntero_clock; i++){
+		t_page* page = find_page_by_frame(puntero_clock, paginas);
+
+		if(page->in_use == false && page->modified == true){
+			list_destroy(paginas);
+			return page;
+		}
+		else
+			page->in_use = false;			
+	}
+	 
+	return -1;
+}
+
+t_page* find_victim_clock(){
+	t_page* victim_page = NULL;
+
+	if (puntero_clock ==  frames - 1)
+		puntero_clock = 0;
+	
+	t_page* victima = victima_0_0();
+
+	if (victim_page == -1) {	
+		victim_page = victima_0_1();
+	
+		if (victim_page == -1) {	
+			victim_page = victima_0_0();
+	
+			if (victim_page == -1) {
+				victim_page = victima_0_1();
+			}
 		}
 	}
 
-	if(victim_page != NULL){
-		indiceDeMarco = victim_page->frame;
-		bitarray_clean_bit(frames, indiceDeMarco);
-		return indiceDeMarco;
-	} else
-		return find_victim_clock();
-}
-
-t_page* find_page_by_frame(){
-	t_list* pages = paginas_en_memoria();
-
+	return victim_page;
 }
 
 //tengo que recorrer la tabla de paginas 

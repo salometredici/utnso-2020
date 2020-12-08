@@ -259,14 +259,37 @@ void logRequestPlato(t_req_plato *plato) {
 
 /* APP NEW QUEUE */
 
-void log_app_added_to_new(char *algoritmo, int pid);
+void log_app_adding_to_new(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Agregando el PCB ["BOLDCYAN"#%d"RESET"] a NEW por haber sido confirmado...", pid);
+	log_debug(logger, TAB"[PLANIFICATION] Agregando el PCB [#%d] a NEW por haber sido confirmado...", pid);
+}
+
+void log_app_added_to_new(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] added to "BOLD"NEW"BOLD" queue"BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
+}
+
 void log_app_removed_from_new(char *algoritmo, int pid);
-void log_app_asignando_repartidores(char *algoritmo, int repartidores_disp, int exec_disp);
-void log_app_repartidor_asignado(char *algoritmo, int idRepartidor, int pid);
+
+void log_app_asignando_repartidores(int repartidores_disp, int exec_disp) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Asignando repartidores para pasar PCBs a "BOLD"READY"RESET"..."BREAK);
+	log_debug(logger, TAB"[PLANIFICATION] Asignando repartidores para pasar PCBs a READY...");
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidores disponibles: %d, Espacio en EXEC: %d"BREAK, repartidores_disp, exec_disp);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidores disponibles: %d, Espacio en EXEC: %d", repartidores_disp, exec_disp);
+}
+
+void log_app_repartidor_asignado(int idRepartidor, int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor #d assigned to PCB ["BOLDCYAN"#%d"RESET"]"BREAK, idRepartidor, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidor #d assigned to PCB [#%d]",idRepartidor, pid);
+}
 
 /* APP READY QUEUE */
 
-void log_app_added_to_ready(char *algoritmo, int pid);
+void log_app_added_to_ready(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] added to "BOLD"READY"RESET" queue"BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
+}
+
 void log_app_removed_from_ready(char *algoritmo, int pid);
 void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE);
 
@@ -277,12 +300,36 @@ void log_app_added_to_exec(char *algoritmo, int pid);
 
 /* APP BLOCKED QUEUE */
 
-void log_app_updating_QB_times(char *algoritmo);
-void log_app_QB_times_increased(char *algoritmo);
-void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest);
-void log_app_unblocking_pcb(char *algoritmo, int idPedido);
-void log_app_blocked_to_ready(char *algoritmo, int pid);
-void log_app_pcb_rest_end(char *algoritmo, int pid, int qDescansado);
+void log_app_updating_QB_times() {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Incrementando tiempos de descanso en "BOLD"BLOCKED"RESET"..."BREAK);
+	log_debug(logger, TAB"[PLANIFICATION] Incrementando tiempos de descanso en BLOCKED...");
+}
+
+void log_app_QB_times_increased(char *algoritmo) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Tiempos de descanso incrementados en "BOLD"BLOCKED"RESET BREAK);
+	log_debug(logger, TAB"[PLANIFICATION] Tiempos de descanso incrementados en BLOCKED");
+}
+
+void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest) {
+	printf(TAB BOLDCYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] added to BLOCKED queue in %s state"RESET BREAK, algoritmo, pid, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] added to BLOCKED queue in %s state", algoritmo, pid, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
+}
+
+void log_app_unblocking_pcb(char *algoritmo, int idPedido) {
+	printf(TAB BOLDCYAN"[PLANIFICATION - %s]"RESET BOLD" Desbloqueando al PCB ["RESET BOLDCYAN"#%d"RESET BOLD"]..."RESET BREAK, algoritmo, idPedido);
+	log_debug(logger, TAB"[PLANIFICATION - %s] Desbloqueando al PCB [#%d]...", algoritmo, idPedido);
+}
+
+void log_app_blocked_to_ready(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] has returned from "BOLD"BLOCKED"RESET" state to "BOLD"READY"RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] has returned from BLOCKED state to READY", pid);
+}
+
+void log_app_pcb_rest_end(int pid, int qDescansado) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] finished its timeout. Cycles resting: %d"BREAK, pid, qDescansado);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] finished its timeout. Cycles resting: %d", pid, qDescansado);
+}
+
 void log_app_repartidor_cansado(char *algoritmo, int pid);
 void log_app_platos_pendientes(char *algoritmo, int pid);
 

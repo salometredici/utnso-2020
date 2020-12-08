@@ -47,24 +47,25 @@ void logInitDataCliente(t_cliente *cliente);
 
 /* Planificación APP */
 
-void log_app_added_to_new(char *algoritmo, int pid);
+void log_app_adding_to_new(int pid);
+void log_app_added_to_new(int pid);
 void log_app_removed_from_new(char *algoritmo, int pid);
-void log_app_asignando_repartidores(char *algoritmo, int repartidores_disp, int exec_disp);
-void log_app_repartidor_asignado(char *algoritmo, int idRepartidor, int pid);
+void log_app_asignando_repartidores(int repartidores_disp, int exec_disp);
+void log_app_repartidor_asignado(int idRepartidor, int pid);
 
-void log_app_added_to_ready(char *algoritmo, int pid);
+void log_app_added_to_ready(int pid);
 void log_app_removed_from_ready(char *algoritmo, int pid);
 void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE);
 
 void log_app_running_exec_cycle(char *algoritmo);
 void log_app_added_to_exec(char *algoritmo, int pid);
 
-void log_app_updating_QB_times(char *algoritmo);
-void log_app_QB_times_increased(char *algoritmo);
+void log_app_updating_QB_times();
+void log_app_QB_times_increased();
 void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest);
 void log_app_unblocking_pcb(char *algoritmo, int idPedido);
-void log_app_blocked_to_ready(char *algoritmo, int pid);
-void log_app_pcb_rest_end(char *algoritmo, int pid, int qDescansado);
+void log_app_blocked_to_ready(int pid);
+void log_app_pcb_rest_end(int pid, int qDescansado);
 void log_app_repartidor_cansado(char *algoritmo, int pid);
 void log_app_platos_pendientes(char *algoritmo, int pid);
 

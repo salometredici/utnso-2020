@@ -94,8 +94,8 @@ t_frame* find_frame_in_memory(t_page* page){
 
 		page->flag = 1;
 		page->timestamp = get_current_time();
-		page->in_use = 1;
-		page->modified = 0;
+		page->in_use = true;
+		page->modified = false;
 		page->frame = frame_victim;
 		
 		t_frame* frame = get_frame_from_memory(page->frame);
@@ -224,9 +224,55 @@ t_frame* get_frame_from_swap(int frame_swap){
 	return marco;
 }
 
+t_page* find_frame_victim(){
+	t_page* victim_page;
+	
+	if(string_equals_ignore_case(ALGORITMO_REEMPLAZO, LRU))
+		victim_page = find_victim_lru();
+	if(string_equals_ignore_case(ALGORITMO_REEMPLAZO, CLOCK))
+		victim_page = find_victim_clock();
+	
+	return victim_page;
+}
+
+t_page* find_victim_clock(){
+	int indiceDeMarco = -1;
+	t_page* aux = NULL;
+	t_page* victim_page = NULL;
+
+	if (puntero_clock ==  frames - 1)
+		puntero_clock = 0;
+
+	for (int j = puntero_clock; j < frames; j++) {
+		puntero_clock = j;
+		
+		aux = buscarFrameEnTablasDePaginas(paginaGlobal);
+		
+		if (aux->flag == true && aux->in_use == true)
+			 aux->in_use = false; 
+		else if (aux->flag == true && aux->in_use == false ) {
+			victim_page = aux;
+			victim_page->flag = false;
+			break;
+		}
+	}
+
+	if(victim_page != NULL){
+		indiceDeMarco = victim_page->frame;
+		bitarray_clean_bit(frames, indiceDeMarco);
+		return indiceDeMarco;
+	} else
+		return find_victim_clock();
+}
+
+t_page* find_page_by_frame(){
+	t_list* pages = paginas_en_memoria();
+
+}
+
 //tengo que recorrer la tabla de paginas 
 //primero fijarme si hay un espacio libre en la mp
-t_page* find_frame_victim(){
+t_page* find_victim_lru(){
 	t_page* victim_page = malloc(sizeof(t_page));
 	
 	victim_page->timestamp = 0;
@@ -238,6 +284,7 @@ t_page* find_frame_victim(){
 	t_list* memory_pages = paginas_en_memoria();
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
+
 		if(victim_page->timestamp == 0 && page->flag == 1){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;

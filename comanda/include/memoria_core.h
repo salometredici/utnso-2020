@@ -25,6 +25,8 @@
 #define IN_SWAP 0
 #define PLATO_TERMINADO 2
 #define PLATO_NO_TERMINADO 3 
+#define LRU "LRU"
+#define CLOCK "CLOCK_MEJ"
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -57,6 +59,7 @@ char *ALGORITMO_REEMPLAZO;
 int frames;
 int swap_frames;
 size_t size_char;
+int puntero_clock;
 
 typedef struct{
     char *nombre;

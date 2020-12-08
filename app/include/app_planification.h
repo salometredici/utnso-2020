@@ -12,11 +12,6 @@ pthread_mutex_t mutexQR;
 pthread_mutex_t mutexQE;
 pthread_mutex_t mutexQB;
 
-typedef enum {
-    HACIA_CLIENTE = 1,
-    HACIA_RESTAURANTE = 2
-} tour_code;
-
 /* Funciones */
 
 t_repartidor *getRepartidorMasCercano(t_posicion *posRest);
@@ -24,24 +19,24 @@ double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
 
 /* Generales */
 
-t_pcb *crearPcb(t_cliente *cliente, int idPedido);
-void agregarAQN();
-void pasarAQB(t_pcb *pcb, t_estado estado);
-void desbloquearPCB(int idPedido);
-void actualizarQRconQN();
-void actualizarQRconQB();
-void ejecutarCiclos();
+t_pcb *crear_pcb(t_cliente *cliente, int idPedido);
+void agregar_a_QN();
+void pasar_a_QB(t_pcb *pcb, t_estado estado);
+void desbloquear_PCB(int idPedido);
+void update_QR_con_QN();
+void update_QR_con_QB();
+void ejecutar_ciclos();
 
 /* FIFO */
 
-void actualizarQEconQR_FIFO();
+void update_QE_con_QR_FIFO();
 
 /* HRRN */
 
-void actualizarQEconQR_HRRN();
+void update_QE_con_QR_HRRN();
 
 /* SJF */
 
-void actualizarQEconQR_SJF();
+void update_QE_con_QR_SJF();
 
 #endif

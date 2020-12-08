@@ -27,7 +27,7 @@ char *getAlgoritmoPlanificacion() {
 	return config_get_string_value(config, "ALGORITMO_DE_PLANIFICACION");
 }
 
-int getGradoMultiprocesamiento() {
+int get_grado_multiprocesamiento() {
 	return config_get_int_value(config, "GRADO_DE_MULTIPROCESAMIENTO");
 }
 
@@ -55,7 +55,7 @@ char **getPlatosDefault() {
 
 void inicializarRepartidores() {
 	int i = 0;
-	repartidoresDisponibles = list_create();
+	repartidores_disp = list_create();
 	char **tiemposDescanso = getTiemposDescanso();
 	char **repartidoresConfig = getRepartidores();
 	char **frecuenciasDescanso = getFrecuenciasDescanso();
@@ -81,28 +81,26 @@ void inicializarRepartidores() {
 				repartidorActual->freqDescanso,
 				repartidorActual->tiempoDescanso);
 		
-		list_add(repartidoresDisponibles, repartidorActual);
-		free(repartidorActual);
-		free(posRActual);
+		list_add(repartidores_disp, repartidorActual);
 		i++;
 	} while(repartidoresConfig[i] != NULL);
 
-	cantidadRepartidores = list_size(repartidoresDisponibles);
+	cantidadRepartidores = list_size(repartidores_disp);
 }
 
-void inicializarPosResDefault() {
+void init_pos_rest_default() {
 	posResDefault = malloc(sizeof(t_posicion));
 	posResDefault->posX = config_get_int_value(config,"POSICION_REST_DEFAULT_X");
 	posResDefault->posY = config_get_int_value(config,"POSICION_REST_DEFAULT_Y");
 	log_info(logger, "[Posición Default]: PosX: %d, PosY: %d", posResDefault->posX, posResDefault->posY);
 }
 
-void inicializarPlatosDefault() {
-	platosResDefault = list_create();
+void init_platos_rest_default() {
+	platos_rest_default = list_create();
 	char **platosDefault = getPlatosDefault();
 	int i = 0;
 	do {
-		list_add(platosResDefault, platosDefault[i]);
+		list_add(platos_rest_default, platosDefault[i]);
 		log_info(logger, "[Plato Default #%d]: %s", i, platosDefault[i]);
 		i++;
 	} while(platosDefault[i] != NULL);
@@ -110,21 +108,22 @@ void inicializarPlatosDefault() {
 
 void inicializarRestauranteDefault() {
 	log_info(logger, "Inicializando Restaurante Default...");
-	inicializarPosResDefault();
-	inicializarPlatosDefault();
+	init_pos_rest_default();
+	init_platos_rest_default();
 }
 
 void inicializarVariablesGlobales() {
 	alpha = getAlpha();
 	tiempoRetardoCpu = getTiempoRetardoCpu();
 	estimacionInicial = getEstimacionInicial();
-	gradoMultiprocesamiento = getGradoMultiprocesamiento();
+	grado_multiprocesamiento = get_grado_multiprocesamiento();
 	algoritmo = getAlgoritmoPlanificacion();
 	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
-	clientesConectados = list_create();
-	restaurantesConectados = list_create();
-	repartidoresDisponibles = list_create();
+	clientes_conectados = list_create();
+	rests_conectados = list_create();
+	repartidores_disp = list_create();
 	repartidoresOcupados = list_create();
+	idsGenerados = list_create();
 }
 
 void inicializarQueues() {

@@ -14,5 +14,8 @@ t_pedido *getEmptyPedido();
 t_pedido *getEmptyPedido_with_error(t_estado error_code);
 t_req_plato *getTReqPlato(char *rest, int idPedido, char *plato, int cantidad);
 t_plato_listo *getTPlatoListo(char *rest, int idPedido, char *plato);
+t_selecc_rest *getSeleccRest(char *idCliente, char *restSelecc);
+t_list *getEmptyRestsConectados(char *rest_default);
+t_list *getEmptyPlatos_with_error(char *error);
 
 #endif

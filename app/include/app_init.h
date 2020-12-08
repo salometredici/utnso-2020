@@ -8,8 +8,8 @@
 #include <math.h>
 
 int conexionComanda;
-t_list *restaurantesConectados;
-t_list *clientesConectados;
+t_list *rests_conectados;
+t_list *clientes_conectados;
 t_list *idsGenerados;
 
 /* Diccionario de algortimos */
@@ -28,8 +28,8 @@ static t_keys diccionarioAlgoritmos[] = {
 
 /* Restaurante default */
 
-#define restauranteDefault "RestauranteDefault"
-t_list *platosResDefault; // Lista de strings, por ej.: ["Milanesa", "AsadoConFritas"]
+#define rest_default "RestauranteDefault"
+t_list *platos_rest_default; // Lista de strings, por ej.: ["Milanesa", "AsadoConFritas"]
 t_posicion *posResDefault;
 // Según el issue #1942, hay que agregar un precio default a todos los platos
 
@@ -38,7 +38,7 @@ t_posicion *posResDefault;
 double alpha;
 int tiempoRetardoCpu;
 double estimacionInicial;
-int gradoMultiprocesamiento; // Cantidad de repartidores que pueden estar en Exec a la vez
+int grado_multiprocesamiento; // Cantidad de repartidores que pueden estar en Exec a la vez
 char *algoritmo;
 int algoritmoSeleccionado;
 
@@ -54,7 +54,7 @@ int cantidadRepartidores; // Grado de multiprogramación o cantidad de instancia
 /* Repartidores */
 
 pthread_mutex_t mutexListaDisponibles;
-t_list *repartidoresDisponibles;
+t_list *repartidores_disp;
 pthread_mutex_t mutexListaOcupados;
 t_list *repartidoresOcupados;
 

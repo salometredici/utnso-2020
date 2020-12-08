@@ -42,6 +42,7 @@
 #define FALTAN_RECETAS "NO EXISTEN TODAS LAS RECETAS PARA EL RESTAURANTE"
 #define NO_CONOCE_PLATO "EL RESTAURANTE NO SABE PREPARAR EL PLATO SOLICITADO"
 #define BLOQUES_NO_ASIGNADOS "SOLICITUD SIN BLOQUES ASIGNADOS"
+#define NO_SE_PUDO_CREAR_ID "EL RESTAURANTE NO PUDO GENERAR UN NUEVO ID"
 
 typedef enum {
 	APP = 1,
@@ -179,9 +180,14 @@ int obtenerLogLevel();
 
 /* Structs */
 
+typedef enum {
+    HACIA_CLIENTE = 1,
+    HACIA_RESTAURANTE = 2
+} tour_code;
+
 typedef struct {
 	char *idCliente;
-	char *restauranteSeleccionado;
+	char *restSelecc;
 } t_selecc_rest;
 
 typedef struct {
@@ -211,7 +217,7 @@ typedef struct {
 	bool esRestaurante;
 	t_posicion *posCliente;
 	// Propiedade que sólo van a tener valores si es una instancia de CLIENTE
-	char *restSeleccionado;
+	char *restSelecc;
 	t_posicion *posRest;
 } t_cliente;
 

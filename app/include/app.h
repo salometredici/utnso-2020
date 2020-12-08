@@ -4,9 +4,12 @@
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
 #include "../../shared/include/shared_serialization.h"
-#include "../include/app_handler.h"
+#include "../include/app_main_impl.h"
 #include "../include/app_planification.h"
 #include "tests.h"
+
+#define REST_NO_CONECTADO "EL RESTAURANTE NO ESTÁ CONECTADO A LA APP"
+#define REST_ASOCIADO "EL CLIENTE HA SIDO ASOCIADO AL RESTAURANTE"
 
 int socketServidor;
 

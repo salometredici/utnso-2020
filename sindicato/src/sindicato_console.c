@@ -92,7 +92,6 @@ void show_valid_commands() {
     printf("-------------------Comandos Válidos-------------------"BREAK);
 	printf("Ejemplo: AIUDA"BREAK);
 	printf("Ejemplo: CLEAR"BREAK);
-	printf("Ejemplo: BAI"BREAK);
     printf("-----------------------Opciones-----------------------"BREAK);
 	printf("Formato: "BOLDYELLOW"[MENSAJE]"RESET" [PARAMETROS] ~~旦_(･o･;)"BREAK);
 	printf(YELLOW"CREAR_RESTAURANTE"RESET" [NOMBRE] [CANTI_COCINEROS] [POSICION] [AFINIDAD_COCINEROS] [PLATOS] [PRECIO_PLATOS] [CANT_HORNOS] [CANT_PEDIDOS]"BREAK);
@@ -128,7 +127,7 @@ void show_not_a_list_error_msg(int option) {
 		case OPT_CREAR_RESTAURANTE:
 			printf("Los siguientes parámetros "BOLD"deben"RESET" ser listas de elementos, por ejemplo: [1,2] o [PapasAlHorno,Milanesas]"BREAK);
 			printf(YELLOW"[POSICION]"RESET" - Debe ser un par de números. Ejemplo: [1,2]"BREAK);
-			printf(YELLOW"[AFINIDADES]"RESET" - Debe ser una lista de strings. Ejemplo: [PapasAlHorno]"BREAK);
+			printf(YELLOW"[AFINIDADES]"RESET" - Debe ser una vacía o una lista de strings. Ejemplo: [] o [PapasAlHorno]"BREAK);
 			printf(YELLOW"[PLATOS]"RESET" - Debe ser una lista de strings. Ejemplo: [Lasagna,PolloConPapas]"BREAK);
 			printf(YELLOW"[PRECIOS]"RESET" - Debe ser una lista de números, del mismo tamaño que [PLATOS]. Ejemplo: Para [Lasagna,Papas,Milanesa] correspondería [110,55,70]"BREAK);
 			break;
@@ -187,8 +186,8 @@ int validate_console_command(char *msg, char **parameters) {
 	int option = sindicato_option_to_key(msg);
 	switch (option) {
 		case OPT_CREAR_RESTAURANTE:
-			if (!parameters[1] || !parameters[2] || !parameters[3] || !parameters[4] || !parameters[5] ||
-			    !parameters[6] || !parameters[7] || !parameters[8]) {
+			if (!parameters[1] || !parameters[2] || !parameters[3] || !parameters[4] ||
+				!parameters[5] || !parameters[6] || !parameters[7] || !parameters[8]) {
 				show_command_error_msg(msg);
 				printf(BOLDYELLOW"CREAR_RESTAURANTE [NOMBRE] [CANT_COCINEROS] [POSICION] [AFINIDADES] [PLATOS] [PRECIOS] [CANT_HORNOS] [CANT_PEDIDOS]"RESET BREAK);
 				printf("[!] Ejemplo: "BOLDCYAN"CREAR_RESTAURANTE BurguerKing 3 [1,4] [PapasAlHorno] [PapasAlHorno,Milanesas] [32,50] 2 1"RESET BREAK);

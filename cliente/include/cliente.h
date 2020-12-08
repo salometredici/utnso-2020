@@ -26,7 +26,7 @@ void consultarRestaurantes();
 void seleccionarRestaurante(char *idCliente, char *nombreRestaurante);
 void obtenerRestaurante(char *nombreRestaurante);
 void consultarPlatos(char *nombreRestaurante);
-void crearPedido();
+void crear_pedido();
 void guardarPedido(char *nombreRestaurante, int idPedido);
 void aniadirPlato(char *nombrePlato, int idPedido);
 void guardarPlato(char *nombreRestaurante, int idPedido, char *nombreComida, int cantidadPlatos);

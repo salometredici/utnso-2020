@@ -34,9 +34,6 @@ void* thread_lectura_consola(void * args) {
 				case OPT_AIUDA:
 					show_valid_commands();
 					break;
-				case OPT_BAI:
-					printf("adiosss (๑♡3♡๑)!"BREAK);
-					break;
 				case OPT_CLEAR:
 					limpiarPantalla();
 					break;
@@ -49,7 +46,6 @@ void* thread_lectura_consola(void * args) {
 			free(mensaje);
 			free(parametros);
 			free(comandoLeido);
-			if (opcion == OPT_BAI) { break; }
 		}
 		comandoLeido = readline("(=^.^=)~>");
 	}

@@ -368,7 +368,7 @@ void initVariablesGlobales() {
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
 	dataCliente->socketCliente = ERROR;
-	logInitDataCliente(dataCliente);
+	log_init_data_cliente(dataCliente);
 }
 
 void initCliente() {

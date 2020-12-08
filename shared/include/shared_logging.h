@@ -42,7 +42,10 @@ void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket);
 void logRequest(t_request *request, m_code codigoOperacion);
 void logTResult(t_result *result);
 void logConsultarPedido(t_pedido *pedidoCons, int idPedido);
-void logInitDataCliente(t_cliente *cliente);
+
+/* CLIENTE */
+
+void log_init_data_cliente(t_cliente *cliente);
 
 /* Planificación APP */
 

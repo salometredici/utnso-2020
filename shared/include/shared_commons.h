@@ -216,7 +216,7 @@ typedef struct {
 	int socketCliente;
 	bool esRestaurante;
 	t_posicion *posCliente;
-	// Propiedade que sólo van a tener valores si es una instancia de CLIENTE
+	// Propiedades que sólo van a tener valores si es una instancia de CLIENTE
 	char *restSelecc;
 	t_posicion *posRest;
 } t_cliente;

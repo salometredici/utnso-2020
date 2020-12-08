@@ -166,13 +166,25 @@ void update_posicion(t_pcb *current_pcb, tour_code code) {
 	free(next_pos);
 }
 
+int find_index_repartidor(t_list *lista_a_buscar, int id_buscado) {
+	for (int i = 0; i < list_size(lista_a_buscar); i++) {
+		t_repartidor *rep_actual = list_get(lista_a_buscar, i);
+		if (rep_actual->idRepartidor == id_buscado) {
+			return i;
+		}
+	}
+	return ERROR;
+}
+
 void liberar_repartidor(t_repartidor *repartidor) {
 	pthread_mutex_lock(&mutexListaOcupados);
-	list_remove(repartidoresOcupados, repartidor->idRepartidor);
+	int index_repartidor = find_index_repartidor(repartidoresOcupados, repartidor->idRepartidor);
+	list_remove(repartidoresOcupados, index_repartidor);
 	pthread_mutex_unlock(&mutexListaOcupados);
 	pthread_mutex_lock(&mutexListaDisponibles);
 	list_add(repartidores_disp, repartidor);
-	log_app_repartidor_libre(repartidor->idRepartidor, list_size(repartidores_disp));
+	int cant_repartidores_libres = list_size(repartidores_disp);
+	log_app_repartidor_libre(repartidor->idRepartidor, cant_repartidores_libres);
 	pthread_mutex_unlock(&mutexListaDisponibles);
 }
 
@@ -468,7 +480,7 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			if (algoritmoSeleccionado == SJF) update_estimacion(current_pcb);
 			log_app_pcb_entregado_al_cliente(current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
 			queue_push(qF, current_pcb);
-			liberar_repartidor(current_pcb);
+			liberar_repartidor(current_pcb->repartidor);
 			get_next_pcb = true;			
 
 		} else {

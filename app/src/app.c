@@ -233,28 +233,27 @@ void *atenderConexiones(void *conexionNueva)
 
 				// Si es RDefault, generar PCB y añadirlo para planificar, sino, consultar al restaurante que corresponda
 				if (string_equals_ignore_case(cliente->restSelecc, rest_default)) {
-					pcb = crear_pcb(cliente, req_confirmar_pedido->idPedido);
-					agregar_a_QN(pcb);
+					result_confirmar_pedido = getTResult(PEDIDO_ACTUALIZADO, false);
 				} else {
 					t_cliente *rest_a_conf_pedido = get_rest_conectado(req_confirmar_pedido->nombre);
 					enviarPaquete(rest_a_conf_pedido->socketCliente, APP, CONFIRMAR_PEDIDO, req_confirmar_pedido);
 					h_confirmar_pedido = recibirHeaderPaquete(rest_a_conf_pedido->socketCliente);
 					result_confirmar_pedido = recibirPayloadPaquete(h_confirmar_pedido, rest_a_conf_pedido->socketCliente);
 					logTResult(result_confirmar_pedido);
+				}
 
-					if (result_confirmar_pedido->hasError) {
-						enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, result_confirmar_pedido);
-					} else {
-						pcb = crear_pcb(cliente, req_confirmar_pedido->idPedido);
-						agregar_a_QN(pcb);
-						// Informar a COMANDA la actualización del estado del pedido
-						enviarPaquete(conexionComanda, APP, CONFIRMAR_PEDIDO, req_confirmar_pedido);
-						h_confirmar_pedido = recibirHeaderPaquete(conexionComanda);
-						result_confirmar_pedido = recibirPayloadPaquete(h_confirmar_pedido, conexionComanda);
-						logTResult(result_confirmar_pedido);
+				if (result_confirmar_pedido->hasError) {
+					enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, result_confirmar_pedido);
+				} else {
+					pcb = crear_pcb(cliente, req_confirmar_pedido->idPedido);
+					agregar_a_QN(pcb);
+					// Informar a COMANDA la actualización del estado del pedido
+					enviarPaquete(conexionComanda, APP, CONFIRMAR_PEDIDO, req_confirmar_pedido);
+					h_confirmar_pedido = recibirHeaderPaquete(conexionComanda);
+					result_confirmar_pedido = recibirPayloadPaquete(h_confirmar_pedido, conexionComanda);
+					logTResult(result_confirmar_pedido);
 
-						enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, result_confirmar_pedido);
-					}
+					enviarPaquete(socketCliente, APP, RTA_CONFIRMAR_PEDIDO, result_confirmar_pedido);
 				}
 
 				free(req_confirmar_pedido);

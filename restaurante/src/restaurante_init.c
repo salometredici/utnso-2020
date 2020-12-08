@@ -52,7 +52,7 @@ void obtenerMetadata() {
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
 	inicializarVariablesMd(md);
-	logMetadata(md);
+	logMetadata(md); // Probar con log_rta_ObtenerRestaurante
 	free(header);
 	free(md);
 }

@@ -269,7 +269,10 @@ void log_app_added_to_new(int pid) {
 	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
 }
 
-void log_app_removed_from_new(char *algoritmo, int pid);
+void log_app_removed_from_new(char *algoritmo, int pid) {
+	printf(TAB BOLDCYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] removed from NEW queue"RESET BREAK, algoritmo, pid);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] removed from NEW queue", algoritmo, pid);
+}
 
 void log_app_asignando_repartidores(int repartidores_disp, int exec_disp) {
 	printf(TAB CYAN"[PLANIFICATION]"RESET" Asignando repartidores para pasar PCBs a "BOLD"READY"RESET"..."BREAK);

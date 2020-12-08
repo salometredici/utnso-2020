@@ -28,20 +28,72 @@
 
 void logRtaConsultarPlatos(t_list *platosEnviados);
 
+/* Commons */
+
 void logConsoleInput(char *comandoLeido);
-void logClientDisconnection(int socketCliente);
-void logMetadataRestaurante(t_posicion posicion); // Después va a ser un t_md, es un response
-void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket);
 void logMessageSent(m_code codigoOperacion);
-void logNewClientConnection(int socket);
 void logConnectionCliente(p_code proceso);
+void logNewClientConnection(int socket);
+void log_TCliente_disconnection(t_cliente *cliente);
+void logClientDisconnection(int socketCliente);
+
+/* General */
+
+void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket);
 void logRequest(t_request *request, m_code codigoOperacion);
 void logTResult(t_result *result);
 void logConsultarPedido(t_pedido *pedidoCons, int idPedido);
 void logInitDataCliente(t_cliente *cliente);
 
+/* Planificación APP */
+
+void log_app_added_to_new(char *algoritmo, int pid);
+void log_app_removed_from_new(char *algoritmo, int pid);
+void log_app_asignando_repartidores(char *algoritmo, int repartidores_disp, int exec_disp);
+void log_app_repartidor_asignado(char *algoritmo, int idRepartidor, int pid);
+
+void log_app_added_to_ready(char *algoritmo, int pid);
+void log_app_removed_from_ready(char *algoritmo, int pid);
+void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE);
+
+void log_app_running_exec_cycle(char *algoritmo);
+void log_app_added_to_exec(char *algoritmo, int pid);
+
+void log_app_updating_QB_times(char *algoritmo);
+void log_app_QB_times_increased(char *algoritmo);
+void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest);
+void log_app_unblocking_pcb(char *algoritmo, int idPedido);
+void log_app_blocked_to_ready(char *algoritmo, int pid);
+void log_app_pcb_rest_end(char *algoritmo, int pid, int qDescansado);
+void log_app_repartidor_cansado(char *algoritmo, int pid);
+void log_app_platos_pendientes(char *algoritmo, int pid);
+
+void log_app_pcb_llego_al_cliente(char *algoritmo, int pid, char *idCliente);
+void log_app_pcb_entregado_al_cliente(char *algoritmo, int pid, char *idCliente, int idRepartidor);
+void log_app_continua_hacia_cliente(char *algoritmo, int pid);
+void log_app_pcb_llego_al_rest(char *algoritmo, int pid);
+void log_app_repartidor_en_camino(char *algoritmo, int pid, tour_code code);
+void log_app_traslado_repartidor(char *algoritmo, int pid, int old_posX, int old_posY, int new_posX, int new_posY);
+void log_app_repartidor_libre(char *algoritmo, int idRepartidor, int cant_disp);
+void log_checking_all_platos_listos(char *algoritmo, int pid);
+void log_app_FinalizarPedido(char *algoritmo, int pid);
+void log_app_entrega_a_cliente(char *algoritmo, int pid, char *cliente);
+
+/* HRRN */
+
+void log_app_increasing_tiempos_espera();
+void log_app_tiempos_espera_increased();
+void log_app_next_pcb_HRRN();
+
+/* SJF */
+
+void log_app_next_pcb_SJF();
+
 /* Mensajes */
 
+void log_CrearPedido_app(char *cliente, char *rest);
+void log_rta_CrearPedido(int new_id_pedido);
+void log_rta_EnviarDataCliente(t_cliente *cliente);
 void log_TerminarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_TerminarPedido(t_result *result);
 void log_ConfirmarPedido(t_request *request, m_code codigo_operacion);
@@ -49,6 +101,8 @@ void log_rta_ConfirmarPedido(t_result *result);
 void log_ObtenerPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ObtenerPedido(t_pedido *pedido_obtenido, t_request *request);
 void log_rta_GuardarPedido(t_result *result);
+void log_ConsultarPlatos_a_rest(char *rest);
+void log_ConsultarPlatos_default(t_list *platos_rest_default);
 void log_ConsultarPlatos(char *restaurante);
 void log_rta_ConsultarPlatos(t_list *platos);
 void log_ObtenerReceta(char *receta_solicitada);
@@ -59,9 +113,6 @@ void log_GuardarPlato(t_req_plato *request_plato);
 void log_rta_GuardarPlato(t_result *result);
 void log_PlatoListo(t_plato_listo *plato_listo);
 void log_rta_PlatoListo(t_result *result);
-
-// APP
-void logClientInfo(t_cliente *cliente);
 
 /* SINDICATO */
 

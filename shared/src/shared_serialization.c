@@ -109,7 +109,7 @@ int getBytesTPosicion() {
 
 // Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño
 int getBytesTCliente(t_cliente *cliente) {
-	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSeleccionado)
+	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSelecc)
 			+ getBytesTPosicion(cliente->posCliente) + getBytesTPosicion(cliente->posRest);
 }
 
@@ -125,7 +125,7 @@ int getBytesMd(t_md *md) {
 
 // size de restauranteSeleccionado + size de idCliente + 2 ints para esos valores
 int getBytesTSeleccRest(t_selecc_rest *seleccRest) {
-	return sizeof(int) * 2 + getBytesString(seleccRest->idCliente) + getBytesString(seleccRest->restauranteSeleccionado);
+	return sizeof(int) * 2 + getBytesString(seleccRest->idCliente) + getBytesString(seleccRest->restSelecc);
 }
 
 /* GetBytes de payload y buffer */
@@ -366,9 +366,9 @@ void *srlzTSeleccRest(t_selecc_rest *seleccRest) {
 	int desplazamiento = 0;
 	int size = getBytesTSeleccRest(seleccRest);
 	char *idCliente = seleccRest->idCliente;
-	char *restaurante = seleccRest->restauranteSeleccionado;
+	char *restaurante = seleccRest->restSelecc;
 	int longitudIdCliente = getBytesString(seleccRest->idCliente);
-	int longitudRestaurante = getBytesString(seleccRest->restauranteSeleccionado);
+	int longitudRestaurante = getBytesString(seleccRest->restSelecc);
 
 	void *magic = malloc(size);
 	memcpy(magic, &longitudIdCliente, sizeof(int));
@@ -595,7 +595,7 @@ void *srlzTCliente(t_cliente *cliente) {
 	int desplazamiento = 0;
 	int size = getBytesTCliente(cliente);
 	int longId = getBytesString(cliente->idCliente);
-	int longRest = getBytesString(cliente->restSeleccionado);
+	int longRest = getBytesString(cliente->restSelecc);
 
 	void *magic = malloc(size);
 	
@@ -605,7 +605,7 @@ void *srlzTCliente(t_cliente *cliente) {
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, cliente->idCliente, longId);
 	desplazamiento += longId;
-	memcpy(magic + desplazamiento, cliente->restSeleccionado, longRest);
+	memcpy(magic + desplazamiento, cliente->restSelecc, longRest);
 	desplazamiento += longRest;
 
 	memcpy(magic + desplazamiento, &cliente->esRestaurante, sizeof(bool));
@@ -996,7 +996,7 @@ t_cliente *dsrlzTCliente(void *buffer) {
 	memcpy(&cliente->socketCliente, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 
-	cliente->idCliente = id; cliente->restSeleccionado = rest;
+	cliente->idCliente = id; cliente->restSelecc = rest;
 
 	free(buffer);
 	return cliente;
@@ -1041,7 +1041,7 @@ t_selecc_rest *dsrlzTSeleccRest(void *buffer) {
 	memcpy(restaurante, buffer + desplazamiento, longRestaurante);
 
 	seleccRest->idCliente = idCliente;
-	seleccRest->restauranteSeleccionado = restaurante;
+	seleccRest->restSelecc = restaurante;
 
 	free(buffer);
 	return seleccRest;

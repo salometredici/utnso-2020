@@ -84,3 +84,22 @@ t_plato_listo *getTPlatoListo(char *rest, int idPedido, char *plato) {
     request->plato = plato;
     return request;
 }
+
+t_selecc_rest *getSeleccRest(char *idCliente, char *restSelecc) {
+    t_selecc_rest *seleccion = malloc(sizeof(t_selecc_rest));
+	seleccion->idCliente = idCliente;
+	seleccion->restSelecc = restSelecc;
+    return seleccion;
+}
+
+t_list *getEmptyRestsConectados(char *rest_default) {
+    t_list *rest_default_list = list_create();
+    list_add(rest_default_list, rest_default);
+    return rest_default_list;
+}
+
+t_list *getEmptyPlatos_with_error(char *error) {
+    t_list *empty_platos_list = list_create();
+    list_add(empty_platos_list, error);
+    return empty_platos_list;
+}

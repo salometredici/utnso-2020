@@ -25,7 +25,7 @@ void *threadLecturaConsola(void *args) {
 			if (comando == ERROR) {
 				opcion = clientOptionToKey(mensaje);
 			}
-			logConsoleInput(comandoLeido);
+			log_console_input(comandoLeido);
 			
 			switch (opcion) {
 				case OPTION_APP:
@@ -352,7 +352,7 @@ void obtenerNombreServidor() {
 	enviarPaquete(conexion, CLIENTE, OBTENER_PROCESO, NULL);
 	t_header *rtaProceso = recibirHeaderPaquete(conexion);
 	procesoServidor = intToPCode(recibirPayloadPaquete(rtaProceso, conexion));
-	logConnectionCliente(procesoServidor);
+	log_connection_as_cliente(procesoServidor);
 	free(rtaProceso);
 }
 

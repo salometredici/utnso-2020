@@ -26,20 +26,19 @@
 #define BOLDCYAN "\033[1;36m"
 #define RESET "\033[0m"
 
-void logRtaConsultarPlatos(t_list *platosEnviados);//
-
 /* Commons */
 
-void logConsoleInput(char *comandoLeido);
-void logMessageSent(m_code codigoOperacion);
-void logConnectionCliente(p_code proceso);
-void logNewClientConnection(int socket);
+void log_console_input(char *comandoLeido);
+void log_message_sent(m_code codigoOperacion, int socket);
+void log_connection_as_cliente(p_code proceso);
+void log_new_client_connection(int socket);
 void log_TCliente_disconnection(t_cliente *cliente);
-void logClientDisconnection(int socketCliente);
+void log_common_client_disconnection(int socketCliente);
+void log_app_client_disconnection(char *idCliente, int socketCliente);
 
 /* General */
 
-void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket);
+void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket);
 void logRequest(t_request *request, m_code codigoOperacion);
 void logTResult(t_result *result);
 void logConsultarPedido(t_pedido *pedidoCons, int idPedido);

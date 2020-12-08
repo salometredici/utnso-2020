@@ -140,7 +140,7 @@ t_posicion *get_next_step(t_posicion *posRepartidor, t_posicion *posObjetivo) {
 		nextPos->posX = posRepartidor->posX; // No cambia en X
 		nextPos->posY = posRepartidor->posY < posObjetivo->posY ?
 						posRepartidor->posY + 1 :
-						posRepartidor - 1;
+						posRepartidor->posY - 1;
 	}
 	return nextPos;
 }
@@ -452,7 +452,6 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 				current_pcb->estado = EN_CAMINO_A_CLIENTE;
 				current_pcb->alcanzoRestaurante = true;
 				log_app_continua_hacia_cliente(current_pcb->pid);
-				//queue_push(qE, current_pcb);
 			} else {
 				pasar_a_QB(current_pcb, ESPERANDO_PLATO);
 				if (algoritmoSeleccionado == SJF) { update_estimacion(current_pcb); }
@@ -468,7 +467,7 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			//informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
 			if (algoritmoSeleccionado == SJF) update_estimacion(current_pcb);
 			log_app_pcb_entregado_al_cliente(current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
-			queue_push(current_pcb, qF);
+			queue_push(qF, current_pcb);
 			liberar_repartidor(current_pcb);
 			get_next_pcb = true;			
 
@@ -476,7 +475,6 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 
 			// 4. Si sigue ejecutando, debe actualizar su posición de acuerdo a donde esté viajando
 			update_posicion(current_pcb, current_pcb->alcanzoRestaurante ? HACIA_CLIENTE : HACIA_RESTAURANTE);
-			//queue_push(qE, current_pcb);
 
 		}
 		if (get_next_pcb) { current_pcb = queue_pop(qE); }// Continúa el ciclo con el siguiente PCB

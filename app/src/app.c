@@ -41,8 +41,8 @@ void *atenderConexiones(void *conexionNueva)
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			logClientDisconnection(socketCliente); // TODO: Mejora en los logs de desconexión
-			liberarConexion(socket);
+			log_app_client_disconnection(cliente->idCliente, socketCliente);
+			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-			logNewClientConnection(fd);
+			log_new_client_connection(fd);
 		} else {
 			pthread_kill(threadConexiones, SIGTERM);
 		}

@@ -16,64 +16,72 @@ void log_lista_strings(t_list *lista_strings) {
 	}
 }
 
-void logRtaConsultarPlatos(t_list *platosEnviados) {
-	printf("Platos enviados:"BREAK);
-	log_info(logger, "Platos enviados:");
-	for (int i = 0; i < list_size(platosEnviados); i++) {
-		printf(TAB"Plato #%d: %s"BREAK, i, list_get(platosEnviados, i));
-		log_info(logger, TAB"Plato #%d: %s", i, list_get(platosEnviados, i));
-	}
-}
-
 /* Commons */
 
-void logInitializedProcess() {
+void log_initialized_process() {
 	printf(BOLD"Proceso "RESET BOLDBLUE"%s"RESET BOLD" iniciado..."RESET BREAK, getStringKeyValue(process, PROCNKEYS));
 	log_info(logger, "Proceso %s iniciado...", getStringKeyValue(process, PROCNKEYS));
 }
 
-void logConnectionAttempt(p_code process, char *ip, int puerto) {
+void log_connection_attempt(p_code process, char *ip, int puerto) {
 	if (process != CLIENTE) {
-		printf("Intentando conectarse a "BOLDBLUE"%s"RESET" en IP: %s, PUERTO: %d..."BREAK, getStringKeyValue(process, PROCNKEYS), ip, puerto);
-		log_info(logger, "Intentando conectarse a %s en IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+		printf("--------------------------------------------------"BREAK);
+		printf("Intentando conectarse a "BOLDBLUE"%s"RESET" - IP: %s, PUERTO: %d..."BREAK, getStringKeyValue(process, PROCNKEYS), ip, puerto);
+		log_info(logger, "--------------------------------------------------");
+		log_info(logger, "Intentando conectarse a %s - IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
 	} else {
+		printf("--------------------------------------------------"BREAK);
 		printf("Intentando conectarse a IP: %s, PUERTO: %d..."BREAK, ip, puerto);
+		log_info(logger, "--------------------------------------------------");	
 		log_info(logger, "Intentando conectarse a IP: %s, PUERTO: %d...", ip, puerto);
 	}
 }
 
-void logConnectionSuccess(p_code process, int puerto) {
+void log_connection_success(p_code process, int puerto) {
 	if (process != CLIENTE) {
 		printf(BOLDGREEN"Conexión creada con "RESET BOLDBLUE"%s"RESET BOLDGREEN" en el puerto %d"RESET BREAK, getStringKeyValue(process, PROCNKEYS), puerto);
+		printf("--------------------------------------------------"BREAK);
 		log_info(logger, "Conexión creada con %s en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
+		log_info(logger, "--------------------------------------------------");			
 	} else {
 		printf(BOLDGREEN"Conexión creada con el puerto %d"RESET BREAK, puerto);
+		printf("--------------------------------------------------"BREAK);
 		log_info(logger, "Conexión creada con el puerto %d", puerto);
+		log_info(logger, "--------------------------------------------------");			
 	}
 }
 
-void logConnectionCliente(p_code process) {
+void log_connection_as_cliente(p_code process) {
 	printf("Conectado al proceso "BOLDBLUE"%s"RESET BREAK, getStringKeyValue(process, PROCNKEYS));
 	log_info("Conectado al proceso %s", getStringKeyValue(process, PROCNKEYS));
 }
 
-void logAwaitingConnections(int puerto) {
+void log_awaiting_connections(int puerto) {
 	printf(BOLDBLUE"%s"RESET BOLDGREEN" escuchando conexiones en el puerto %d"RESET BREAK, getStringKeyValue(process, PROCNKEYS), puerto);
 	log_info(logger, "%s escuchando conexiones en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
 }
 
-void logConsoleInput(char *input) {
+void log_console_input(char *input) {
 	log_debug(logger, "Comando ingresado: %s", input);
 }
 
-void logClientDisconnection(int socketCliente) {
-	printf(RED"El cliente %d se desconectó. Finalizando el hilo...（・∩・)"RESET BREAK, socketCliente);
-	log_info(logger, "El cliente %d se desconectó. Finalizando el hilo...（・∩・)", socketCliente);
+void log_common_client_disconnection(int socketCliente) {
+	printf(RED"El cliente "RESET BOLDRED"[Socket #%d]"RESET RED" se desconectó. Finalizando el hilo...（・∩・)"RESET BREAK, socketCliente);
+	log_info(logger, "El cliente [Socket #%d] se desconectó. Finalizando el hilo...（・∩・)", socketCliente);
 }
 
-void logNewClientConnection(int socket) {
-	printf(BOLDGREEN"Nuevo hilo para atender al cliente "RESET BOLDBLUE"%d"RESET BREAK, socket);
-	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
+void log_app_client_disconnection(char *idCliente, int socketCliente) {
+	printf(RED"El cliente "RESET BOLDRED"[%s - Socket #%d]"RESET RED" se desconectó. Finalizando su hilo...（・∩・)"RESET BREAK, idCliente, socketCliente);
+	log_info(logger, "El cliente [%s - Socket #%d] se desconectó. Finalizando su hilo...（・∩・)", idCliente, socketCliente);
+}
+
+void log_comanda_client_disconnection(p_code process, int socketCliente) {
+	if (process != ERROR) {
+		printf(RED"El "RESET BOLDRED"[Socket #%d]"RESET RED" de "RESET BOLDBLUE"%s"RESET RED" se desconectó. Finalizando su hilo de peticiones...（・∩・)"RESET BREAK, socketCliente, getStringKeyValue(process, PROCNKEYS));
+		log_info(logger, "El [Socket #%d] de %s se desconectó. Finalizando su hilo de peticiones...（・∩・)", socketCliente, getStringKeyValue(process, PROCNKEYS));
+	} else {
+		log_common_client_disconnection(socketCliente);
+	}
 }
 
 void log_TCliente_disconnection(t_cliente *cliente) {
@@ -81,7 +89,12 @@ void log_TCliente_disconnection(t_cliente *cliente) {
 	log_debug(logger, "El cliente [Socket #%d - %s] se desconectó", cliente->socketCliente, cliente->idCliente);
 }
 
-void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket) {
+void log_new_client_connection(int socket) {
+	printf(BOLDGREEN"Nuevo hilo para atender al cliente "RESET BOLDBLUE"#%d"RESET BREAK, socket);
+	log_info(logger, "Nuevo hilo para atender al cliente #%d", socket);
+}
+
+void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket) {
 	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d" BREAK,
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
 		getStringKeyValue(procesoOrigen, PROCNKEYS),
@@ -92,9 +105,9 @@ void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket) {
 		socket);
 }
 
-void logMessageSent(m_code codigoOperacion) {
-	printf("Message "YELLOW"%s"RESET" sent"BREAK, getStringKeyValue(codigoOperacion, COMMANDNKEYS));
-	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
+void log_message_sent(m_code codigoOperacion, int socket) {
+	printf("Message "YELLOW"%s"RESET" sent to [Socket #%d]"BREAK, getStringKeyValue(codigoOperacion, COMMANDNKEYS), socket);
+	log_info(logger, "Message %s sent to [Socket #%d]", getStringKeyValue(codigoOperacion, COMMANDNKEYS), socket);
 }
 
 /* Serialization logs */
@@ -251,12 +264,12 @@ void logRequestPlato(t_req_plato *plato) {
 /* APP NEW QUEUE */
 
 void log_app_adding_to_new(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Agregando el PCB ["BOLDCYAN"#%d"RESET"] a NEW por haber sido confirmado...", pid);
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Agregando el PCB ["BOLDCYAN"#%d"RESET"] a NEW por haber sido confirmado..."BREAK, pid);
 	log_debug(logger, TAB"[PLANIFICATION] Agregando el PCB [#%d] a NEW por haber sido confirmado...", pid);
 }
 
 void log_app_added_to_new(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] added to "BOLD"NEW"BOLD" queue"BREAK, pid);
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] added to "BOLD"NEW"RESET" queue"BREAK, pid);
 	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
 }
 
@@ -273,8 +286,8 @@ void log_app_asignando_repartidores(int repartidores_disp, int exec_disp) {
 }
 
 void log_app_repartidor_asignado(int idRepartidor, int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor #d assigned to PCB ["BOLDCYAN"#%d"RESET"]"BREAK, idRepartidor, pid);
-	log_debug(logger, TAB"[PLANIFICATION] Repartidor #d assigned to PCB [#%d]",idRepartidor, pid);
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor #%d assigned to PCB ["BOLDCYAN"#%d"RESET"]"BREAK, idRepartidor, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidor #%d assigned to PCB [#%d]",idRepartidor, pid);
 }
 
 /* APP READY QUEUE */
@@ -304,7 +317,7 @@ void log_app_running_exec_cycle(char *algoritmo) {
 }
 
 void log_app_added_to_exec(char *algoritmo, int pid) {
-	printf(TAB BOLDCYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD" added to EXEC queue"RESET BREAK, algoritmo, pid);
+	printf(TAB BOLDCYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] added to EXEC queue"RESET BREAK, algoritmo, pid);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] added to EXEC queue", algoritmo, pid);
 }
 

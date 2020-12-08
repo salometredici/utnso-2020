@@ -29,7 +29,7 @@ void actualizar_clientes_conectados(t_cliente *cliente) {
 			!list_any_satisfy(rests_conectados, &estaDuplicado)))
 	{
 		list_add(rests_conectados, cliente);
-	} else if (list_is_empty(clientes_conectados || !list_any_satisfy(clientes_conectados, &estaDuplicado)))
+	} else if (list_is_empty(clientes_conectados) || !list_any_satisfy(clientes_conectados, &estaDuplicado))
 	{
 		list_add(clientes_conectados, cliente);
 	}

@@ -647,7 +647,7 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, voi
 	serializarPayload(buffer, codigoOperacion, stream);
 	
 	enviarPorSocket(socket, buffer, tamanioTotal);
-	logMessageSent(codigoOperacion);
+	log_message_sent(codigoOperacion, socket);
 
 	free(buffer);
 }
@@ -1070,7 +1070,7 @@ t_header *recibirHeaderPaquete(int socket) {
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
 		if (proceso < 200) {
-			logHeader(header->codigoOperacion, header->procesoOrigen, socket);
+			log_header(header->codigoOperacion, header->procesoOrigen, socket);
 		}
 	} else {
 		close(socket);

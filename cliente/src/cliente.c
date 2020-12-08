@@ -41,7 +41,7 @@ void *threadLecturaConsola(void *args) {
 							consultarPlatos("");
 							break;
 						case CREAR_PEDIDO:
-							crearPedido();
+							crear_pedido();
 							break;
 						case ANIADIR_PLATO:
 							aniadirPlato(parametro1, atoi(parametro2));
@@ -95,7 +95,7 @@ void *threadLecturaConsola(void *args) {
 							consultarPlatos("");
 							break;
 						case CREAR_PEDIDO:
-							crearPedido();
+							crear_pedido();
 							break;
 						case ANIADIR_PLATO:
 							aniadirPlato(parametro1, atoi(parametro2));
@@ -184,10 +184,8 @@ void consultarRestaurantes() {
 	free(header);
 }
 
-void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
-	t_selecc_rest *seleccion = malloc(sizeof(t_selecc_rest));
-	seleccion->idCliente = idCliente;
-	seleccion->restauranteSeleccionado = nombreRestaurante;
+void seleccionarRestaurante(char *idCliente, char *restaurante) {
+	t_selecc_rest *seleccion = getSeleccRest(idCliente, restaurante);
 	enviarPaquete(conexion, CLIENTE, SELECCIONAR_RESTAURANTE, seleccion);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_result *result = recibirPayloadPaquete(header, conexion);
@@ -207,8 +205,8 @@ void obtenerRestaurante(char *nombre_restaurante) {
 	free(header);
 }
 
-void consultarPlatos(char *nombreRestaurante) {
-	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
+void consultarPlatos(char *nombre_rest) {
+	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombre_rest);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_list *platos = recibirPayloadPaquete(header, conexion);
 	log_rta_ConsultarPlatos(platos);
@@ -227,12 +225,11 @@ void obtener_receta(char *receta_a_buscar) {
 	free(header);
 }
 
-void crearPedido() {
+void crear_pedido() {
 	enviarPaquete(conexion, CLIENTE, CREAR_PEDIDO, NULL);
 	t_header *header = recibirHeaderPaquete(conexion);
-    int idPedido = recibirPayloadPaquete(header, conexion);
-	printf("Se ha creado el pedido #%d\n", idPedido);
-	log_info(logger, "Se ha creado el pedido #%d", idPedido);
+    int new_id_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_CrearPedido(new_id_pedido);
 	free(header);
 }
 

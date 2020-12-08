@@ -255,6 +255,84 @@ void logRequestPlato(t_req_plato *plato) {
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
 }
 
+/* Planificación APP */
+
+/* APP NEW QUEUE */
+
+void log_app_added_to_new(char *algoritmo, int pid);
+void log_app_removed_from_new(char *algoritmo, int pid);
+void log_app_asignando_repartidores(char *algoritmo, int repartidores_disp, int exec_disp);
+void log_app_repartidor_asignado(char *algoritmo, int idRepartidor, int pid);
+
+/* APP READY QUEUE */
+
+void log_app_added_to_ready(char *algoritmo, int pid);
+void log_app_removed_from_ready(char *algoritmo, int pid);
+void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE);
+
+/* APP EXEC QUEUE */
+
+void log_app_running_exec_cycle(char *algoritmo);
+void log_app_added_to_exec(char *algoritmo, int pid);
+
+/* APP BLOCKED QUEUE */
+
+void log_app_updating_QB_times(char *algoritmo);
+void log_app_QB_times_increased(char *algoritmo);
+void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest);
+void log_app_unblocking_pcb(char *algoritmo, int idPedido);
+void log_app_blocked_to_ready(char *algoritmo, int pid);
+void log_app_pcb_rest_end(char *algoritmo, int pid, int qDescansado);
+void log_app_repartidor_cansado(char *algoritmo, int pid);
+void log_app_platos_pendientes(char *algoritmo, int pid);
+
+/* Updates */
+
+void log_app_pcb_llego_al_cliente(char *algoritmo, int pid, char *idCliente);
+void log_app_pcb_entregado_al_cliente(char *algoritmo, int pid, char *idCliente, int idRepartidor);
+void log_app_continua_hacia_cliente(char *algoritmo, int pid);
+void log_app_pcb_llego_al_rest(char *algoritmo, int pid);
+
+void log_app_repartidor_en_camino(int pid, tour_code code) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El repartidor del PCB ["BOLDCYAN"#%d"RESET"] se encuentra en camino al %s"BREAK, pid, code == HACIA_CLIENTE ? "cliente" : "restaurante");
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] se encuentra en camino al %s", pid, code == HACIA_CLIENTE ? "cliente" : "restaurante");
+}
+
+void log_app_traslado_repartidor(int pid, int old_posX, int old_posY, int new_posX, int new_posY) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET BOLD" El repartidor del PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] se trasladó de [%d,%d] a [%d,%d]"RESET BREAK, pid, old_posX, old_posY, new_posX, new_posY);
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] se trasladó de [%d,%d] a [%d,%d]", pid, old_posX, old_posY, new_posX, new_posY);
+}
+
+void log_app_repartidor_libre(int idRepartidor, int cant_disp) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor #d is now available. Total available now: %d"BREAK, idRepartidor, cant_disp);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidor #d is now available. Total available now: %d", idRepartidor, cant_disp);
+}
+
+void log_checking_all_platos_listos(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Revisando si todos los platos del PCB ["BOLDCYAN"#%d"RESET"] están listos..."BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Revisando si todos los platos del PCB [#%d] están listos...", pid);
+}
+
+void log_app_FinalizarPedido(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] a COMANDA..."BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] a COMANDA...", pid);
+}
+
+void log_app_entrega_a_cliente(int pid, char *cliente) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] al cliente "BOLD"%s"RESET"..."BREAK, pid, idCliente);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] al cliente %s...", pid, idCliente);
+}
+
+/* HRRN */
+
+void log_app_increasing_tiempos_espera();
+void log_app_tiempos_espera_increased();
+void log_app_next_pcb_HRRN();
+
+/* SJF */
+
+void log_app_next_pcb_SJF();
+
 /* Mensajes */
 
 // TERMINAR_PEDIDO

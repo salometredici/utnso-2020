@@ -26,7 +26,7 @@
 #define BOLDCYAN "\033[1;36m"
 #define RESET "\033[0m"
 
-void logRtaConsultarPlatos(t_list *platosEnviados);
+void logRtaConsultarPlatos(t_list *platosEnviados);//
 
 /* Commons */
 
@@ -72,12 +72,12 @@ void log_app_pcb_llego_al_cliente(char *algoritmo, int pid, char *idCliente);
 void log_app_pcb_entregado_al_cliente(char *algoritmo, int pid, char *idCliente, int idRepartidor);
 void log_app_continua_hacia_cliente(char *algoritmo, int pid);
 void log_app_pcb_llego_al_rest(char *algoritmo, int pid);
-void log_app_repartidor_en_camino(char *algoritmo, int pid, tour_code code);
-void log_app_traslado_repartidor(char *algoritmo, int pid, int old_posX, int old_posY, int new_posX, int new_posY);
-void log_app_repartidor_libre(char *algoritmo, int idRepartidor, int cant_disp);
-void log_checking_all_platos_listos(char *algoritmo, int pid);
-void log_app_FinalizarPedido(char *algoritmo, int pid);
-void log_app_entrega_a_cliente(char *algoritmo, int pid, char *cliente);
+void log_app_repartidor_en_camino(int pid, tour_code code);
+void log_app_traslado_repartidor(int pid, int old_posX, int old_posY, int new_posX, int new_posY);
+void log_app_repartidor_libre(int idRepartidor, int cant_disp);
+void log_checking_all_platos_listos(int pid);
+void log_app_FinalizarPedido(int pid);
+void log_app_entrega_a_cliente(int pid, char *cliente);
 
 /* HRRN */
 

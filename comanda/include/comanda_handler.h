@@ -3,6 +3,8 @@
 
 #include "../include/memoria_core.h"
 
+#define REST_DEFAULT "RestauranteDefault"
+
 t_result* _guardar_pedido(t_request *request);
 t_result* _guardar_plato(t_req_plato *request);
 t_pedido* _obtener_pedido(t_request *request);

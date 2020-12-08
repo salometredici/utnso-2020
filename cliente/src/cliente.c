@@ -359,7 +359,7 @@ void obtenerNombreServidor() {
 void initVariablesGlobales() {
 	dataCliente = malloc(sizeof(t_cliente));
 	dataCliente->esRestaurante = false;
-	dataCliente->restSeleccionado = string_new();
+	dataCliente->restSelecc = string_new();
 	dataCliente->posRest = malloc(sizeof(t_posicion));
 	dataCliente->posRest->posX = ERROR;
 	dataCliente->posRest->posY = ERROR;

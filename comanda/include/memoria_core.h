@@ -27,6 +27,7 @@
 #define PLATO_NO_TERMINADO 3 
 #define LRU "LRU"
 #define CLOCK "CLOCK_MEJ"
+#define VISTIMA_NO_ENCONTRADA 5
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;

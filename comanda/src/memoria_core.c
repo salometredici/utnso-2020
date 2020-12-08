@@ -87,6 +87,7 @@ t_frame* find_frame_in_memory(t_page* page){
 	if(page->flag == IN_MEMORY){
 		t_frame *frame = get_frame_from_memory(page->frame);	
 		page->timestamp = get_current_time();
+		page->in_use = true;
 		return frame; 
 	}
 	else{
@@ -107,9 +108,9 @@ t_frame* find_frame_in_memory(t_page* page){
 t_page* create_page(int frame_in_mp, int frame_swap){	
 	t_page *new_plato = malloc(sizeof(t_page));
 	new_plato->frame = frame_in_mp;
-	new_plato->in_use = 1;
+	new_plato->in_use = true;
 	new_plato->flag = true;
-	new_plato->modified = 0;
+	new_plato->modified = false;
 	new_plato->timestamp = get_current_time();
 	new_plato->frame_mv = frame_swap;
 
@@ -249,7 +250,14 @@ t_page* find_page_by_frame(int nro_frame, t_list* pages){
 	return page;
 }
 
-t_page* victima_0_0() {
+/*
+	Teniendo al par (in_use , modified)
+	1. Se busca (0,0) avanzando el puntero pero sin poner in_use en false
+	2. Si no se encuentra, se busca (0,1) avanzando el puntero poniendo in_use en false
+	3. Si no se encuentra, se vuelve al paso 1)
+*/
+
+t_page* find_victim_0_0() {
 	t_list* paginas = paginas_en_memoria();
 
 	if (puntero_clock ==  frames - 1)
@@ -267,23 +275,38 @@ t_page* victima_0_0() {
 	return -1;
 }
 
-t_page* victima_0_1() {
+t_page* find_victim_0_1() {
 	t_list* paginas = paginas_en_memoria();
 
 	if (puntero_clock ==  frames - 1)
 		puntero_clock = 0;
 
-	for(int i = puntero_clock; i < puntero_clock; i++){
+	for(int i = puntero_clock; i < frames; i++){
 		t_page* page = find_page_by_frame(puntero_clock, paginas);
 
 		if(page->in_use == false && page->modified == true){
+			puntero_clock += 1;
 			list_destroy(paginas);
 			return page;
 		}
 		else
 			page->in_use = false;			
 	}
-	 
+
+	if(puntero_clock != 0){
+		for(int i = 0; i < puntero_clock; i++){
+			t_page* page = find_page_by_frame(puntero_clock, paginas);
+
+			if(page->in_use == false && page->modified == true){
+				puntero_clock += 1;
+				list_destroy(paginas);
+				return page;
+			}
+			else
+				page->in_use = false;			
+		}
+	}
+
 	return -1;
 }
 
@@ -293,16 +316,16 @@ t_page* find_victim_clock(){
 	if (puntero_clock ==  frames - 1)
 		puntero_clock = 0;
 	
-	t_page* victima = victima_0_0();
+	t_page* victima = find_victim_0_0();
 
 	if (victim_page == -1) {	
-		victim_page = victima_0_1();
+		victim_page = find_victim_0_1();
 	
 		if (victim_page == -1) {	
-			victim_page = victima_0_0();
+			victim_page = find_victim_0_0();
 	
 			if (victim_page == -1) {
-				victim_page = victima_0_1();
+				victim_page = find_victim_0_1();
 			}
 		}
 	}
@@ -465,7 +488,11 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
 	t_frame* frame = find_frame_in_memory(page);
 	int sum = frame->cantidad_pedida + new_cantidad_plato;
+	
 	write_frame_memory(frame->comida, sum, frame->cantidad_lista, page->frame);
+	
+	page->modified = true;
+
 	free(frame->comida);
 	free(frame);
 	return true;
@@ -473,7 +500,9 @@ bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
 
 int update_cantidad_lista(t_page* page){
 	t_frame *frame_a_actualizar = find_frame_in_memory(page);
+	
 	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+	page->modified = true;
 
 	if(frame_a_actualizar->cantidad_lista == frame_a_actualizar->cantidad_pedida){
 		return PLATO_TERMINADO;

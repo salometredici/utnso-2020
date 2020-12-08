@@ -251,6 +251,7 @@ t_page* find_page_by_frame(int nro_frame, t_list* pages){
 }
 
 /*
+	Clock Mejorado
 	Teniendo al par (in_use , modified)
 	1. Se busca (0,0) avanzando el puntero pero sin poner in_use en false
 	2. Si no se encuentra, se busca (0,1) avanzando el puntero poniendo in_use en false
@@ -260,16 +261,24 @@ t_page* find_page_by_frame(int nro_frame, t_list* pages){
 t_page* find_victim_0_0() {
 	t_list* paginas = paginas_en_memoria();
 
-	if (puntero_clock ==  frames - 1)
-		puntero_clock = 0;
-	
-	for(int i = puntero_clock; i < puntero_clock; i++){
-		t_page* page = find_page_by_frame(puntero_clock, paginas);
+	int counter = 0;
+	int pointer = puntero_clock; 
+	int total_frames_mp = frames;
+
+	while(counter <= total_frames_mp){	
+		if(pointer == frames - 1)
+			pointer = 0;
+
+		t_page* page = find_page_by_frame(pointer, paginas);
 
 		if(page->in_use == false && page->modified == false){
+			puntero_clock += 1;
 			list_destroy(paginas);
 			return page;
-		}			
+		}
+		
+		counter++;
+		pointer++;
 	}
 
 	return -1;
@@ -278,11 +287,15 @@ t_page* find_victim_0_0() {
 t_page* find_victim_0_1() {
 	t_list* paginas = paginas_en_memoria();
 
-	if (puntero_clock ==  frames - 1)
-		puntero_clock = 0;
+	int counter = 0;
+	int pointer = puntero_clock; 
+	int total_frames_mp = frames;
 
-	for(int i = puntero_clock; i < frames; i++){
-		t_page* page = find_page_by_frame(puntero_clock, paginas);
+	while(counter <= total_frames_mp){	
+		if(pointer == frames - 1)
+			pointer = 0;
+
+		t_page* page = find_page_by_frame(pointer, paginas);
 
 		if(page->in_use == false && page->modified == true){
 			puntero_clock += 1;
@@ -290,27 +303,19 @@ t_page* find_victim_0_1() {
 			return page;
 		}
 		else
-			page->in_use = false;			
-	}
-
-	if(puntero_clock != 0){
-		for(int i = 0; i < puntero_clock; i++){
-			t_page* page = find_page_by_frame(puntero_clock, paginas);
-
-			if(page->in_use == false && page->modified == true){
-				puntero_clock += 1;
-				list_destroy(paginas);
-				return page;
-			}
-			else
-				page->in_use = false;			
-		}
+			page->in_use = false;
+		
+		counter++;
+		pointer++;
 	}
 
 	return -1;
 }
 
 t_page* find_victim_clock(){
+	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
+	print_pages_in_memory();
+
 	t_page* victim_page = NULL;
 
 	if (puntero_clock ==  frames - 1)
@@ -330,18 +335,22 @@ t_page* find_victim_clock(){
 		}
 	}
 
+	log_info(logger, "[VICTIMA_ENCONTRADA] Frame %d de la Memoria Principal", victim_page->frame);
 	return victim_page;
 }
 
-//tengo que recorrer la tabla de paginas 
-//primero fijarme si hay un espacio libre en la mp
+/*
+	LRU
+	Lo que se necesita es todas las paginas que estan en memoria
+	1. Se compara cual tiene el menor timestamp, se podria hacer con un list order jej veo si llego a cambiarlo
+*/
+
 t_page* find_victim_lru(){
 	t_page* victim_page = malloc(sizeof(t_page));
 	
 	victim_page->timestamp = 0;
 	
-	log_info(logger, "[FIND_FRAME_VICITIM]Se busca una victima .....");
-
+	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
 	print_pages_in_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
@@ -351,7 +360,7 @@ t_page* find_victim_lru(){
 		if(victim_page->timestamp == 0 && page->flag == 1){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
-			victim_page->flag = page->flag;//deberia de estar en memoria principal
+			victim_page->flag = page->flag;
 			victim_page->in_use = page->in_use;
 			victim_page->modified = page->modified;
 			victim_page->timestamp = page->timestamp;
@@ -359,7 +368,7 @@ t_page* find_victim_lru(){
 		else if(page->flag == 1 &&  page->timestamp < victim_page->timestamp){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
-			victim_page->flag = page->flag;//deberia de estar en memoria principal
+			victim_page->flag = page->flag;
 			victim_page->in_use = page->in_use;
 			victim_page->modified = page->modified;
 			victim_page->timestamp = page->timestamp;

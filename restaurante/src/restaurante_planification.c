@@ -4,9 +4,8 @@
 t_proceso *crearPcb(t_cliente *cli, int idPedido, t_receta *receta) {
     t_proceso *pcb = malloc(sizeof(t_proceso));
     pcb->pid = idPedido;
-    // pcb->idCliente = cliente->idCliente; //creo que no me llega
+    pcb->idCliente = cli->idCliente; //creo que no me llega
 	pcb->socketCliente = cli->socketCliente;
-	pcb->socketEscucha = cli->socketEscucha;
     pcb->estado = ESPERANDO_EJECUCION;
 	pcb->plato= receta->plato;
 	pcb->pasosReceta=receta->instrucciones;
@@ -172,6 +171,14 @@ void actualizarEsperaQB(t_queue_obj *currentCPU){
 	pthread_mutex_unlock(&currentCPU->mutexQB);
 }
 
+t_cliente *get_t_cliente(t_list *lista_conectados, char *buscado) {
+	bool client_found(void *actual) {
+		t_cliente *cliente_actual = actual;
+		return string_equals_ignore_case(buscado, cliente_actual->idCliente);
+	};
+	return list_find(lista_conectados, &client_found);
+}
+
 void ejecutarFinalizar(t_proceso *currentProc){
 	currentProc->estado = DONE;
 	log_planif_step("agregado a Queue", "FINALIZADO");
@@ -191,10 +198,28 @@ void ejecutarFinalizar(t_proceso *currentProc){
 
 	//avisar al modulo q solicito
 	// si es un cliente no funciona ndea ver dsps
-	enviarPaquete(currentProc->socketEscucha, RESTAURANTE, PLATO_LISTO, platoListo);
-	t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketEscucha);
-	t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketEscucha);
+	// enviarPaquete(currentProc->socketCliente, RESTAURANTE, PLATO_LISTO, platoListo);
+	// t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketCliente);
+	// t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketCliente);
 	
+	int conexionApp = crearConexionOpcional();
+	if(conexionApp != ERROR){
+		enviarPaquete(conexionApp, RESTAURANTE, PLATO_LISTO, platoListo);
+		t_header *hrRtaPlatoListoApp = recibirHeaderPaquete(conexionApp);
+		t_result *reqRtaPlatoListoApp = recibirPayloadPaquete(hrRtaPlatoListoApp, conexionApp);
+		logTResult(reqRtaPlatoListoApp);
+		liberarConexion(conexionApp);
+	} else {
+	t_cliente *cliente_a_notif = get_t_cliente(clientesConectados, currentProc->idCliente);
+
+		int conexionCliente = conectarseAProceso(CLIENTE, cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
+		enviarPaquete(conexionCliente, RESTAURANTE, PLATO_LISTO, platoListo);
+		t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(conexionCliente);
+		t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListoCli, conexionCliente);
+		logTResult(reqRtaPlatoListoCli);
+		liberarConexion(conexionCliente);
+	}
+
 	//revisar que el pedido haya terminado
 	//consultar si puedo volver a usar mismo socket 
 	//conexionSindicato = conectarseA(SINDICATO);

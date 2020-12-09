@@ -48,6 +48,7 @@ int getTiempoRetardoCpu() {
 }
 
 void obtenerMetadata() {
+	conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
@@ -56,6 +57,54 @@ void obtenerMetadata() {
 	logMetadata(md); // Probar con log_rta_ObtenerRestaurante
 	free(header);
 	free(md);
+}
+
+int crearConexionOpcional() {
+	char *ip = config_get_string_value(config, "IP_APP");
+	int puerto = config_get_int_value(config, "PUERTO_APP");
+	int socketCliente;
+	struct sockaddr_in dir;
+
+	socketCliente = crearSocket(puerto);
+
+	dir.sin_family = AF_INET;
+	dir.sin_port = htons(puerto);
+	dir.sin_addr.s_addr = inet_addr(ip);
+	memset(&(dir.sin_zero), '\0', 8);
+	
+	if (connect(socketCliente, (struct sockaddr*)&dir, sizeof(struct sockaddr)) == ERROR) {
+		log_connection_failure(ip, puerto);
+		close(socketCliente);
+		socketCliente = ERROR;
+	}
+	else {
+		log_connection_success(APP, puerto);
+	}
+
+	return socketCliente;
+}
+
+void conectarseConApp(){
+	int conexionApp = crearConexionOpcional();
+	if (conexionApp != ERROR) {
+		t_cliente *dataCliente = malloc(sizeof(t_cliente));
+		dataCliente->esRestaurante = true;
+		dataCliente->restSelecc = nombreRestaurante;
+		dataCliente->posRest = malloc(sizeof(t_posicion));
+		dataCliente->posRest->posX = posicion->posX;
+		dataCliente->posRest->posY = posicion->posY;
+		dataCliente->idCliente = nombreRestaurante;
+		dataCliente->posCliente = malloc(sizeof(t_posicion));
+		dataCliente->posCliente->posX = ERROR;
+		dataCliente->posCliente->posY = ERROR;
+		dataCliente->ip_cliente = "127.0.0.1";//config_get_string_value(config, "IP_RESTAURANTE");
+		dataCliente->puerto_cliente = config_get_int_value(config, "PUERTO_ESCUCHA");
+		dataCliente->socket_notifs = ERROR;
+		dataCliente->socketCliente = ERROR;
+		log_init_data_cliente(dataCliente);
+		enviarPaquete(conexionApp, RESTAURANTE, ENVIAR_DATACLIENTE, dataCliente);
+		free(dataCliente);
+	}
 }
 
 void inicializarVariablesMd(t_md *md) {
@@ -157,9 +206,9 @@ void inicializarVariablesGlobales() {
 }
 
 void initRestaurante() {
-	conexionSindicato = conectarseA(SINDICATO);
 	inicializarVariablesGlobales();
 	obtenerMetadata();
+	conectarseConApp();
 	inicializarQueuesGlobales();
 	inicializarListaCocineros();
 	inicializarQueuesIO();

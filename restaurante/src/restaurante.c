@@ -32,7 +32,7 @@ void actualizarClientesConectados(t_cliente *cliente) {
     };
 
 	t_cliente *cliDuplicado = list_find(clientesConectados, &estaDuplicado);
-	if (cliDuplicado != NULL) { list_add(clientesConectados, cliente); }
+	if (cliDuplicado == NULL) { list_add(clientesConectados, cliente); }
 }
 
 void crearProceso(t_cliente *cli, int idPedido, char *plato){
@@ -102,17 +102,17 @@ void *atenderConexiones(void *conexionNueva)
 				t_request *reqcrearPedido = malloc(sizeof(t_request));
 				reqcrearPedido->idPedido = cantidadPedidos;
 				reqcrearPedido->nombre = nombreRestaurante;
+
 				conexionSindicato = conectarseA(SINDICATO);
 				enviarPaquete(conexionSindicato, RESTAURANTE, GUARDAR_PEDIDO, reqcrearPedido);
 				t_header *hrRtaGuardarPedido = recibirHeaderPaquete(conexionSindicato);
 				t_result *reqRtaGuardarPedido = recibirPayloadPaquete(hrRtaGuardarPedido, conexionSindicato);
 				liberarConexion(conexionSindicato);
-				//ta mal handleado fijarse si hay error pls tarada
 				
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CREAR_PEDIDO, reqRtaGuardarPedido->hasError? ERROR : cantidadPedidos);
-				// free(hrRtaGuardarPedido);
-				// free(reqRtaGuardarPedido);
-				// free(reqcrearPedido);
+				free(hrRtaGuardarPedido);
+				free(reqRtaGuardarPedido);
+				free(reqcrearPedido);
 				break;
 			case ANIADIR_PLATO:;
 				// tiene que tener un plato y un id pedido

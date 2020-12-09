@@ -109,7 +109,7 @@ void informar_entrega_cliente(t_pcb *pcb) {
 
 	t_cliente *cliente_a_notif = get_t_cliente(clientes_conectados, pcb->idCliente);
 
-	int conexionCliente = conectarse_a_cliente(cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
+	int conexionCliente = conectarseAProceso(CLIENTE, cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
 	enviarPaquete(conexionCliente, APP, FINALIZAR_PEDIDO, request);
 	t_header *header = recibirHeaderPaquete(conexionCliente);
 	t_result *result = recibirPayloadPaquete(header, conexionCliente);

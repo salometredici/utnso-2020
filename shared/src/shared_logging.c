@@ -216,11 +216,10 @@ void logReqRestaurante(t_request *reqRestaurante) {
 		printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, reqRestaurante->nombre);
 	}
 	printf(TAB"Pedido: "BOLD"%d"RESET BREAK, reqRestaurante->idPedido);
-	log_info(logger, "Datos del request:");
 	if (!string_is_empty(reqRestaurante->nombre)) {
-		log_info(logger, "Restaurante: %s, Pedido: %d", reqRestaurante->nombre, reqRestaurante->idPedido);
+		log_info(logger, TAB"Datos del request: Restaurante: %s, Pedido: %d", reqRestaurante->nombre, reqRestaurante->idPedido);
 	} else {
-		log_info(logger, "Pedido: %d", reqRestaurante->idPedido);
+		log_info(logger, TAB"Datos del request: Pedido: %d", reqRestaurante->idPedido);
 	}
 }
 
@@ -228,8 +227,7 @@ void logReqPlato(t_request *reqPlato) {
 	printf("Datos del request:"BREAK);
 	printf(TAB"Plato: "BOLD"[%s]"RESET BREAK, reqPlato->nombre);
 	printf(TAB"Pedido: "BOLD"%d"RESET BREAK, reqPlato->idPedido);
-	log_info(logger, "Datos del request:");
-	log_info(logger, "Plato: %s, Pedido: %d", reqPlato->nombre, reqPlato->idPedido);
+	log_info(logger, TAB"Datos del request: Plato: %s, Pedido: %d", reqPlato->nombre, reqPlato->idPedido);
 }
 
 void logRequest(t_request *request, m_code codigoOperacion) {

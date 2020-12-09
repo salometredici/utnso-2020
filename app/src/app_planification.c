@@ -499,7 +499,10 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			update_posicion(current_pcb, current_pcb->alcanzoRestaurante ? HACIA_CLIENTE : HACIA_RESTAURANTE);
 
 		}
-		if (get_next_pcb) { current_pcb = queue_pop(qE); }// Continúa el ciclo con el siguiente PCB
+		if (get_next_pcb) {
+			current_pcb = queue_pop(qE);
+			get_next_pcb = false;
+		}// Continúa el ciclo con el siguiente PCB
 		if (algoritmoSeleccionado == HRRN) { update_tiempos_espera(); }
 		update_QDescansado();
         sleep(tiempoRetardoCpu);

@@ -96,6 +96,7 @@ void init_blocks() {
 		for (int i = 0; i < blocksQuantity; i++) {
 			char *fullPath = string_new();
 			string_append_with_format(&fullPath, "%s/%d.AFIP", blocksPath, i+1);
+			printf("fullpath: %s\n", fullPath);
 			FILE *fp = fopen(fullPath, "w");
 			fclose(fp);
 			//free(fullPath);

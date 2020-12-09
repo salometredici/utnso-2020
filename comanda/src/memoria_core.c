@@ -87,6 +87,7 @@ t_frame* find_frame_in_memory(t_page* page){
 	if(page->flag == IN_MEMORY){
 		t_frame *frame = get_frame_from_memory(page->frame);	
 		page->timestamp = get_current_time();
+		page->in_use = true;
 		return frame; 
 	}
 	else{
@@ -94,8 +95,8 @@ t_frame* find_frame_in_memory(t_page* page){
 
 		page->flag = 1;
 		page->timestamp = get_current_time();
-		page->in_use = 1;
-		page->modified = 0;
+		page->in_use = true;
+		page->modified = false;
 		page->frame = frame_victim;
 		
 		t_frame* frame = get_frame_from_memory(page->frame);
@@ -107,9 +108,9 @@ t_frame* find_frame_in_memory(t_page* page){
 t_page* create_page(int frame_in_mp, int frame_swap){	
 	t_page *new_plato = malloc(sizeof(t_page));
 	new_plato->frame = frame_in_mp;
-	new_plato->in_use = 1;
+	new_plato->in_use = true;
 	new_plato->flag = true;
-	new_plato->modified = 0;
+	new_plato->modified = false;
 	new_plato->timestamp = get_current_time();
 	new_plato->frame_mv = frame_swap;
 
@@ -224,24 +225,139 @@ t_frame* get_frame_from_swap(int frame_swap){
 	return marco;
 }
 
-//tengo que recorrer la tabla de paginas 
-//primero fijarme si hay un espacio libre en la mp
 t_page* find_frame_victim(){
+	t_page* victim_page;
+	
+	if(string_equals_ignore_case(ALGORITMO_REEMPLAZO, LRU))
+		victim_page = find_victim_lru();
+
+	if(string_equals_ignore_case(ALGORITMO_REEMPLAZO, CLOCK))
+		victim_page = find_victim_clock();
+	
+	return victim_page;
+}
+
+t_page* find_page_by_frame(int nro_frame, t_list* pages){
+	bool _find_frame(void *elemento){
+		t_page* x = (t_page*) elemento;
+		return x->frame == nro_frame;
+	};
+
+	t_page* page = list_find(pages, &_find_frame);	
+	return page;
+}
+
+/*
+	Clock Mejorado
+	Teniendo al par (in_use , modified)
+	1. Se busca (0,0) avanzando el puntero pero sin poner in_use en false
+	2. Si no se encuentra, se busca (0,1) avanzando el puntero poniendo in_use en false
+	3. Si no se encuentra, se vuelve al paso 1)
+*/
+
+t_page* find_victim_0_0() {
+	t_list* paginas = paginas_en_memoria();
+
+	int counter = 0;
+	int pointer = puntero_clock; 
+	int total_frames_mp = frames;
+
+	while(counter <= total_frames_mp){	
+		if(pointer == frames - 1)
+			pointer = 0;
+
+		t_page* page = find_page_by_frame(pointer, paginas);
+
+		if(page->in_use == false && page->modified == false){
+			puntero_clock += 1;
+			list_destroy(paginas);
+			return page;
+		}
+		
+		counter++;
+		pointer++;
+	}
+
+	return NULL;
+}
+
+t_page* find_victim_0_1() {
+	t_list* paginas = paginas_en_memoria();
+
+	int counter = 0;
+	int pointer = puntero_clock; 
+	int total_frames_mp = frames;
+
+	while(counter <= total_frames_mp){	
+		if(pointer == frames - 1)
+			pointer = 0;
+
+		t_page* page = find_page_by_frame(pointer, paginas);
+
+		if(page->in_use == false && page->modified == true){
+			puntero_clock += 1;
+			list_destroy(paginas);
+			return page;
+		}
+		else
+			page->in_use = false;
+		
+		counter++;
+		pointer++;
+	}
+
+	return NULL;
+}
+
+t_page* find_victim_clock(){
+	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
+	print_pages_in_memory();
+
+	t_page* victim_page = malloc(sizeof(t_page));
+
+	if (puntero_clock ==  frames - 1)
+		puntero_clock = 0;
+	
+	victim_page = find_victim_0_0();
+
+	if (victim_page == NULL) {	
+		victim_page = find_victim_0_1();
+	
+		if (victim_page == NULL) {	
+			victim_page = find_victim_0_0();
+	
+			if (victim_page == NULL) {
+				victim_page = find_victim_0_1();
+			}
+		}
+	}
+
+	log_info(logger, "[VICTIMA_ENCONTRADA] Frame %d de la Memoria Principal", victim_page->frame);
+	return victim_page;
+}
+
+/*
+	LRU
+	Lo que se necesita es todas las paginas que estan en memoria
+	1. Se compara cual tiene el menor timestamp, se podria hacer con un list order jej veo si llego a cambiarlo
+*/
+
+t_page* find_victim_lru(){
 	t_page* victim_page = malloc(sizeof(t_page));
 	
 	victim_page->timestamp = 0;
 	
-	log_info(logger, "[FIND_FRAME_VICITIM]Se busca una victima .....");
-
+	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
 	print_pages_in_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
+
 		if(victim_page->timestamp == 0 && page->flag == 1){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
-			victim_page->flag = page->flag;//deberia de estar en memoria principal
+			victim_page->flag = page->flag;
 			victim_page->in_use = page->in_use;
 			victim_page->modified = page->modified;
 			victim_page->timestamp = page->timestamp;
@@ -249,7 +365,7 @@ t_page* find_frame_victim(){
 		else if(page->flag == 1 &&  page->timestamp < victim_page->timestamp){
 			victim_page->frame = page->frame;
 			victim_page->frame_mv = page->frame_mv;
-			victim_page->flag = page->flag;//deberia de estar en memoria principal
+			victim_page->flag = page->flag;
 			victim_page->in_use = page->in_use;
 			victim_page->modified = page->modified;
 			victim_page->timestamp = page->timestamp;
@@ -318,7 +434,7 @@ int find_victim_and_update_swap(){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = false;
+	//victim_page->flag = false;
 
 	t_list* memory_pages = paginas_en_memoria();
 
@@ -378,7 +494,11 @@ t_page* find_plato(t_pedidoc *pedido, char *plato){
 bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
 	t_frame* frame = find_frame_in_memory(page);
 	int sum = frame->cantidad_pedida + new_cantidad_plato;
+	
 	write_frame_memory(frame->comida, sum, frame->cantidad_lista, page->frame);
+	
+	page->modified = true;
+
 	free(frame->comida);
 	free(frame);
 	return true;
@@ -386,7 +506,9 @@ bool increase_cantidad_plato(t_page* page, int new_cantidad_plato){
 
 int update_cantidad_lista(t_page* page){
 	t_frame *frame_a_actualizar = find_frame_in_memory(page);
+	
 	int cantidad_lista = frame_a_actualizar->cantidad_lista + 1;
+	page->modified = true;
 
 	if(frame_a_actualizar->cantidad_lista == frame_a_actualizar->cantidad_pedida){
 		return PLATO_TERMINADO;

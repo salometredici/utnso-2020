@@ -41,7 +41,7 @@ void *atenderConexiones(void *conexionNueva)
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			log_app_client_disconnection(cliente->idCliente, socketCliente);
+			log_TCliente_disconnection(cliente->idCliente, socketCliente);
 			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;

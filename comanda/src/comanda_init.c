@@ -70,6 +70,7 @@ void init_virtual() {
 }
 
 void init_comanda() {
+	puntero_clock = 0;
     init_variables();
     init_restaurantes();
 	init_mutexs();

@@ -89,25 +89,33 @@ bool todos_platos_listos(t_pcb *pcb) {
 
 void informar_pedido_finalizado(t_pcb *pcb) {
 	log_app_FinalizarPedido(pcb->pid);
-	int conexionComanda = conectarseA(COMANDA);
 	t_request *request = getTRequest(pcb->pid, pcb->restaurante);
+
+	int conexionComanda = conectarseA(COMANDA);
 	enviarPaquete(conexionComanda, APP, FINALIZAR_PEDIDO, request);
 	t_header *header = recibirHeaderPaquete(conexionComanda);
 	t_result *result = recibirPayloadPaquete(header, conexionComanda);
 	logTResult(result);
+	
 	liberarConexion(conexionComanda);
 	free(request);
 	free(result);
 	free(header);
 }
 
-void informar_entrega_cliente(t_pcb *pcb) { // Revisar porque hay que dejar un socket de escucha en el cliente
+void informar_entrega_cliente(t_pcb *pcb) {
 	log_app_entrega_a_cliente(pcb->pid, pcb->idCliente);
 	t_request *request = getTRequest(pcb->pid, pcb->restaurante);
-	enviarPaquete(pcb->socketEscucha, APP, FINALIZAR_PEDIDO, request);
-	t_header *header = recibirHeaderPaquete(pcb->socketEscucha);
-	t_result *result = recibirPayloadPaquete(header, pcb->socketEscucha);
+
+	t_cliente *cliente_a_notif = get_t_cliente(clientes_conectados, pcb->idCliente);
+
+	int conexionCliente = conectarse_a_cliente(cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
+	enviarPaquete(conexionCliente, APP, FINALIZAR_PEDIDO, request);
+	t_header *header = recibirHeaderPaquete(conexionCliente);
+	t_result *result = recibirPayloadPaquete(header, conexionCliente);
 	logTResult(result);
+
+	liberarConexion(conexionCliente);
 	free(request);
 	free(result);
 	free(header);
@@ -143,7 +151,7 @@ t_posicion *get_next_step(t_posicion *posRepartidor, t_posicion *posObjetivo) {
 void update_posicion(t_pcb *current_pcb, tour_code code) {
 	current_pcb->qRecorrido++;
 	t_posicion *next_pos = malloc(sizeof(t_posicion));
-	log_app_repartidor_en_camino(current_pcb->pid, code);
+	log_app_repartidor_en_camino(current_pcb->pid, current_pcb->estado == EN_CAMINO_A_CLIENTE ? current_pcb->posCliente : current_pcb->posRest, code);
 	switch (code) {
 		case HACIA_CLIENTE:
 			next_pos = get_next_step(current_pcb->repartidor->posRepartidor, current_pcb->posCliente);
@@ -196,7 +204,6 @@ t_pcb *crear_pcb(t_cliente *cliente, int idPedido) {
 	pcb->repartidor = malloc(sizeof(t_repartidor));
 	pcb->idCliente = cliente->idCliente;
 	pcb->socketCliente = cliente->socketCliente;
-	pcb->socketEscucha = cliente->socketEscucha;
 	pcb->posCliente = malloc(sizeof(t_posicion));
 	pcb->posCliente->posX = cliente->posCliente->posX;
 	pcb->posCliente->posY = cliente->posCliente->posY;
@@ -212,8 +219,15 @@ void agregar_a_QN(t_pcb *pcb) {
 	log_app_adding_to_new(pcb->pid);
 	pthread_mutex_lock(&mutexQN);
 	queue_push(qN, pcb);
-	log_app_added_to_new(pcb->pid);
 	pthread_mutex_unlock(&mutexQN);
+	log_app_added_to_new(pcb->pid);
+}
+
+void agregar_a_QF(t_pcb *pcb) {
+	pthread_mutex_lock(&mutexQF);
+	queue_push(qF, pcb);
+	pthread_mutex_unlock(&mutexQF);	
+	log_app_added_to_finished(pcb->pid);
 }
 
 void update_QR_con_QN() {
@@ -472,10 +486,10 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			// 3. Si llegó al cliente, se da por concluido el pedido
 			log_app_pcb_llego_al_cliente(current_pcb->pid, current_pcb->idCliente);
 			informar_pedido_finalizado(current_pcb);
-			informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
+			informar_entrega_cliente(current_pcb);
 			if (algoritmoSeleccionado == SJF) update_estimacion(current_pcb);
 			log_app_pcb_entregado_al_cliente(current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
-			queue_push(qF, current_pcb);
+			agregar_a_QF(current_pcb);
 			liberar_repartidor(current_pcb->repartidor);
 			get_next_pcb = true;			
 

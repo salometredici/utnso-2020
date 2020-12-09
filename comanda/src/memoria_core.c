@@ -243,10 +243,7 @@ t_page* find_page_by_frame(int nro_frame, t_list* pages){
 		return x->frame == nro_frame;
 	};
 
-	t_page* page = list_find(pages, &_find_frame);
-	
-	list_destroy(pages);
-	
+	t_page* page = list_find(pages, &_find_frame);	
 	return page;
 }
 
@@ -281,7 +278,7 @@ t_page* find_victim_0_0() {
 		pointer++;
 	}
 
-	return -1;
+	return NULL;
 }
 
 t_page* find_victim_0_1() {
@@ -309,27 +306,27 @@ t_page* find_victim_0_1() {
 		pointer++;
 	}
 
-	return -1;
+	return NULL;
 }
 
 t_page* find_victim_clock(){
 	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
 	print_pages_in_memory();
 
-	t_page* victim_page = NULL;
+	t_page* victim_page = malloc(sizeof(t_page));
 
 	if (puntero_clock ==  frames - 1)
 		puntero_clock = 0;
 	
-	t_page* victima = find_victim_0_0();
+	victim_page = find_victim_0_0();
 
-	if (victim_page == -1) {	
+	if (victim_page == NULL) {	
 		victim_page = find_victim_0_1();
 	
-		if (victim_page == -1) {	
+		if (victim_page == NULL) {	
 			victim_page = find_victim_0_0();
 	
-			if (victim_page == -1) {
+			if (victim_page == NULL) {
 				victim_page = find_victim_0_1();
 			}
 		}
@@ -437,7 +434,7 @@ int find_victim_and_update_swap(){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = false;
+	//victim_page->flag = false;
 
 	t_list* memory_pages = paginas_en_memoria();
 

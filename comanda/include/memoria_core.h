@@ -25,6 +25,9 @@
 #define IN_SWAP 0
 #define PLATO_TERMINADO 2
 #define PLATO_NO_TERMINADO 3 
+#define LRU "LRU"
+#define CLOCK "CLOCK_MEJ"
+#define VISTIMA_NO_ENCONTRADA 5
 
 /*SEMAFOROS*/
 pthread_mutex_t memory_frames_bitarray;
@@ -57,6 +60,7 @@ char *ALGORITMO_REEMPLAZO;
 int frames;
 int swap_frames;
 size_t size_char;
+int puntero_clock;
 
 typedef struct{
     char *nombre;
@@ -105,5 +109,7 @@ void print_pages_in_memory();
 t_frame* get_frame_from_swap(int frame_swap);
 void clear_bitmap(t_bitarray* bitmap, int bits);
 int find_victim_and_bring_it_to_mp(t_page* page);
+t_page* find_victim_clock();
+t_page* find_victim_lru();
 
 #endif

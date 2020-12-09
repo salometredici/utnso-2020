@@ -214,6 +214,7 @@ typedef struct {
 typedef struct {
 	char *idCliente; // Instancias de CLIENTE: CLIENTE_ID, Instancias de RESTAURANTE: NOMBRE_RESTAURANTE
 	int socketCliente;
+	int socketEscucha;
 	bool esRestaurante;
 	t_posicion *posCliente;
 	// Propiedades que sólo van a tener valores si es una instancia de CLIENTE

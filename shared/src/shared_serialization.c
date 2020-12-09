@@ -107,9 +107,9 @@ int getBytesTPosicion() {
 	return sizeof(t_posicion);
 }
 
-// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño
+// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño + socketServidor
 int getBytesTCliente(t_cliente *cliente) {
-	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSelecc)
+	return sizeof(int) * 4 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSelecc)
 			+ getBytesTPosicion(cliente->posCliente) + getBytesTPosicion(cliente->posRest);
 }
 
@@ -620,6 +620,10 @@ void *srlzTCliente(t_cliente *cliente) {
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &cliente->socketCliente, sizeof(int));
 	desplazamiento += sizeof(int);
+	
+	memcpy(magic + desplazamiento, &cliente->socketEscucha, sizeof(int));//
+	desplazamiento += sizeof(int);
+	
 
 	return magic;
 }
@@ -995,6 +999,10 @@ t_cliente *dsrlzTCliente(void *buffer) {
 
 	memcpy(&cliente->socketCliente, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
+
+	memcpy(&cliente->socketEscucha, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);//
+	
 
 	cliente->idCliente = id; cliente->restSelecc = rest;
 

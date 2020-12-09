@@ -1,5 +1,51 @@
 #include "../include/cliente.h"
 
+void *escuchar_updates(void *conexionNueva)
+{
+    pthread_data *t_data = (pthread_data*) conexionNueva;
+    int socketCliente = t_data->socketThread;
+    free(t_data);
+
+	while (1) {
+		
+    	t_header *header = recibirHeaderPaquete(socketCliente);
+
+		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
+			printf("se desconectó el wachin\n");
+			liberarConexion(socketCliente);
+    		pthread_exit(EXIT_SUCCESS);
+			return EXIT_FAILURE;
+		}
+
+    	switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, CLIENTE, RTA_OBTENER_PROCESO, CLIENTE);
+				break;
+			case PLATO_LISTO:;
+                t_plato_listo *platoListo = recibirPayloadPaquete(header, socketCliente);
+                log_PlatoListo(platoListo);
+				t_result *result_plato_listo = getTResult("AH OK. slds", false);
+				enviarPaquete(socketCliente, CLIENTE, RTA_PLATO_LISTO, result_plato_listo);
+				free(result_plato_listo);
+				free(platoListo);
+            	break;
+			case FINALIZAR_PEDIDO:;
+				t_request *req_finalizar_pedido = recibirPayloadPaquete(header, socketCliente);
+				log_FinalizarPedido(req_finalizar_pedido, header->codigoOperacion);
+				t_result *result_finalizar_pedido = getTResult("AH OK. slds", false);
+				enviarPaquete(socketCliente, CLIENTE, RTA_FINALIZAR_PEDIDO, result_finalizar_pedido);
+				free(result_finalizar_pedido);
+				free(req_finalizar_pedido);
+				break;
+        	default:
+            	printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
+            	break;
+ 	   	}
+	}
+    pthread_exit(EXIT_SUCCESS);
+    return 0;
+}
+
 void *threadLecturaConsola(void *args) {
     printf("Iniciando la consola...\n");
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
@@ -25,7 +71,7 @@ void *threadLecturaConsola(void *args) {
 			if (comando == ERROR) {
 				opcion = clientOptionToKey(mensaje);
 			}
-			logConsoleInput(comandoLeido);
+			log_console_input(comandoLeido);
 			
 			switch (opcion) {
 				case OPTION_APP:
@@ -41,7 +87,7 @@ void *threadLecturaConsola(void *args) {
 							consultarPlatos("");
 							break;
 						case CREAR_PEDIDO:
-							crearPedido();
+							crear_pedido();
 							break;
 						case ANIADIR_PLATO:
 							aniadirPlato(parametro1, atoi(parametro2));
@@ -95,7 +141,7 @@ void *threadLecturaConsola(void *args) {
 							consultarPlatos("");
 							break;
 						case CREAR_PEDIDO:
-							crearPedido();
+							crear_pedido();
 							break;
 						case ANIADIR_PLATO:
 							aniadirPlato(parametro1, atoi(parametro2));
@@ -184,10 +230,8 @@ void consultarRestaurantes() {
 	free(header);
 }
 
-void seleccionarRestaurante(char *idCliente, char *nombreRestaurante) {
-	t_selecc_rest *seleccion = malloc(sizeof(t_selecc_rest));
-	seleccion->idCliente = idCliente;
-	seleccion->restauranteSeleccionado = nombreRestaurante;
+void seleccionarRestaurante(char *idCliente, char *restaurante) {
+	t_selecc_rest *seleccion = getSeleccRest(idCliente, restaurante);
 	enviarPaquete(conexion, CLIENTE, SELECCIONAR_RESTAURANTE, seleccion);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_result *result = recibirPayloadPaquete(header, conexion);
@@ -207,8 +251,8 @@ void obtenerRestaurante(char *nombre_restaurante) {
 	free(header);
 }
 
-void consultarPlatos(char *nombreRestaurante) {
-	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombreRestaurante);
+void consultarPlatos(char *nombre_rest) {
+	enviarPaquete(conexion, CLIENTE, CONSULTAR_PLATOS, nombre_rest);
 	t_header *header = recibirHeaderPaquete(conexion);
 	t_list *platos = recibirPayloadPaquete(header, conexion);
 	log_rta_ConsultarPlatos(platos);
@@ -227,12 +271,11 @@ void obtener_receta(char *receta_a_buscar) {
 	free(header);
 }
 
-void crearPedido() {
+void crear_pedido() {
 	enviarPaquete(conexion, CLIENTE, CREAR_PEDIDO, NULL);
 	t_header *header = recibirHeaderPaquete(conexion);
-    int idPedido = recibirPayloadPaquete(header, conexion);
-	printf("Se ha creado el pedido #%d\n", idPedido);
-	log_info(logger, "Se ha creado el pedido #%d", idPedido);
+    int new_id_pedido = recibirPayloadPaquete(header, conexion);
+	log_rta_CrearPedido(new_id_pedido);
 	free(header);
 }
 
@@ -355,14 +398,14 @@ void obtenerNombreServidor() {
 	enviarPaquete(conexion, CLIENTE, OBTENER_PROCESO, NULL);
 	t_header *rtaProceso = recibirHeaderPaquete(conexion);
 	procesoServidor = intToPCode(recibirPayloadPaquete(rtaProceso, conexion));
-	logConnectionCliente(procesoServidor);
+	log_connection_as_cliente(procesoServidor);
 	free(rtaProceso);
 }
 
 void initVariablesGlobales() {
 	dataCliente = malloc(sizeof(t_cliente));
 	dataCliente->esRestaurante = false;
-	dataCliente->restSeleccionado = string_new();
+	dataCliente->restSelecc = string_new();
 	dataCliente->posRest = malloc(sizeof(t_posicion));
 	dataCliente->posRest->posX = ERROR;
 	dataCliente->posRest->posY = ERROR;
@@ -370,8 +413,9 @@ void initVariablesGlobales() {
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
+	dataCliente->socketEscucha = socketEscucha;
 	dataCliente->socketCliente = ERROR;
-	logInitDataCliente(dataCliente);
+	log_init_data_cliente(dataCliente);
 }
 
 void initCliente() {
@@ -383,14 +427,25 @@ void initCliente() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
+	socketEscucha = iniciarServidor();
 	initCliente();
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *)threadLecturaConsola, NULL);
     pthread_detach(threadConsola);
-
+	
+	int fd;
 	while (1) {
-		//TODO: Lógica del Cliente
+		fd = aceptarCliente(socketEscucha);
+		if (fd != ERROR) {
+			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
+			t_data->socketThread = fd;
+			pthread_create(&threadUpdates, NULL, (void*)escuchar_updates, t_data);
+			pthread_detach(threadUpdates);
+			printf("se conectó este wachin %d\n", fd);
+		} else {
+			pthread_kill(threadUpdates, SIGTERM);
+		}
 	}
 
 	liberarConexion(conexion);

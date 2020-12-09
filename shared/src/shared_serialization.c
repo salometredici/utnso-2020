@@ -107,9 +107,9 @@ int getBytesTPosicion() {
 	return sizeof(t_posicion);
 }
 
-// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño
+// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño + socketServidor
 int getBytesTCliente(t_cliente *cliente) {
-	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSeleccionado)
+	return sizeof(int) * 4 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSelecc)
 			+ getBytesTPosicion(cliente->posCliente) + getBytesTPosicion(cliente->posRest);
 }
 
@@ -125,7 +125,7 @@ int getBytesMd(t_md *md) {
 
 // size de restauranteSeleccionado + size de idCliente + 2 ints para esos valores
 int getBytesTSeleccRest(t_selecc_rest *seleccRest) {
-	return sizeof(int) * 2 + getBytesString(seleccRest->idCliente) + getBytesString(seleccRest->restauranteSeleccionado);
+	return sizeof(int) * 2 + getBytesString(seleccRest->idCliente) + getBytesString(seleccRest->restSelecc);
 }
 
 /* GetBytes de payload y buffer */
@@ -366,9 +366,9 @@ void *srlzTSeleccRest(t_selecc_rest *seleccRest) {
 	int desplazamiento = 0;
 	int size = getBytesTSeleccRest(seleccRest);
 	char *idCliente = seleccRest->idCliente;
-	char *restaurante = seleccRest->restauranteSeleccionado;
+	char *restaurante = seleccRest->restSelecc;
 	int longitudIdCliente = getBytesString(seleccRest->idCliente);
-	int longitudRestaurante = getBytesString(seleccRest->restauranteSeleccionado);
+	int longitudRestaurante = getBytesString(seleccRest->restSelecc);
 
 	void *magic = malloc(size);
 	memcpy(magic, &longitudIdCliente, sizeof(int));
@@ -595,7 +595,7 @@ void *srlzTCliente(t_cliente *cliente) {
 	int desplazamiento = 0;
 	int size = getBytesTCliente(cliente);
 	int longId = getBytesString(cliente->idCliente);
-	int longRest = getBytesString(cliente->restSeleccionado);
+	int longRest = getBytesString(cliente->restSelecc);
 
 	void *magic = malloc(size);
 	
@@ -605,7 +605,7 @@ void *srlzTCliente(t_cliente *cliente) {
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, cliente->idCliente, longId);
 	desplazamiento += longId;
-	memcpy(magic + desplazamiento, cliente->restSeleccionado, longRest);
+	memcpy(magic + desplazamiento, cliente->restSelecc, longRest);
 	desplazamiento += longRest;
 
 	memcpy(magic + desplazamiento, &cliente->esRestaurante, sizeof(bool));
@@ -620,6 +620,10 @@ void *srlzTCliente(t_cliente *cliente) {
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &cliente->socketCliente, sizeof(int));
 	desplazamiento += sizeof(int);
+	
+	memcpy(magic + desplazamiento, &cliente->socketEscucha, sizeof(int));//
+	desplazamiento += sizeof(int);
+	
 
 	return magic;
 }
@@ -647,7 +651,7 @@ void enviarPaquete(int socket, p_code procesoOrigen, m_code codigoOperacion, voi
 	serializarPayload(buffer, codigoOperacion, stream);
 	
 	enviarPorSocket(socket, buffer, tamanioTotal);
-	logMessageSent(codigoOperacion);
+	log_message_sent(codigoOperacion, socket);
 
 	free(buffer);
 }
@@ -996,7 +1000,11 @@ t_cliente *dsrlzTCliente(void *buffer) {
 	memcpy(&cliente->socketCliente, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 
-	cliente->idCliente = id; cliente->restSeleccionado = rest;
+	memcpy(&cliente->socketEscucha, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);//
+	
+
+	cliente->idCliente = id; cliente->restSelecc = rest;
 
 	free(buffer);
 	return cliente;
@@ -1041,7 +1049,7 @@ t_selecc_rest *dsrlzTSeleccRest(void *buffer) {
 	memcpy(restaurante, buffer + desplazamiento, longRestaurante);
 
 	seleccRest->idCliente = idCliente;
-	seleccRest->restauranteSeleccionado = restaurante;
+	seleccRest->restSelecc = restaurante;
 
 	free(buffer);
 	return seleccRest;
@@ -1070,7 +1078,7 @@ t_header *recibirHeaderPaquete(int socket) {
 		header->procesoOrigen = proceso;
 		header->codigoOperacion = mensaje;
 		if (proceso < 200) {
-			logHeader(header->codigoOperacion, header->procesoOrigen, socket);
+			log_header(header->codigoOperacion, header->procesoOrigen, socket);
 		}
 	} else {
 		close(socket);

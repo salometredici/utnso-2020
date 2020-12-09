@@ -83,8 +83,7 @@ void inicializarProceso(p_code proceso) {
 		crearLoggerProceso(log_path, program);
 	}
 	
-	//free(log_path);
-	logInitializedProcess();
+	log_initialized_process();
 }
 
 void finalizarProceso() {
@@ -134,7 +133,7 @@ int conectarseA(p_code proceso) {
 			puerto = config_get_int_value(config, "PUERTO_SINDICATO");
 			break;
 	}
-	logConnectionAttempt(proceso, ip, puerto);
+	log_connection_attempt(proceso, ip, puerto); // Potencial comentado
 	return crearConexion(proceso, ip, puerto);
 }
 
@@ -155,7 +154,7 @@ int crearConexion(p_code proceso, char *ip, int puerto) {
 		exit(EXIT_FAILURE);
 	}
 
-	logConnectionSuccess(proceso, puerto);
+	log_connection_success(proceso, puerto);
 
 	return socketCliente;
 }
@@ -194,7 +193,7 @@ int abrirSocketEscucha(int puerto) {
 		log_error(logger, "Fallo en listen");
 		exit(EXIT_FAILURE);
 	}
-	logAwaitingConnections(puerto);
+	log_awaiting_connections(puerto);
     return socketEscucha;
 }
 

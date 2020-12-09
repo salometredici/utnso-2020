@@ -16,76 +16,86 @@ void log_lista_strings(t_list *lista_strings) {
 	}
 }
 
-/* APP */
-
-void logClientInfo(t_cliente *cliente) {
-	printf(TAB"Cliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s" BREAK, cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	printf(TAB"[Posición en el mapa]: [%d,%d]"BREAK, cliente->posCliente->posX, cliente->posCliente->posY);
-	log_info(logger, TAB"Cliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	log_info(logger, TAB"[Posición en el mapa]: [%d,%d]", cliente->posCliente->posX, cliente->posCliente->posY);
-}
-
-void logRtaConsultarPlatos(t_list *platosEnviados) {
-	printf("Platos enviados:"BREAK);
-	log_info(logger, "Platos enviados:");
-	for (int i = 0; i < list_size(platosEnviados); i++) {
-		printf(TAB"Plato #%d: %s"BREAK, i, list_get(platosEnviados, i));
-		log_info(logger, TAB"Plato #%d: %s", i, list_get(platosEnviados, i));
-	}
-}
-
 /* Commons */
 
-void logInitializedProcess() {
+void log_initialized_process() {
 	printf(BOLD"Proceso "RESET BOLDBLUE"%s"RESET BOLD" iniciado..."RESET BREAK, getStringKeyValue(process, PROCNKEYS));
 	log_info(logger, "Proceso %s iniciado...", getStringKeyValue(process, PROCNKEYS));
 }
 
-void logConnectionAttempt(p_code process, char *ip, int puerto) {
+void log_connection_attempt(p_code process, char *ip, int puerto) {
 	if (process != CLIENTE) {
-		printf("Intentando conectarse a "BOLDBLUE"%s"RESET" en IP: %s, PUERTO: %d..."BREAK, getStringKeyValue(process, PROCNKEYS), ip, puerto);
-		log_info(logger, "Intentando conectarse a %s en IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
+		printf("--------------------------------------------------"BREAK);
+		printf("Intentando conectarse a "BOLDBLUE"%s"RESET" - IP: %s, PUERTO: %d..."BREAK, getStringKeyValue(process, PROCNKEYS), ip, puerto);
+		log_info(logger, "--------------------------------------------------");
+		log_info(logger, "Intentando conectarse a %s - IP: %s, PUERTO: %d...", getStringKeyValue(process, PROCNKEYS), ip, puerto);
 	} else {
+		printf("--------------------------------------------------"BREAK);
 		printf("Intentando conectarse a IP: %s, PUERTO: %d..."BREAK, ip, puerto);
+		log_info(logger, "--------------------------------------------------");	
 		log_info(logger, "Intentando conectarse a IP: %s, PUERTO: %d...", ip, puerto);
 	}
 }
 
-void logConnectionSuccess(p_code process, int puerto) {
+void log_connection_success(p_code process, int puerto) {
 	if (process != CLIENTE) {
 		printf(BOLDGREEN"Conexión creada con "RESET BOLDBLUE"%s"RESET BOLDGREEN" en el puerto %d"RESET BREAK, getStringKeyValue(process, PROCNKEYS), puerto);
+		printf("--------------------------------------------------"BREAK);
 		log_info(logger, "Conexión creada con %s en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
+		log_info(logger, "--------------------------------------------------");			
 	} else {
 		printf(BOLDGREEN"Conexión creada con el puerto %d"RESET BREAK, puerto);
+		printf("--------------------------------------------------"BREAK);
 		log_info(logger, "Conexión creada con el puerto %d", puerto);
+		log_info(logger, "--------------------------------------------------");			
 	}
 }
 
-void logConnectionCliente(p_code process) {
+void log_connection_as_cliente(p_code process) {
 	printf("Conectado al proceso "BOLDBLUE"%s"RESET BREAK, getStringKeyValue(process, PROCNKEYS));
 	log_info("Conectado al proceso %s", getStringKeyValue(process, PROCNKEYS));
 }
 
-void logAwaitingConnections(int puerto) {
+void log_awaiting_connections(int puerto) {
 	printf(BOLDBLUE"%s"RESET BOLDGREEN" escuchando conexiones en el puerto %d"RESET BREAK, getStringKeyValue(process, PROCNKEYS), puerto);
 	log_info(logger, "%s escuchando conexiones en el puerto %d", getStringKeyValue(process, PROCNKEYS), puerto);
 }
 
-void logConsoleInput(char *input) {
+void log_console_input(char *input) {
 	log_debug(logger, "Comando ingresado: %s", input);
 }
 
-void logClientDisconnection(int socketCliente) {
-	printf(RED"El cliente %d se desconectó. Finalizando el hilo...（・∩・)"RESET BREAK, socketCliente);
-	log_info(logger, "El cliente %d se desconectó. Finalizando el hilo...（・∩・)", socketCliente);
+void log_common_client_disconnection(int socketCliente) {
+	printf(RED"El cliente "RESET BOLDRED"[Socket #%d]"RESET RED" se desconectó. Finalizando el hilo...（・∩・)"RESET BREAK, socketCliente);
+	log_info(logger, "El cliente [Socket #%d] se desconectó. Finalizando el hilo...（・∩・)", socketCliente);
 }
 
-void logNewClientConnection(int socket) {
-	printf(BOLDGREEN"Nuevo hilo para atender al cliente "RESET BOLDBLUE"%d"RESET BREAK, socket);
-	log_info(logger, "Nuevo hilo para atender al cliente %d", socket);
+void log_app_client_disconnection(char *idCliente, int socketCliente) {
+	printf(RED"El cliente "RESET BOLDRED"[%s - Socket #%d]"RESET RED" se desconectó. Finalizando su hilo...（・∩・)"RESET BREAK, idCliente, socketCliente);
+	log_info(logger, "El cliente [%s - Socket #%d] se desconectó. Finalizando su hilo...（・∩・)", idCliente, socketCliente);
 }
 
-void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket) {
+// Para cuando revisa la lista de conectados y se encuentra alguno rip
+void log_TCliente_disconnection(t_cliente *cliente) {
+	printf(BOLDRED"El cliente "RESET BOLD"[Socket #%d - %s]"RESET BOLDRED" se desconectó"RESET BREAK, cliente->socketCliente, cliente->idCliente);
+	log_debug(logger, "El cliente [Socket #%d - %s] se desconectó", cliente->socketCliente, cliente->idCliente);
+}
+
+void log_comanda_client_disconnection(p_code process, int socketCliente) {
+	if (process != ERROR) {
+		printf(RED"El "RESET BOLDRED"[Socket #%d]"RESET RED" de "RESET BOLDBLUE"%s"RESET RED" se desconectó. Finalizando su hilo de peticiones...（・∩・)"RESET BREAK, socketCliente, getStringKeyValue(process, PROCNKEYS));
+		log_info(logger, "El [Socket #%d] de %s se desconectó. Finalizando su hilo de peticiones...（・∩・)", socketCliente, getStringKeyValue(process, PROCNKEYS));
+	} else {
+		log_common_client_disconnection(socketCliente);
+	}
+}
+
+void log_new_client_connection(int socket) {
+	printf(BOLDGREEN"Nuevo hilo para atender al cliente "RESET BOLDBLUE"#%d"RESET BREAK, socket);
+	log_info(logger, "Nuevo hilo para atender al cliente #%d", socket);
+}
+
+void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket) {
 	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d" BREAK,
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
 		getStringKeyValue(procesoOrigen, PROCNKEYS),
@@ -96,9 +106,15 @@ void logHeader(m_code codigoOperacion, p_code procesoOrigen, int socket) {
 		socket);
 }
 
-void logMessageSent(m_code codigoOperacion) {
-	printf("Message "YELLOW"%s"RESET" sent"BREAK, getStringKeyValue(codigoOperacion, COMMANDNKEYS));
-	log_info(logger, "Message %s sent", getStringKeyValue(codigoOperacion, COMMANDNKEYS));
+void log_message_sent(m_code codigoOperacion, int socket) {
+	printf("Message "YELLOW"%s"RESET" sent to [Socket #%d]"BREAK, getStringKeyValue(codigoOperacion, COMMANDNKEYS), socket);
+	log_info(logger, "Message %s sent to [Socket #%d]", getStringKeyValue(codigoOperacion, COMMANDNKEYS), socket);
+}
+
+/* CLIENTE */
+
+void log_init_data_cliente(t_cliente *cliente) {
+	log_info("Cliente %s iniciado, PosX: %d, PosY: %d", cliente->idCliente, cliente->posCliente->posX, cliente->posCliente->posY);
 }
 
 /* Serialization logs */
@@ -127,32 +143,6 @@ void log_list_t_md_receta(t_list *lista_platos) {
 	}
 }
 
-/* CONSULTAR_PEDIDO: t_pedido CON nombre de restaurante */
-
-void logConsultarPedido(t_pedido *pedido, int idPedido) {
-	printf("Pedido #%d:"BREAK, idPedido);
-	log_info(logger, "Pedido #%d:", idPedido);
-	printf(TAB"Restaurante: %s, Estado: %s, Precio Total: $%d"BREAK, pedido->restaurante, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
-	log_info(logger, TAB"Restaurante: %s, Estado: %s, Precio Total: $%d", pedido->restaurante, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
-	mostrarListaPlatos(pedido->platos);
-}
-
-/* OBTENER_PEDIDO: t_pedido SIN nombre de restaurante */
-
-void logObtenerPedido(t_pedido *pedido, int idPedido) {
-	printf("Pedido #%d:"BREAK, idPedido);
-	log_info(logger, "Pedido #%d:", idPedido);
-	printf(TAB"Estado: %s, Precio Total: $%d"BREAK, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
-	log_info(logger, TAB"Estado: %s, Precio Total: $%d", getStringEstadoPedido(pedido->estado), pedido->precioTotal);
-	mostrarListaPlatos(pedido->platos);
-}
-
-/* t_cliente */
-
-void logInitDataCliente(t_cliente *cliente) {
-	log_info("Cliente %s iniciado, PosX: %d, PosY: %d", cliente->idCliente, cliente->posCliente->posX, cliente->posCliente->posY);
-}
-
 /* t_md */ //!!! 
 
 void logMetadata(t_md *md) { // ahora log_rta_obtenerrestaurante
@@ -173,11 +163,6 @@ void logMetadata(t_md *md) { // ahora log_rta_obtenerrestaurante
 	logListaRecetas(md->platos);
 }
 
-void logSeleccionarRestaurante(t_selecc_rest *seleccion) {
-	printf("Se ha asociado al cliente "BOLD"%s"RESET" con el restaurante "BOLDMAGENTA"%s"RESET BREAK, seleccion->idCliente, seleccion->restauranteSeleccionado);
-	log_info(logger, "Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restauranteSeleccionado);
-}
-
 /* Lista de t_plato */
 
 void log_t_plato_list(t_list *list) {
@@ -196,11 +181,11 @@ void log_t_plato_list(t_list *list) {
 
 void logTResult(t_result *result) {
 	if (result->hasError) {
-		printf("Resultado: "BOLDRED"[%s]"RESET" - "RED"%s"RESET BREAK, "FAILED", result->msg);
+		printf(TAB"Resultado: "BOLDRED"[%s]"RESET" - "RED"%s"RESET BREAK, "FAILED", result->msg);
 	} else {
-		printf("Resultado: "BOLDGREEN"[%s]"RESET" - "BOLD"%s"RESET BREAK, "SUCCESS", result->msg);
+		printf(TAB"Resultado: "BOLDGREEN"[%s]"RESET" - "BOLD"%s"RESET BREAK, "SUCCESS", result->msg);
 	}
-	log_info(logger, "Resultado: [%s] - %s", result->hasError ? "FAILED" : "SUCCESS", result->msg);
+	log_info(logger, TAB"Resultado: [%s] - %s", result->hasError ? "FAILED" : "SUCCESS", result->msg);
 }
 
 /* t_request */
@@ -255,7 +240,194 @@ void logRequestPlato(t_req_plato *plato) {
 	log_info(logger, "Restaurante: %s, Pedido: %d, Plato: %s, Cantidad plato: %d", plato->restaurante, plato->idPedido, plato->plato, plato->cantidadPlato);
 }
 
+/* Planificación APP */
+
+/* APP NEW QUEUE */
+
+void log_app_adding_to_new(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Agregando el PCB ["BOLDCYAN"#%d"RESET"] a NEW por haber sido confirmado..."BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Agregando el PCB [#%d] a NEW por haber sido confirmado...", pid);
+}
+
+void log_app_added_to_new(int pid) {
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to NEW queue"RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
+}
+
+void log_app_removed_from_new(char *algoritmo, int pid) {
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] removed from NEW queue"RESET BREAK, algoritmo, pid);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] removed from NEW queue", algoritmo, pid);
+}
+
+void log_app_asignando_repartidores(int repartidores_disp, int exec_disp) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Asignando repartidores para pasar PCBs a "BOLD"READY"RESET"..."BREAK);
+	log_debug(logger, TAB"[PLANIFICATION] Asignando repartidores para pasar PCBs a READY...");
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidores disponibles: %d, Espacio en EXEC: %d"BREAK, repartidores_disp, exec_disp);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidores disponibles: %d, Espacio en EXEC: %d", repartidores_disp, exec_disp);
+}
+
+void log_app_repartidor_asignado(int idRepartidor, int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor #%d assigned to PCB ["BOLDCYAN"#%d"RESET"]"BREAK, idRepartidor, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidor #%d assigned to PCB [#%d]",idRepartidor, pid);
+}
+
+/* APP READY QUEUE */
+
+void log_app_added_to_ready(int pid) {
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to READY queue"RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
+}
+
+void log_app_removed_from_ready(char *algoritmo, int pid) {
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] removed from READY queue"RESET BREAK, algoritmo, pid);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] removed from READY queue", algoritmo, pid);
+}
+
+void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE) {
+	printf(TAB BOLDCYAN"[PLANIFICATION - %s]"RESET BOLD" Agregando PCBs de READY a EXEC"RESET" - Espacio en EXEC: %d"BREAK, algoritmo,  grado_multiprocesamiento - size_qE);
+	log_debug(logger, TAB"[PLANIFICATION - %s] Agregando PCBs de READY a EXEC - Espacio en EXEC: %d", algoritmo, grado_multiprocesamiento - size_qE);
+}
+
+/* APP EXEC QUEUE */
+
+void log_app_running_exec_cycle(char *algoritmo) {
+	printf(BOLDCYAN"[PLANIFICATION - %s] Running execution..."RESET BREAK, algoritmo);
+	log_debug(logger, "[PLANIFICATION - %s] Running execution...", algoritmo);
+}
+
+void log_app_added_to_exec(char *algoritmo, int pid) {
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to EXEC queue"RESET BREAK, algoritmo, pid);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] added to EXEC queue", algoritmo, pid);
+}
+
+/* APP BLOCKED QUEUE */
+
+void log_app_updating_QB_times() {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Incrementando tiempos de descanso en "BOLD"BLOCKED"RESET"..."BREAK);
+	log_debug(logger, TAB"[PLANIFICATION] Incrementando tiempos de descanso en BLOCKED...");
+}
+
+void log_app_QB_times_increased(char *algoritmo) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Tiempos de descanso incrementados en "BOLD"BLOCKED"RESET BREAK);
+	log_debug(logger, TAB"[PLANIFICATION] Tiempos de descanso incrementados en BLOCKED");
+}
+
+void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest) {
+	printf(TAB CYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] added to BLOCKED queue in %s state"RESET BREAK, algoritmo, pid, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] added to BLOCKED queue in %s state", algoritmo, pid, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
+}
+
+void log_app_unblocking_pcb(char *algoritmo, int idPedido) {
+	printf(TAB CYAN"[PLANIFICATION - %s]"RESET BOLD" Desbloqueando al PCB ["RESET BOLDCYAN"#%d"RESET BOLD"]..."RESET BREAK, algoritmo, idPedido);
+	log_debug(logger, TAB"[PLANIFICATION - %s] Desbloqueando al PCB [#%d]...", algoritmo, idPedido);
+}
+
+void log_app_blocked_to_ready(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] has returned from "BOLD"BLOCKED"RESET" state to "BOLD"READY"RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] has returned from BLOCKED state to READY", pid);
+}
+
+void log_app_pcb_rest_end(int pid, int qDescansado) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] finished its timeout. Cycles resting: %d"BREAK, pid, qDescansado);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] finished its timeout. Cycles resting: %d", pid, qDescansado);
+}
+
+void log_app_repartidor_cansado(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El repartidor del PCB ["BOLDCYAN"#%d"RESET"] debía descansar, el PCB pasó al estado "BOLD"BLOCKED"RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] debía descansar, el PCB pasó al estado BLOCKED", pid);
+}
+
+void log_app_platos_pendientes(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] tiene platos pendientes, pasa a BLOCKED"BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] tiene platos pendientes, pasa a BLOCKED", pid);			
+}
+
+/* Updates */
+
+void log_app_pcb_llego_al_cliente(int pid, char *idCliente) {
+	printf(TAB BOLDCYAN"[PLANIFICATION]"RESET BOLDMAGENTA" El PCB ["RESET BOLDCYAN"#%d"RESET BOLDMAGENTA"] llegó al cliente, finalizando pedido..."RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] llegó al cliente, finalizando pedido...", pid);			
+}
+
+void log_app_pcb_entregado_al_cliente(int pid, char *idCliente, int idRepartidor) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] fue entregado a "BOLD"%s"RESET" por el repartidor "BOLD"#%d"RESET", pasa a "BOLD"FINISHED"RESET BREAK, pid, idCliente, idRepartidor);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] fue entregado a %s por el repartidor #%d, pasa a FINISHED", pid, idCliente, idRepartidor);
+}
+
+void log_app_continua_hacia_cliente(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] continúa su viaje hacia el cliente..."BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] continúa su viaje hacia el cliente...", pid);			
+}
+
+void log_app_pcb_llego_al_rest(int pid) {
+	printf(TAB BOLDCYAN"[PLANIFICATION]"RESET BOLDMAGENTA" El PCB ["RESET BOLDCYAN"#%d"RESET BOLDMAGENTA"] llegó al restaurante"RESET BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] llegó al restaurante");
+}
+
+void log_app_repartidor_en_camino(int pid, tour_code code) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El repartidor del PCB ["BOLDCYAN"#%d"RESET"] se encuentra en camino al %s"BREAK, pid, code == HACIA_CLIENTE ? "cliente" : "restaurante");
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] se encuentra en camino al %s", pid, code == HACIA_CLIENTE ? "cliente" : "restaurante");
+}
+
+void log_app_traslado_repartidor(int pid, int old_posX, int old_posY, int new_posX, int new_posY) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET BOLD" El repartidor del PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] se trasladó de [%d,%d] a [%d,%d]"RESET BREAK, pid, old_posX, old_posY, new_posX, new_posY);
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] se trasladó de [%d,%d] a [%d,%d]", pid, old_posX, old_posY, new_posX, new_posY);
+}
+
+void log_app_repartidor_libre(int idRepartidor, int cant_disp) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor "BOLD"#%d"RESET" is now available. Total available now: %d"BREAK, idRepartidor, cant_disp);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidor #%d is now available. Total available now: %d", idRepartidor, cant_disp);
+}
+
+void log_checking_all_platos_listos(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Revisando si todos los platos del PCB ["BOLDCYAN"#%d"RESET"] están listos..."BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Revisando si todos los platos del PCB [#%d] están listos...", pid);
+}
+
+void log_app_FinalizarPedido(int pid) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] a "BOLDBLUE"COMANDA"RESET"..."BREAK, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] a COMANDA...", pid);
+}
+
+void log_app_entrega_a_cliente(int pid, char *cliente) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] al cliente "BOLD"%s"RESET"..."BREAK, pid, cliente);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] al cliente %s...", pid, cliente);
+}
+
+/* HRRN */
+
+void log_app_increasing_tiempos_espera() {
+	printf(TAB BOLDCYAN"[PLANIFICATION - HRRN]"RESET BOLD" Incrementando tiempos de espera en READY..."RESET BREAK);
+	log_debug(logger, TAB"[PLANIFICATION - HRRN] Incrementando tiempos de espera en READY...");
+}
+
+void log_app_tiempos_espera_increased() {
+	printf(TAB BOLDCYAN"[PLANIFICATION - HRRN]"RESET BOLD" Tiempos de espera incrementados en READY"RESET BREAK);
+	log_debug(logger, TAB"[PLANIFICATION - HRRN] Tiempos de espera incrementados en READY");
+}
+
+void log_app_next_pcb_HRRN() {
+	printf(TAB BOLDCYAN"[PLANIFICATION - HRRN]"RESET BOLD" Obteniendo el próximo PCB a pasar a EXEC..."RESET BREAK);
+	log_debug(logger, TAB"[PLANIFICATION - HRRN] Obteniendo el próximo PCB a pasar a EXEC...");
+}
+
+/* SJF */
+
+void log_app_next_pcb_SJF() {
+	printf(TAB BOLDCYAN"[PLANIFICATION - SJF]"RESET BOLD" Obteniendo el próximo PCB a pasar a EXEC..."RESET BREAK);
+	log_debug(logger, TAB"[PLANIFICATION - SJF] Obteniendo el próximo PCB a pasar a EXEC...");
+}
+
 /* Mensajes */
+
+// ENVIAR_DATACLIENTE
+
+void log_rta_EnviarDataCliente(t_cliente *cliente) {
+	printf(TAB"Cliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s" BREAK, cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
+	printf(TAB"[Posición en el mapa]: [%d,%d]"BREAK, cliente->posCliente->posX, cliente->posCliente->posY);
+	log_info(logger, TAB"Cliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
+	log_info(logger, TAB"[Posición en el mapa]: [%d,%d]", cliente->posCliente->posX, cliente->posCliente->posY);
+}
 
 // TERMINAR_PEDIDO
 
@@ -275,6 +447,13 @@ void log_ConfirmarPedido(t_request *request, m_code codigo_operacion) {
 
 void log_rta_ConfirmarPedido(t_result *result) {
 	logTResult(result);
+}
+
+// SELECCIONAR_RESTAURANTE
+
+void log_SeleccionarRestaurante(t_selecc_rest *seleccion) {
+	printf(TAB"Se ha asociado al cliente "BOLD"%s"RESET" con el restaurante "BOLDMAGENTA"%s"RESET BREAK, seleccion->idCliente, seleccion->restSelecc);
+	log_info(logger, TAB"Se ha asociado al cliente %s con el restaurante %s", seleccion->idCliente, seleccion->restSelecc);
 }
 
 // OBTENER_PEDIDO
@@ -375,6 +554,17 @@ void log_rta_ObtenerRestaurante(t_md *md) {
 }
 
 // CONSULTAR_PLATOS
+
+void log_ConsultarPlatos_default(t_list *platos_rest_default) {
+	printf("No hay restaurantes conectados, se enviarán los platos del "BOLDMAGENTA"RESTAURANTEDEFAULT"RESET"..."BREAK);
+	log_info(logger, "No hay restaurantes conectados, se enviarán los platos del RESTAURANTEDEFAULT...");
+	log_rta_ConsultarPlatos(platos_rest_default);
+}
+
+void log_ConsultarPlatos_a_rest(char *rest) {
+	printf("Consultando los platos del restaurante "BOLDMAGENTA"%s"RESET"..."BREAK, rest);
+	log_info(logger, "Consultando los platos del restaurante %s...", rest);
+}
 
 void log_ConsultarPlatos(char *restaurante) { // Antes logConsultaPlatos
 	printf(TAB"Restaurante: "BOLDMAGENTA"%s"RESET BREAK, restaurante);
@@ -586,9 +776,24 @@ void log_CrearReceta_Data(char **params) {
 
 // CREAR_PEDIDO
 
+void log_CrearPedido_app(char *idCliente, char *rest) {
+	printf("Solicitando un nuevo idPedido para el cliente "BOLD"%s"RESET" al RESTAURANTE "BOLDMAGENTA"%s"RESET"..."BREAK, idCliente, rest);
+	log_info(logger, "Solicitando un nuevo idPedido para el cliente %d a RESTAURANTE %s...", idCliente, rest);				
+}
+
 void log_CrearPedido_Data(t_request *request) {
 	printf("Creando el archivo "BOLDYELLOW"Pedido%d.AFIP"RESET" para el restaurante %s"BREAK, request->idPedido, request->nombre);
 	log_info(logger, "Creando el archivo Pedido%d.AFIP para el restaurante %s", request->idPedido, request->nombre);
+}
+
+void log_rta_CrearPedido(int new_id_pedido) {
+	if (new_id_pedido == ERROR) {
+		printf(TAB BOLDRED"[ERROR]"RESET RED" No fue posible obtener un número de pedido nuevo"RESET BREAK);
+		log_error(logger, TAB"No fue posible obtener un número de pedido nuevo");
+	} else {	
+		printf(TAB"Se ha creado el pedido #%d"BREAK, new_id_pedido);
+		log_info(logger, TAB"Se ha creado el pedido #%d", new_id_pedido);
+	}
 }
 
 // INICIAR PEDIDO

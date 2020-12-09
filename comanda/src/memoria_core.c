@@ -593,7 +593,7 @@ void free_pages(t_list* pages){
 /******************************PRINT's ESTRUCTURAS**********************************/
 
 void print_swap(){
-	printf("-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
+	printf("\n-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
 		if(!string_is_empty(swap_frame->comida))
@@ -601,10 +601,11 @@ void print_swap(){
 		free(swap_frame->comida);
 		free(swap_frame);
 	}
+	printf("-----------------------------------------------------------------------------\n");
 }
 
 void print_memory(){
-	printf("-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
+	printf("\n-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
 	for(int i = 0; i < frames; i++){
 		t_frame* mp_frame = get_frame_from_memory(i);
 		if(!string_is_empty(mp_frame->comida))
@@ -612,6 +613,7 @@ void print_memory(){
 		free(mp_frame->comida);
 		free(mp_frame);
 	}
+	printf("-----------------------------------------------------------------------------\n\n");
 }
 
 void print_pages_in_memory(){

@@ -5,15 +5,19 @@ void *atenderConexiones(void *conexionNueva)
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
     free(t_data);
+	p_code proceso_conectado = ERROR;
 	
 	while (1) {
+
         t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			logClientDisconnection(socketCliente);
-			liberarConexion(socket);
+			log_comanda_client_disconnection(proceso_conectado, socketCliente);
+			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
+		} else {
+			proceso_conectado = header->procesoOrigen;
 		}
 		
 		switch (header->codigoOperacion) {
@@ -89,7 +93,7 @@ int main(int argc, char **argv) {
 			t_data->socketThread = fd;
 			pthread_create(&threadConexiones, NULL, (void*)atenderConexiones, t_data);
 			pthread_detach(threadConexiones);
-			logNewClientConnection(fd);
+			log_new_client_connection(fd);
 		} else {
 			pthread_kill(threadConexiones, SIGTERM);
 		}

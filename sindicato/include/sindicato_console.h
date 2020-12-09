@@ -34,14 +34,12 @@ static t_keys diccionarioMsgs[] = {
 #define OPT_CREAR_RESTAURANTE 1
 #define OPT_CREAR_RECETA 2
 #define OPT_AIUDA 3
-#define OPT_BAI 4
-#define OPT_CLEAR 5
+#define OPT_CLEAR 4
 
 static t_keys diccionarioConsola[] = {
     { "CREAR_RESTAURANTE", OPT_CREAR_RESTAURANTE },
     { "CREAR_RECETA", OPT_CREAR_RECETA },
     { "AIUDA", OPT_AIUDA },
-    { "BAI", OPT_BAI },
     { "CLEAR", OPT_CLEAR }
 };
 

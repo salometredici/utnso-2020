@@ -107,10 +107,11 @@ int getBytesTPosicion() {
 	return sizeof(t_posicion);
 }
 
-// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño + socketServidor
+// Size de un bool + 2 t_posicion (4 ints) + un int + 2 strings y sus respectivos 2 ints de tamaño + [2 ints para el socket_notifs y puerto + int para long_ip + char * ip]
 int getBytesTCliente(t_cliente *cliente) {
-	return sizeof(int) * 4 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSelecc)
-			+ getBytesTPosicion(cliente->posCliente) + getBytesTPosicion(cliente->posRest);
+	return sizeof(int) * 3 + sizeof(bool) + getBytesString(cliente->idCliente) +  getBytesString(cliente->restSelecc)
+			+ getBytesTPosicion(cliente->posCliente) + getBytesTPosicion(cliente->posRest)
+			+ sizeof(int) * 3 + getBytesString(cliente->ip_cliente);
 }
 
 // 7 ints (posX, posY, QHornos, QPedidos, QCocineros, bytesListaRecetas, bytesListaAfinidades) + size de lista de platos + size de lista de afinidades
@@ -621,9 +622,18 @@ void *srlzTCliente(t_cliente *cliente) {
 	memcpy(magic + desplazamiento, &cliente->socketCliente, sizeof(int));
 	desplazamiento += sizeof(int);
 	
-	memcpy(magic + desplazamiento, &cliente->socketEscucha, sizeof(int));//
+	// Datos para recibir notificaciones como cliente
+
+	int long_ip = getBytesString(cliente->ip_cliente);
+	memcpy(magic + desplazamiento, &long_ip, sizeof(int)); // Tamaño de la IP
 	desplazamiento += sizeof(int);
-	
+	memcpy(magic + desplazamiento, cliente->ip_cliente, long_ip); // Copiamos la IP del cliente
+	desplazamiento += long_ip;
+
+	memcpy(magic + desplazamiento, &cliente->socket_notifs, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(magic + desplazamiento, &cliente->puerto_cliente, sizeof(int));
+	desplazamiento += sizeof(int);	
 
 	return magic;
 }
@@ -1000,11 +1010,23 @@ t_cliente *dsrlzTCliente(void *buffer) {
 	memcpy(&cliente->socketCliente, buffer + desplazamiento, sizeof(int));
 	desplazamiento += sizeof(int);
 
-	memcpy(&cliente->socketEscucha, buffer + desplazamiento, sizeof(int));
-	desplazamiento += sizeof(int);//
+	// Datos del cliente para recibir notificaciones
 	
+	int long_ip;
+	memcpy(&long_ip, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+	
+	char *ip = malloc(long_ip);
+	memcpy(ip, buffer + desplazamiento, long_ip);
+	desplazamiento += long_ip;
 
+	memcpy(&cliente->socket_notifs, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(&cliente->puerto_cliente, buffer + desplazamiento, sizeof(int));
+	desplazamiento += sizeof(int);
+		
 	cliente->idCliente = id; cliente->restSelecc = rest;
+	cliente->ip_cliente = ip;
 
 	free(buffer);
 	return cliente;

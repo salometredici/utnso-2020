@@ -87,7 +87,6 @@ typedef struct {
 	// Cliente que realiza el pedido
 	char *idCliente;
 	int socketCliente;
-	int socketEscucha;
 	t_posicion *posCliente;
 	// Restaurante del pedido
 	char *restaurante;

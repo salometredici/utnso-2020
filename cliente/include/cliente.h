@@ -21,6 +21,7 @@ t_list *params;
 
 pthread_t threadConsola;
 
+// Para escuchar notificaciones de APP y RESTAURANTE
 int socketEscucha;
 pthread_t threadUpdates;
 

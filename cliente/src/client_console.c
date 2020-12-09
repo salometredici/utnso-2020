@@ -17,7 +17,7 @@ void mostrarComandosValidos(char *modulo) {
 		printf("Ejemplo: CLEAR"BREAK);
 		printf("Ejemplo: BAI"BREAK);
 		printf("Para obtener los comandos válidos por módulo, ingresar: AIUDA [MODULO]"BREAK);
-	}
+	};
 
     printf("-------------------Comandos Válidos-------------------"BREAK);
 

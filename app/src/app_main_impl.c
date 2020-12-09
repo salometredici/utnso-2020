@@ -7,7 +7,6 @@ void revisar_conectados(t_list *lista) {
 	for (int i = 0; i < list_size(lista); i++) {
 		t_cliente *cliente_actual = list_get(lista, i);
 		if (recv(cliente_actual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
-			log_TCliente_disconnection(cliente_actual);
 			list_remove(lista, i);
 			free(cliente_actual);
 		}
@@ -55,7 +54,7 @@ int generar_id(int min, int max) {
 
 // CONSULTAR_PLATOS
 
-t_cliente *get_rest_conectado(char *rest_buscado) {
+t_cliente *get_rest_conectado(char *rest_buscado) { // !!!
 	bool restFound(void *actual) {
 		t_cliente *rest_actual = actual;
 		return string_equals_ignore_case(rest_buscado, rest_actual->idCliente);
@@ -63,8 +62,16 @@ t_cliente *get_rest_conectado(char *rest_buscado) {
 	return list_find(rests_conectados, &restFound);
 }
 
+t_cliente *get_t_cliente(t_list *lista_conectados, char *buscado) {
+	bool client_found(void *actual) {
+		t_cliente *cliente_actual = actual;
+		return string_equals_ignore_case(buscado, cliente_actual->idCliente);
+	};
+	return list_find(lista_conectados, &client_found);
+}
+
 bool esta_conectado_rest(char *rest_buscado) {
-	return get_rest_conectado(rest_buscado) == NULL ? false : true;
+	return get_t_cliente(rests_conectados, rest_buscado) == NULL ? false : true;
 }
 
 // CONSULTAR_RESTAURANTES

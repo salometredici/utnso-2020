@@ -30,11 +30,16 @@
 
 void log_console_input(char *comandoLeido);
 void log_message_sent(m_code codigoOperacion, int socket);
-void log_connection_as_cliente(p_code proceso);
+
+void log_connection_failure(char *ip, int puerto);
+
 void log_new_client_connection(int socket);
-void log_TCliente_disconnection(t_cliente *cliente);
+void log_connection_as_cliente(p_code proceso);
 void log_common_client_disconnection(int socketCliente);
-void log_app_client_disconnection(char *idCliente, int socketCliente);
+void log_TCliente_disconnection(char *idCliente, int socketCliente); // Para APP (se puede adaptar para RESTAURANTE)
+void log_rmv_discconected_client(t_cliente *cliente);
+void log_comanda_client_disconnection(p_code process, int socketCliente, char *idCliente); // Para COMANDA
+void log_disconnections_cliente(p_code process, int socket); // Para CLIENTE
 
 /* General */
 
@@ -71,11 +76,13 @@ void log_app_pcb_rest_end(int pid, int qDescansado);
 void log_app_repartidor_cansado(int pid);
 void log_app_platos_pendientes(int pid);
 
+void log_app_added_to_finished(int pid);
+
 void log_app_pcb_llego_al_cliente(int pid, char *idCliente);
 void log_app_pcb_entregado_al_cliente(int pid, char *idCliente, int idRepartidor);
 void log_app_continua_hacia_cliente(int pid);
 void log_app_pcb_llego_al_rest(int pid);
-void log_app_repartidor_en_camino(int pid, tour_code code);
+void log_app_repartidor_en_camino(int pid, t_posicion *pos_destino, tour_code code);
 void log_app_traslado_repartidor(int pid, int old_posX, int old_posY, int new_posX, int new_posY);
 void log_app_repartidor_libre(int idRepartidor, int cant_disp);
 void log_checking_all_platos_listos(int pid);
@@ -96,6 +103,7 @@ void log_app_next_pcb_SJF();
 
 void log_FinalizarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_FinalizarPedido(t_result *result);
+void log_DataCliente(t_cliente *cliente);
 void log_rta_EnviarDataCliente(t_cliente *cliente);
 void log_CrearPedido_app(char *cliente, char *rest);
 void log_rta_CrearPedido(int new_id_pedido);

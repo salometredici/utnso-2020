@@ -108,6 +108,11 @@ void liberarConexion(int socket) {
 
 // Cliente
 
+int conectarse_a_cliente(char *ip, int puerto) {
+	log_connection_attempt(CLIENTE, ip, puerto);
+	return crearConexion(CLIENTE, ip, puerto);
+}
+
 int conectarseA(p_code proceso) {
 	char *ip;
 	int puerto;
@@ -133,7 +138,7 @@ int conectarseA(p_code proceso) {
 			puerto = config_get_int_value(config, "PUERTO_SINDICATO");
 			break;
 	}
-	log_connection_attempt(proceso, ip, puerto); // Potencial comentado
+	log_connection_attempt(proceso, ip, puerto);
 	return crearConexion(proceso, ip, puerto);
 }
 
@@ -149,7 +154,7 @@ int crearConexion(p_code proceso, char *ip, int puerto) {
 	memset(&(dir.sin_zero), '\0', 8);
 	
 	if (connect(socketCliente, (struct sockaddr*)&dir, sizeof(struct sockaddr)) == ERROR) {
-		log_error(logger, "Fallo al realizar la conexión con IP: %s, PUERTO: %d", ip, puerto);
+		log_connection_failure(ip, puerto);
 		close(socketCliente);
 		exit(EXIT_FAILURE);
 	}

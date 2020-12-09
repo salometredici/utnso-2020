@@ -5,16 +5,19 @@ void *escuchar_updates(void *conexionNueva)
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
     free(t_data);
+	p_code proceso_conectado = ERROR;
 
 	while (1) {
 		
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			printf("se desconectó el wachin\n");
+			log_disconnections_cliente(proceso_conectado, socketCliente);
 			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
+		} else {
+			proceso_conectado = header->procesoOrigen;
 		}
 
     	switch (header->codigoOperacion) {
@@ -413,7 +416,9 @@ void initVariablesGlobales() {
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
-	dataCliente->socketEscucha = socketEscucha;
+	dataCliente->ip_cliente = config_get_string_value(config, "IP");
+	dataCliente->puerto_cliente = config_get_int_value(config, "PUERTO_ESCUCHA");
+	dataCliente->socket_notifs = ERROR;
 	dataCliente->socketCliente = ERROR;
 	log_init_data_cliente(dataCliente);
 }
@@ -422,7 +427,7 @@ void initCliente() {
     conexion = conectarseA(CLIENTE);
 	obtenerNombreServidor();
 	initVariablesGlobales();
-	if (procesoServidor == APP) { enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente); }
+	enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente);
 }
 
 int main(int argc, char* argv[]) {
@@ -442,7 +447,7 @@ int main(int argc, char* argv[]) {
 			t_data->socketThread = fd;
 			pthread_create(&threadUpdates, NULL, (void*)escuchar_updates, t_data);
 			pthread_detach(threadUpdates);
-			printf("se conectó este wachin %d\n", fd);
+			log_new_client_connection(fd);
 		} else {
 			pthread_kill(threadUpdates, SIGTERM);
 		}

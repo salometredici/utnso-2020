@@ -6,15 +6,17 @@ void *atenderConexiones(void *conexionNueva)
     int socketCliente = t_data->socketThread;
     free(t_data);
 	p_code proceso_conectado = ERROR;
+	t_cliente *cliente_conectado = malloc(sizeof(t_cliente));
 	
 	while (1) {
 
         t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			log_comanda_client_disconnection(proceso_conectado, socketCliente);
+			log_comanda_client_disconnection(proceso_conectado, socketCliente, cliente_conectado->idCliente);
 			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
+			free(cliente_conectado);
 			return EXIT_FAILURE;
 		} else {
 			proceso_conectado = header->procesoOrigen;
@@ -23,6 +25,11 @@ void *atenderConexiones(void *conexionNueva)
 		switch (header->codigoOperacion) {
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PROCESO, COMANDA);
+				break;
+			case ENVIAR_DATACLIENTE:;
+				cliente_conectado = recibirPayloadPaquete(header, socketCliente);
+				cliente_conectado->socketCliente = socketCliente;
+				log_DataCliente(cliente_conectado);
 				break;
 			case GUARDAR_PEDIDO:;
 				t_request *request_gp = recibirPayloadPaquete(header, socketCliente);				

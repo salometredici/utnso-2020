@@ -11,6 +11,7 @@ pthread_mutex_t mutexQN;
 pthread_mutex_t mutexQR;
 pthread_mutex_t mutexQE;
 pthread_mutex_t mutexQB;
+pthread_mutex_t mutexQF;
 
 /* Funciones */
 

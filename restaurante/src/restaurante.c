@@ -2,13 +2,16 @@
 
 // Limpiar clientes desconectados
 void revisarConectados(t_list *lista) {
-    for (int i = 0; i < list_size(lista); i++) {
-        t_cliente *clienteActual = list_get(lista, i);
-        if (recv(clienteActual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
-            list_remove(lista, i);
-            log_debug(logger, "El cliente [#%d - %s] se desconectó", i, clienteActual->idCliente);
-        }
-    }
+	if(lista != NULL){
+		int size = list_size(lista);
+		for (int i = 0; i < size; i++) {
+			t_cliente *clienteActual = list_get(lista, i);
+			if (recv(clienteActual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
+				list_remove(lista, i);
+				log_debug(logger, "El cliente [#%d - %s] se desconectó", i, clienteActual->idCliente);
+			}
+		}
+	}
 }
 
 // Preguntar al cliente su nombre y posición, asociandolo a un socket
@@ -32,7 +35,7 @@ void actualizarClientesConectados(t_cliente *cliente) {
 	if (cliDuplicado != NULL) { list_add(clientesConectados, cliente); }
 }
 
-void crearProceso(int socketCliente, int idPedido, char *plato){
+void crearProceso(t_cliente *cli, int idPedido, char *plato){
 	int conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RECETA, plato);
 	t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
@@ -43,7 +46,7 @@ void crearProceso(int socketCliente, int idPedido, char *plato){
 	// receta->plato = plato;
 	// receta->instrucciones = instrucciones;
 
-	t_proceso *proceso = crearPcb(socketCliente, idPedido, receta);
+	t_proceso *proceso = crearPcb(cli, idPedido, receta);
 
 	aReadyPorAfinidad(proceso); // agregar a queue de ready 
 }
@@ -54,6 +57,7 @@ void *atenderConexiones(void *conexionNueva)
     int socketCliente = t_data->socketThread;
     free(t_data);
 	int socketSindicato = ERROR;
+	t_cliente *cliente = malloc(sizeof(t_cliente));
 
 	while (1) {
 		t_header *header = recibirHeaderPaquete(socketCliente);
@@ -69,8 +73,10 @@ void *atenderConexiones(void *conexionNueva)
 
 		switch (header->codigoOperacion) {
 			case ENVIAR_DATACLIENTE:;
-				t_cliente *cliente = getCliente(socketCliente);
+				cliente = recibirPayloadPaquete(header, socketCliente);
+				cliente->socketCliente = socketCliente;
 				actualizarClientesConectados(cliente);
+				log_rta_EnviarDataCliente(cliente);
 				break;
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_OBTENER_PROCESO, RESTAURANTE);
@@ -85,7 +91,8 @@ void *atenderConexiones(void *conexionNueva)
 				liberarConexion(conexionSindicato);
 				free(hConsulta);
 				// Se contesta con los platos obtenidos
-				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest);
+				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PLATOS, platosRest); 
+				
 				//free(platosRest);
 				break;
 			case CREAR_PEDIDO:;
@@ -156,7 +163,7 @@ void *atenderConexiones(void *conexionNueva)
 						t_plato *platoActual = malloc(sizeof(t_plato));
 						// t_plato *current = list_get(pedidoConf2->platos,i);
 						platoActual = list_get(pedidoConf2->platos,i); //current->plato;
-						crearProceso(socketCliente, reqConf2->idPedido, platoActual->plato);
+						crearProceso(cliente, reqConf2->idPedido, platoActual->plato);
 					}
 					log_rta_ObtenerPedido(pedidoConf2,reqConf2);
 

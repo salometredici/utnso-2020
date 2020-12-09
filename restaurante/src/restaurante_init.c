@@ -153,6 +153,7 @@ void inicializarVariablesGlobales() {
 	algoritmo = getAlgoritmoPlanificacion();
 	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
 	tiempoRetardoCpu = getTiempoRetardoCpu();
+	clientesConectados = list_create();
 }
 
 void initRestaurante() {

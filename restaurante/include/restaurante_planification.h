@@ -7,7 +7,7 @@
 #include "../include/restaurante_init.h"
 #include "tests.h"
 
-t_proceso *crearPcb(int socketCliente, int idPedido, t_receta *receta);
+t_proceso *crearPcb(t_cliente *cli, int idPedido, t_receta *receta);
 
 void ejecutarCiclosFIFO();
 void ejecutarCiclosRR();

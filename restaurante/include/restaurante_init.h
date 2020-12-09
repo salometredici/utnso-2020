@@ -95,6 +95,7 @@ typedef struct {
     t_list *pasosReceta; //instrucciones
     //char *idCliente;
     int socketCliente;
+    int socketEscucha;
     char *plato;
     t_estado_proceso *estado;
     char *instruccionActual;

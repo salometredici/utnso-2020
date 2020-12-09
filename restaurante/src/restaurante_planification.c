@@ -1,11 +1,12 @@
 #include "../include/restaurante_planification.h"
 
 // PCB
-t_proceso *crearPcb(int socketCliente, int idPedido, t_receta *receta) {
+t_proceso *crearPcb(t_cliente *cli, int idPedido, t_receta *receta) {
     t_proceso *pcb = malloc(sizeof(t_proceso));
     pcb->pid = idPedido;
     // pcb->idCliente = cliente->idCliente; //creo que no me llega
-	pcb->socketCliente = socketCliente;
+	pcb->socketCliente = cli->socketCliente;
+	pcb->socketEscucha = cli->socketEscucha;
     pcb->estado = ESPERANDO_EJECUCION;
 	pcb->plato= receta->plato;
 	pcb->pasosReceta=receta->instrucciones;
@@ -190,9 +191,9 @@ void ejecutarFinalizar(t_proceso *currentProc){
 
 	//avisar al modulo q solicito
 	// si es un cliente no funciona ndea ver dsps
-	enviarPaquete(currentProc->socketCliente, RESTAURANTE, PLATO_LISTO, platoListo);
-	t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketCliente);
-	t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketCliente);
+	enviarPaquete(currentProc->socketEscucha, RESTAURANTE, PLATO_LISTO, platoListo);
+	t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketEscucha);
+	t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketEscucha);
 	
 	//revisar que el pedido haya terminado
 	//consultar si puedo volver a usar mismo socket 

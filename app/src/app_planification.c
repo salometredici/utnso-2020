@@ -79,11 +79,6 @@ bool platos_completos(t_list *platos_pedido) {
 
 bool todos_platos_listos(t_pcb *pcb) {
 	log_checking_all_platos_listos(pcb->pid);
-
-	if (string_equals_ignore_case(pcb->restaurante, rest_default)) {
-		return true;
-	}
-
 	t_request *request = getTRequest(pcb->pid, pcb->restaurante);
 	t_pedido *pedido = get_pedido_from_comanda(request);
 	bool todos_completos = platos_completos(pedido->platos);
@@ -109,9 +104,9 @@ void informar_pedido_finalizado(t_pcb *pcb) {
 void informar_entrega_cliente(t_pcb *pcb) { // Revisar porque hay que dejar un socket de escucha en el cliente
 	log_app_entrega_a_cliente(pcb->pid, pcb->idCliente);
 	t_request *request = getTRequest(pcb->pid, pcb->restaurante);
-	enviarPaquete(pcb->socketCliente, APP, FINALIZAR_PEDIDO, request);
-	t_header *header = recibirHeaderPaquete(conexionComanda);
-	t_result *result = recibirPayloadPaquete(header, conexionComanda);
+	enviarPaquete(pcb->socketEscucha, APP, FINALIZAR_PEDIDO, request);
+	t_header *header = recibirHeaderPaquete(pcb->socketEscucha);
+	t_result *result = recibirPayloadPaquete(header, pcb->socketEscucha);
 	logTResult(result);
 	free(request);
 	free(result);
@@ -201,6 +196,7 @@ t_pcb *crear_pcb(t_cliente *cliente, int idPedido) {
 	pcb->repartidor = malloc(sizeof(t_repartidor));
 	pcb->idCliente = cliente->idCliente;
 	pcb->socketCliente = cliente->socketCliente;
+	pcb->socketEscucha = cliente->socketEscucha;
 	pcb->posCliente = malloc(sizeof(t_posicion));
 	pcb->posCliente->posX = cliente->posCliente->posX;
 	pcb->posCliente->posY = cliente->posCliente->posY;
@@ -476,7 +472,7 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			// 3. Si llegó al cliente, se da por concluido el pedido
 			log_app_pcb_llego_al_cliente(current_pcb->pid, current_pcb->idCliente);
 			informar_pedido_finalizado(current_pcb);
-			//informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
+			informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
 			if (algoritmoSeleccionado == SJF) update_estimacion(current_pcb);
 			log_app_pcb_entregado_al_cliente(current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
 			queue_push(qF, current_pcb);

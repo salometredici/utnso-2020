@@ -21,6 +21,9 @@ t_list *params;
 
 pthread_t threadConsola;
 
+int socketEscucha;
+pthread_t threadUpdates;
+
 // API
 void consultarRestaurantes();
 void seleccionarRestaurante(char *idCliente, char *nombreRestaurante);

@@ -1,5 +1,51 @@
 #include "../include/cliente.h"
 
+void *escuchar_updates(void *conexionNueva)
+{
+    pthread_data *t_data = (pthread_data*) conexionNueva;
+    int socketCliente = t_data->socketThread;
+    free(t_data);
+
+	while (1) {
+		
+    	t_header *header = recibirHeaderPaquete(socketCliente);
+
+		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
+			printf("se desconectó el wachin\n");
+			liberarConexion(socketCliente);
+    		pthread_exit(EXIT_SUCCESS);
+			return EXIT_FAILURE;
+		}
+
+    	switch (header->codigoOperacion) {
+			case OBTENER_PROCESO:;
+				enviarPaquete(socketCliente, CLIENTE, RTA_OBTENER_PROCESO, CLIENTE);
+				break;
+			case PLATO_LISTO:;
+                t_plato_listo *platoListo = recibirPayloadPaquete(header, socketCliente);
+                log_PlatoListo(platoListo);
+				t_result *result_plato_listo = getTResult("AH OK. slds", false);
+				enviarPaquete(socketCliente, CLIENTE, RTA_PLATO_LISTO, result_plato_listo);
+				free(result_plato_listo);
+				free(platoListo);
+            	break;
+			case FINALIZAR_PEDIDO:;
+				t_request *req_finalizar_pedido = recibirPayloadPaquete(header, socketCliente);
+				log_FinalizarPedido(req_finalizar_pedido, header->codigoOperacion);
+				t_result *result_finalizar_pedido = getTResult("AH OK. slds", false);
+				enviarPaquete(socketCliente, CLIENTE, RTA_FINALIZAR_PEDIDO, result_finalizar_pedido);
+				free(result_finalizar_pedido);
+				free(req_finalizar_pedido);
+				break;
+        	default:
+            	printf("Operación desconocida. Llegó el código: %d. No quieras meter la pata!!!(｀Д´*)\n", header->codigoOperacion);
+            	break;
+ 	   	}
+	}
+    pthread_exit(EXIT_SUCCESS);
+    return 0;
+}
+
 void *threadLecturaConsola(void *args) {
     printf("Iniciando la consola...\n");
 	printf("Para ver los comandos válidos, ingrese 'AIUDA'.\n");
@@ -367,6 +413,7 @@ void initVariablesGlobales() {
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
+	dataCliente->socketEscucha = socketEscucha;
 	dataCliente->socketCliente = ERROR;
 	log_init_data_cliente(dataCliente);
 }
@@ -380,14 +427,25 @@ void initCliente() {
 
 int main(int argc, char* argv[]) {
 	inicializarProceso(CLIENTE);
+	socketEscucha = iniciarServidor();
 	initCliente();
 
 	// Inicio del hilo de la consola y su lectura
 	pthread_create(&threadConsola, NULL, (void *)threadLecturaConsola, NULL);
     pthread_detach(threadConsola);
-
+	
+	int fd;
 	while (1) {
-		//TODO: Lógica del Cliente
+		fd = aceptarCliente(socketEscucha);
+		if (fd != ERROR) {
+			pthread_data *t_data = (pthread_data *) malloc(sizeof(*t_data));
+			t_data->socketThread = fd;
+			pthread_create(&threadUpdates, NULL, (void*)escuchar_updates, t_data);
+			pthread_detach(threadUpdates);
+			printf("se conectó este wachin %d\n", fd);
+		} else {
+			pthread_kill(threadUpdates, SIGTERM);
+		}
 	}
 
 	liberarConexion(conexion);

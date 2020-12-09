@@ -424,9 +424,9 @@ void log_app_next_pcb_SJF() {
 
 void log_rta_EnviarDataCliente(t_cliente *cliente) {
 	printf(TAB"Cliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s" BREAK, cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	printf(TAB"[Posición en el mapa]: [%d,%d]"BREAK, cliente->posCliente->posX, cliente->posCliente->posY);
+	printf(TAB"[Posición en el mapa]: [%d,%d], SocketEscucha: "BOLD"[%d]"RESET BREAK, cliente->posCliente->posX, cliente->posCliente->posY, cliente->socketEscucha);
 	log_info(logger, TAB"Cliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	log_info(logger, TAB"[Posición en el mapa]: [%d,%d]", cliente->posCliente->posX, cliente->posCliente->posY);
+	log_info(logger, TAB"[Posición en el mapa]: [%d,%d], SocketEscucha: [%d]", cliente->posCliente->posX, cliente->posCliente->posY, cliente->socketEscucha);
 }
 
 // TERMINAR_PEDIDO
@@ -436,6 +436,16 @@ void log_TerminarPedido(t_request *request, m_code codigo_operacion) {
 }
 
 void log_rta_TerminarPedido(t_result *result) {
+	logTResult(result);
+}
+
+// FINALIZAR_PEDIDO
+
+void log_FinalizarPedido(t_request *request, m_code codigo_operacion) {
+	logRequest(request, codigo_operacion);
+}
+
+void log_rta_FinalizarPedido(t_result *result) {
 	logTResult(result);
 }
 

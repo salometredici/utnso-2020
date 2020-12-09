@@ -32,7 +32,7 @@ void actualizarClientesConectados(t_cliente *cliente) {
 	if (cliDuplicado != NULL) { list_add(clientesConectados, cliente); }
 }
 
-void crearProceso(t_cliente *cliente, int idPedido, char *plato){
+void crearProceso(int socketCliente, int idPedido, char *plato){
 	int conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RECETA, plato);
 	t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
@@ -43,7 +43,7 @@ void crearProceso(t_cliente *cliente, int idPedido, char *plato){
 	// receta->plato = plato;
 	// receta->instrucciones = instrucciones;
 
-	t_proceso *proceso = crearPcb(cliente, idPedido, receta);
+	t_proceso *proceso = crearPcb(socketCliente, idPedido, receta);
 
 	aReadyPorAfinidad(proceso); // agregar a queue de ready 
 }

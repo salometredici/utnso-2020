@@ -190,9 +190,9 @@ void ejecutarFinalizar(t_proceso *currentProc){
 
 	//avisar al modulo q solicito
 	// si es un cliente no funciona ndea ver dsps
-	// enviarPaquete(currentProc->socketCliente, RESTAURANTE, PLATO_LISTO, platoListo);
-	// t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketCliente);
-	// t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketCliente);
+	enviarPaquete(currentProc->socketCliente, RESTAURANTE, PLATO_LISTO, platoListo);
+	t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketCliente);
+	t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketCliente);
 	
 	//revisar que el pedido haya terminado
 	//consultar si puedo volver a usar mismo socket 

@@ -51,6 +51,7 @@ void obtenerMetadata() {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
+	//liberarConexion(conexionSindicato);
 	inicializarVariablesMd(md);
 	logMetadata(md);
 	free(header);

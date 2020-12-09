@@ -472,7 +472,7 @@ void ejecutar_ciclos() // Para FIFO, HRRN y SJF
 			// 3. Si llegó al cliente, se da por concluido el pedido
 			log_app_pcb_llego_al_cliente(current_pcb->pid, current_pcb->idCliente);
 			informar_pedido_finalizado(current_pcb);
-			informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
+			//informar_entrega_cliente(current_pcb); // Definir cómo recibe el cliente este mensaje
 			if (algoritmoSeleccionado == SJF) update_estimacion(current_pcb);
 			log_app_pcb_entregado_al_cliente(current_pcb->pid, current_pcb->idCliente, current_pcb->repartidor->idRepartidor);
 			queue_push(qF, current_pcb);

@@ -239,7 +239,7 @@ void update_QR_con_QN() {
 		t_pcb *next_in_line = queue_pop(qN);
 		log_app_removed_from_new(algoritmo, next_in_line->pid);
 		pthread_mutex_unlock(&mutexQN);
-		
+
 		next_in_line->repartidor = getRepartidorMasCercano(next_in_line->posRest);
 		log_app_repartidor_asignado(next_in_line->repartidor->idRepartidor, next_in_line->pid);
 		next_in_line->estado = ESPERANDO_EJECUCION;

@@ -108,7 +108,6 @@ void log_rta_EnviarDataCliente(t_cliente *cliente);
 void log_CrearPedido_app(char *cliente, char *rest);
 void log_rta_CrearPedido(int new_id_pedido);
 void log_SeleccionarRestaurante(t_selecc_rest *seleccion);
-void log_rta_EnviarDataCliente(t_cliente *cliente);
 void log_TerminarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_TerminarPedido(t_result *result);
 void log_ConfirmarPedido(t_request *request, m_code codigo_operacion);

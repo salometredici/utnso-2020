@@ -242,7 +242,8 @@ void *atenderConexiones(void *conexionNueva)
 					result_confirmar_pedido = getTResult(PEDIDO_ACTUALIZADO, false);
 				} else {
 					t_cliente *rest_a_conf_pedido = get_rest_conectado(req_confirmar_pedido->nombre);
-					
+					cliente->posRest->posX = rest_a_conf_pedido->posRest->posX;
+					cliente->posRest->posY = rest_a_conf_pedido->posRest->posY;
 					int conexionRestaurante = conectarseAProceso(RESTAURANTE, rest_a_conf_pedido->ip_cliente,rest_a_conf_pedido->puerto_cliente);
 					enviarPaquete(conexionRestaurante, APP, CONFIRMAR_PEDIDO, req_confirmar_pedido);
 					h_confirmar_pedido = recibirHeaderPaquete(conexionRestaurante);

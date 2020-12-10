@@ -85,6 +85,7 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
+			printf("\n---------------Estado de Paginas Memoria---------------\n");
 			print_pages_in_memory();
 			print_swap();
 			print_memory();

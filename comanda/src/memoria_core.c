@@ -313,7 +313,7 @@ t_page* find_victim_clock(){
 	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
 	print_pages_in_memory();
 
-	t_page* victim_page = malloc(sizeof(t_page));
+	t_page* victim_page;
 
 	if (puntero_clock ==  frames - 1)
 		puntero_clock = 0;
@@ -390,12 +390,8 @@ void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantida
 	pthread_mutex_unlock(&write_memory);
 }
 
-//te devuelve el nro de victima para setearlo al que lo necesita
-int find_victim_and_bring_it_to_mp(t_page* page){
-	t_page* victim_page = find_frame_victim();
-	t_frame* frame_victim = find_frame_in_memory(victim_page);
-	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
-
+/* 
+	veo si lo utilizo
 	//printf("------------------ANTES DE ESCRIBIR EN SWAP----------------\n");
 	//print_swap();
 	//ACTUALIZAR EL SWAP CON EL CONTENIDO DE MP DEL FRAME VICTIM
@@ -409,6 +405,15 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
 	//printf("-------------------DESPUES DE ESCRIBIR EN MEMORIA PRINCIPAL-----\n");
 	//print_memory();
+*/
+
+int find_victim_and_bring_it_to_mp(t_page* page){
+	t_page* victim_page = find_frame_victim();
+	t_frame* frame_victim = find_frame_in_memory(victim_page);
+	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
+
+	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
+	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
 
 	t_list* memory_pages = paginas_en_memoria();
 	
@@ -436,9 +441,9 @@ int find_victim_and_update_swap(){
 	t_frame* frame_victim = find_frame_in_memory(victim_page);
 
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	//victim_page->flag = false;
+	victim_page->flag = false;
 
-	t_list* memory_pages = paginas_en_memoria();
+	/*t_list* memory_pages = paginas_en_memoria();
 
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
@@ -446,13 +451,16 @@ int find_victim_and_update_swap(){
 		if(victim_page->frame_mv == page->frame_mv){
 			page->flag = false;
 		}			
-	}
+	}*/
+
+	printf("\nDespues de encontrar la pagina !!\n");
+	print_pages_in_memory();
 
 	int frame_victim_nro = victim_page->frame;
 	free(frame_victim->comida);
 	free(frame_victim);
-	list_destroy(memory_pages);
-	free(victim_page);
+	//list_destroy(memory_pages);
+	//free(victim_page);
 	return frame_victim_nro;	
 }
 

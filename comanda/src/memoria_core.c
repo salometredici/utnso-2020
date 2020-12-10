@@ -379,12 +379,14 @@ t_page* find_victim_lru(){
 
 void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantidad_lista, int frame_number){
 	pthread_mutex_lock(&write_memory);
+	
 	void* frame = MEMORIA[frame_number];
-
 	memcpy(frame, &cantidad_pedida, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
+	
 	log_info(logger, "[MEMORIA_PRINCIPAL] En el frame %d se inserta el plato %s - cantidad_pedida: %d - cantidad_lista: %d", frame_number, comida, cantidad_pedida, cantidad_lista);
+	
 	pthread_mutex_unlock(&write_memory);
 }
 

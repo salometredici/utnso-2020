@@ -85,21 +85,10 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
+			print_pages_in_memory();
 			print_swap();
 			print_memory();
-			
-			/*Validarrrrr si se guardo
-			t_page *plato_enc = find_plato(pedido, request->plato);
-			
-			if(1){
-				t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
-				return result;
-			}
-			else{
-				t_result * result = getTResult("[GUARDAR_PLATO] Fail. Somenthing went wrong.", true);				
-				return result;
-			}*/
-
+		
 			t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
 			return result;
 		}
@@ -251,7 +240,7 @@ t_result* _plato_listo(t_plato_listo* request) {
 	t_page *pl_page = find_plato(pedido, request->plato);
 
 	if(pl_page == NULL){
-		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);
+		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", true);
 		return result;
 	}
 
@@ -317,6 +306,6 @@ t_result* _finalizar_pedido(t_request* request){
 		return result;
 	}
 
-	t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Somethin wen wrong", false);	
+	t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Somethin wen wrong", true);	
 	return result;
 }

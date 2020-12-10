@@ -310,7 +310,7 @@ t_page* find_victim_0_1() {
 }
 
 t_page* find_victim_clock(){
-	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
+	log_info(logger, "[CLOCK] Se busca una vistima .....");
 	print_pages_in_memory();
 
 	t_page* victim_page;
@@ -332,7 +332,7 @@ t_page* find_victim_clock(){
 		}
 	}
 
-	log_info(logger, "[VICTIMA_ENCONTRADA] Frame %d de la Memoria Principal", victim_page->frame);
+	log_info(logger, "[CLOCK] Frame %d de la Memoria Principal", victim_page->frame);
 	return victim_page;
 }
 
@@ -347,7 +347,7 @@ t_page* find_victim_lru(){
 	
 	victim_page->timestamp = 0;
 	
-	log_info(logger, "[FIND_FRAME_VICTIM]Se busca una victima .....");
+	log_info(logger, "[LRU] Se busca una vistima .....");
 	print_pages_in_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
@@ -373,7 +373,7 @@ t_page* find_victim_lru(){
 	}
 
 	list_destroy(memory_pages);
-	log_info(logger, "[VICTIMA_ENCONTRADA] Frame %d de la Memoria Principal", victim_page->frame);
+	log_info(logger, "[LRU] Frame vistima encontrada %d ", victim_page->frame);
 	return victim_page;
 }
 
@@ -385,7 +385,7 @@ void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantida
 	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
 	
-	log_info(logger, "[MEMORIA_PRINCIPAL] En el frame %d se inserta el plato %s - cantidad_pedida: %d - cantidad_lista: %d", frame_number, comida, cantidad_pedida, cantidad_lista);
+	log_info(logger, "En el frame %d de mp se inserta el plato %s - cantidad_pedida: %d - cantidad_lista: %d", frame_number, comida, cantidad_pedida, cantidad_lista);
 	
 	pthread_mutex_unlock(&write_memory);
 }
@@ -415,7 +415,8 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
 	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
 
-	t_list* memory_pages = paginas_en_memoria();
+	victim_page->flag = false;
+	/*t_list* memory_pages = paginas_en_memoria();
 	
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
@@ -423,16 +424,16 @@ int find_victim_and_bring_it_to_mp(t_page* page){
 		if(victim_page->frame_mv == page->frame_mv){
 			page->flag = false;
 		}			
-	}
+	}*/
 
 	int frame_victim_nro = victim_page->frame;
 
-	list_destroy(memory_pages);
+	//list_destroy(memory_pages);
 	free(frame_victim->comida);
 	free(frame_victim);
 	free(frame_to_move->comida);
 	free(frame_to_move);
-	free(victim_page);
+	//free(victim_page);
 	return frame_victim_nro;
 }
 

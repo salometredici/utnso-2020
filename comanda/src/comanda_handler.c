@@ -85,8 +85,8 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
-			printf("\n---------------Estado de Paginas Memoria---------------\n");
-			print_pages_in_memory();
+			//printf("\n---------------Estado de Paginas Memoria---------------\n");
+			//print_pages_in_memory();
 			print_swap();
 			print_memory();
 		
@@ -233,8 +233,14 @@ t_result* _plato_listo(t_plato_listo* request) {
 	}
 
 	if (pedido->estado != CONFIRMADO) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar.", true);	
-		return result;
+		if(pedido->estado == PENDIENTE){
+			t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar. Se encuentra en estado PENDIENTE", true);	
+			return result;
+		}
+		else if(pedido->estado == TERMINADO){
+			t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar. Se encuentra en estado TERMINADO", true);	
+			return result;
+		}
 	}
 
 	// Buscar nombre_plato_listo en pages del pedido

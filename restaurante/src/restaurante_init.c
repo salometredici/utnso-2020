@@ -97,7 +97,7 @@ void conectarseConApp(){
 		dataCliente->posCliente = malloc(sizeof(t_posicion));
 		dataCliente->posCliente->posX = ERROR;
 		dataCliente->posCliente->posY = ERROR;
-		dataCliente->ip_cliente = "127.0.0.1";//config_get_string_value(config, "IP_RESTAURANTE");
+		dataCliente->ip_cliente = config_get_string_value(config, "IP_RESTAURANTE");
 		dataCliente->puerto_cliente = config_get_int_value(config, "PUERTO_ESCUCHA");
 		dataCliente->socket_notifs = ERROR;
 		dataCliente->socketCliente = ERROR;

@@ -271,6 +271,7 @@ void update_QR_con_QB() {
 			pthread_mutex_unlock(&mutexQR);
 			log_app_blocked_to_ready(current->pid, current->restaurante);
 		} else {
+			current->qDescansado++;
 			queue_push(qB, current);
 		}
 	}
@@ -280,7 +281,7 @@ void update_QR_con_QB() {
 void pasar_a_QB(t_pcb *pcb, t_estado estado) {
 	pcb->qRecorrido = 0;
 	pcb->estado = estado;
-	pcb->alcanzoRestaurante = estado == ESPERANDO_PLATO ? true : false;
+	pcb->alcanzoRestaurante = estado == ESPERANDO_PLATO || estado == FINALIZADO || estado == TERMINADO ? true : false;
 	pthread_mutex_lock(&mutexQB);
 	queue_push(qB, pcb);
 	pthread_mutex_unlock(&mutexQB);

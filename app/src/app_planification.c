@@ -285,31 +285,37 @@ void pasar_a_QB(t_pcb *pcb, t_estado estado) {
 }
 
 void desbloquear_PCB(int idPedido) {
-	log_app_unblocking_pcb(algoritmo, idPedido);
 	pthread_mutex_lock(&mutexQB);
 	int qSize = queue_size(qB);
-	t_queue *new_QB = queue_create();
-	t_pcb *pcb_a_desbloquear = malloc(sizeof(t_pcb));
-	for (int i = 0; i < qSize; i++) {
-		t_pcb *currentPCB = queue_pop(qB);
-		if (currentPCB->pid == idPedido) {
-			pcb_a_desbloquear = currentPCB;
-			pcb_a_desbloquear->qEsperando = 0;
-			pcb_a_desbloquear->qDescansado = 0;
-			pcb_a_desbloquear->estado = ESPERANDO_EJECUCION;
-		} else {
-			queue_push(new_QB, currentPCB);
-		}
+	bool esta_bloqueado_pcb = false;
+	for (int b = 0; b < qSize; b++) {
+		t_pcb *current = queue_pop(qB);
+		if (current->pid == idPedido) { esta_bloqueado_pcb = true; }
+		queue_push(qB, current);
 	}
-	qB = new_QB;
+	if (esta_bloqueado_pcb) {
+		log_app_unblocking_pcb(algoritmo, idPedido);
+		t_queue *new_QB = queue_create();
+		t_pcb *pcb_a_desbloquear = malloc(sizeof(t_pcb));
+		for (int i = 0; i < qSize; i++) {
+			t_pcb *currentPCB = queue_pop(qB);
+			if (currentPCB->pid == idPedido) {
+				pcb_a_desbloquear = currentPCB;
+				pcb_a_desbloquear->qEsperando = 0;
+				pcb_a_desbloquear->qDescansado = 0;
+				pcb_a_desbloquear->estado = ESPERANDO_EJECUCION;
+			} else {
+				queue_push(new_QB, currentPCB);
+			}
+		}
+		qB = new_QB;
+		
+		pthread_mutex_lock(&mutexQR);
+		queue_push(qR, pcb_a_desbloquear);
+		log_app_blocked_to_ready(pcb_a_desbloquear->pid);
+		pthread_mutex_unlock(&mutexQR);
+	}
 	pthread_mutex_unlock(&mutexQB);
-	
-	pthread_mutex_lock(&mutexQR);
-	queue_push(qR, pcb_a_desbloquear);
-	log_app_blocked_to_ready(pcb_a_desbloquear->pid);
-	pthread_mutex_unlock(&mutexQR);
-
-	free(pcb_a_desbloquear);
 }
 
 void update_QDescansado() {

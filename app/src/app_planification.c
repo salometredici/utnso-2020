@@ -25,6 +25,7 @@ double getDistancia(t_posicion *posRepartidor, t_posicion *posRest) {
 }
 
 t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
+	
 	int indexRepartidor = 0;
 	t_repartidor *primer_repartidor = list_get(repartidores_disp, 0);
 	int distMinima = ceil(getDistancia(primer_repartidor, posRest));
@@ -38,10 +39,8 @@ t_repartidor *getRepartidorMasCercano(t_posicion *posRest) {
 	}
 	t_repartidor *repartidorMasCercano = list_get(repartidores_disp, indexRepartidor);
 	
-	pthread_mutex_lock(&mutexListaDisponibles);
 	list_remove(repartidores_disp, indexRepartidor);
-	pthread_mutex_unlock(&mutexListaDisponibles);
-	
+		
 	pthread_mutex_lock(&mutexListaOcupados);
 	list_add(repartidoresOcupados, repartidorMasCercano);	
 	pthread_mutex_unlock(&mutexListaOcupados);
@@ -109,7 +108,7 @@ void informar_entrega_cliente(t_pcb *pcb) {
 
 	t_cliente *cliente_a_notif = get_t_cliente(clientes_conectados, pcb->idCliente);
 
-	int conexionCliente = conectarse_a_cliente(cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
+	int conexionCliente = conectarseAProceso(CLIENTE, cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
 	enviarPaquete(conexionCliente, APP, FINALIZAR_PEDIDO, request);
 	t_header *header = recibirHeaderPaquete(conexionCliente);
 	t_result *result = recibirPayloadPaquete(header, conexionCliente);
@@ -180,15 +179,18 @@ int find_index_repartidor(t_list *lista_a_buscar, int id_buscado) {
 }
 
 void liberar_repartidor(t_repartidor *repartidor) {
+
 	pthread_mutex_lock(&mutexListaOcupados);
 	int index_repartidor = find_index_repartidor(repartidoresOcupados, repartidor->idRepartidor);
 	list_remove(repartidoresOcupados, index_repartidor);
 	pthread_mutex_unlock(&mutexListaOcupados);
+	
 	pthread_mutex_lock(&mutexListaDisponibles);
 	list_add(repartidores_disp, repartidor);
 	int cant_repartidores_libres = list_size(repartidores_disp);
-	log_app_repartidor_libre(repartidor->idRepartidor, cant_repartidores_libres);
 	pthread_mutex_unlock(&mutexListaDisponibles);
+
+	log_app_repartidor_libre(repartidor->idRepartidor, cant_repartidores_libres);
 }
 
 /* Planificación */
@@ -232,14 +234,14 @@ void agregar_a_QF(t_pcb *pcb) {
 
 void update_QR_con_QN() {
 	// Mientras haya repartidores disponibles y PCBs en NEW, los asigna y añade a READY
+	pthread_mutex_lock(&mutexQN);
+	pthread_mutex_lock(&mutexListaDisponibles);
 	while (!list_is_empty(repartidores_disp) && !queue_is_empty(qN)) {
 		log_app_asignando_repartidores(list_size(repartidores_disp), grado_multiprocesamiento - queue_size(qE));
 
-		pthread_mutex_lock(&mutexQN);
 		t_pcb *next_in_line = queue_pop(qN);
 		log_app_removed_from_new(algoritmo, next_in_line->pid);
-		pthread_mutex_unlock(&mutexQN);
-		
+
 		next_in_line->repartidor = getRepartidorMasCercano(next_in_line->posRest);
 		log_app_repartidor_asignado(next_in_line->repartidor->idRepartidor, next_in_line->pid);
 		next_in_line->estado = ESPERANDO_EJECUCION;
@@ -249,100 +251,106 @@ void update_QR_con_QN() {
 		log_app_added_to_ready(next_in_line->pid);
 		pthread_mutex_unlock(&mutexQR);
 	}
+	pthread_mutex_unlock(&mutexListaDisponibles);	
+	pthread_mutex_unlock(&mutexQN);
 }
 
 void update_QR_con_QB() {
 	// Revisamos si algún PCB de BLOCKED ya descansó y puede pasar a READY
+	pthread_mutex_lock(&mutexQB);
 	int sizeQB = queue_size(qB);
 	for (int b = 0; b < sizeQB; b++) {
-		pthread_mutex_lock(&mutexQB);
 		t_pcb *current = queue_pop(qB);
-		pthread_mutex_unlock(&mutexQB);
 		if (current->estado == REPARTIDOR_DESCANSANDO && repartidor_descansado(current)) {
 			log_app_pcb_rest_end(current->pid, current->qDescansado);
 			current->estado = ESPERANDO_EJECUCION;
 			current->qDescansado = 0;
 			pthread_mutex_lock(&mutexQR);
 			queue_push(qR, current);
-			log_app_blocked_to_ready(current->pid);
 			pthread_mutex_unlock(&mutexQR);
+			log_app_blocked_to_ready(current->pid);
 		} else {
-			pthread_mutex_lock(&mutexQB);
 			queue_push(qB, current);
-			pthread_mutex_unlock(&mutexQB);
 		}
 	}
+	pthread_mutex_unlock(&mutexQB);
 }
 
 void pasar_a_QB(t_pcb *pcb, t_estado estado) {
-	pthread_mutex_lock(&mutexQB);
 	pcb->qRecorrido = 0;
 	pcb->estado = estado;
 	pcb->alcanzoRestaurante = estado == ESPERANDO_PLATO ? true : false;
-	queue_push(qB, pcb);
-	log_app_pasar_a_QB(algoritmo, pcb->pid, pcb->alcanzoRestaurante);
 	pthread_mutex_lock(&mutexQB);
+	queue_push(qB, pcb);
+	pthread_mutex_unlock(&mutexQB);
+	log_app_pasar_a_QB(algoritmo, pcb->pid, pcb->alcanzoRestaurante);
 }
 
 void desbloquear_PCB(int idPedido) {
-	log_app_unblocking_pcb(algoritmo, idPedido);
 	pthread_mutex_lock(&mutexQB);
 	int qSize = queue_size(qB);
-	t_queue *new_QB = queue_create();
-	t_pcb *pcb_a_desbloquear = malloc(sizeof(t_pcb));
-	for (int i = 0; i < qSize; i++) {
-		t_pcb *currentPCB = queue_pop(qB);
-		if (currentPCB->pid == idPedido) {
-			pcb_a_desbloquear = currentPCB;
-			pcb_a_desbloquear->qEsperando = 0;
-			pcb_a_desbloquear->qDescansado = 0;
-			pcb_a_desbloquear->estado = ESPERANDO_EJECUCION;
-		} else {
-			queue_push(new_QB, currentPCB);
-		}
+	bool esta_bloqueado_pcb = false;
+	for (int b = 0; b < qSize; b++) {
+		t_pcb *current = queue_pop(qB);
+		if (current->pid == idPedido) { esta_bloqueado_pcb = true; }
+		queue_push(qB, current);
 	}
-	qB = new_QB;
+	if (esta_bloqueado_pcb) {
+		log_app_unblocking_pcb(algoritmo, idPedido);
+		t_queue *new_QB = queue_create();
+		t_pcb *pcb_a_desbloquear = malloc(sizeof(t_pcb));
+		for (int i = 0; i < qSize; i++) {
+			t_pcb *currentPCB = queue_pop(qB);
+			if (currentPCB->pid == idPedido) {
+				pcb_a_desbloquear = currentPCB;
+				pcb_a_desbloquear->qEsperando = 0;
+				pcb_a_desbloquear->qDescansado = 0;
+				pcb_a_desbloquear->estado = ESPERANDO_EJECUCION;
+			} else {
+				queue_push(new_QB, currentPCB);
+			}
+		}
+		qB = new_QB;
+		
+		pthread_mutex_lock(&mutexQR);
+		queue_push(qR, pcb_a_desbloquear);
+		log_app_blocked_to_ready(pcb_a_desbloquear->pid);
+		pthread_mutex_unlock(&mutexQR);
+	}
 	pthread_mutex_unlock(&mutexQB);
-	
-	pthread_mutex_lock(&mutexQR);
-	queue_push(qR, pcb_a_desbloquear);
-	log_app_blocked_to_ready(pcb_a_desbloquear->pid);
-	pthread_mutex_unlock(&mutexQR);
-
-	free(pcb_a_desbloquear);
 }
 
 void update_QDescansado() {
+	pthread_mutex_lock(&mutexQB);
 	if (!queue_is_empty(qB)) {
 		log_app_updating_QB_times(algoritmo);
-		pthread_mutex_lock(&mutexQB);
 		int sizeQB = queue_size(qB);
 		for (int i = 0; i < sizeQB; i++) {
 			t_pcb *current = queue_pop(qB);
 			current->qDescansado++;
 			queue_push(qB, current);
 		}
-		pthread_mutex_unlock(&mutexQB);
 		log_app_QB_times_increased(algoritmo);
 	}
+	pthread_mutex_unlock(&mutexQB);
 }
 
 /* FIFO */
 
 void update_QE_con_QR_FIFO() {
 	// Reviso si puedo agregar más PCBs de QR a EXEC
+	pthread_mutex_lock(&mutexQR);
+	pthread_mutex_lock(&mutexQE);
 	while (!queue_is_empty(qR) && puede_ejecutar_alguno()) {
 		log_app_ready_to_exec(algoritmo, grado_multiprocesamiento, queue_size(qE));
-		pthread_mutex_lock(&mutexQR);
 		t_pcb *current = queue_pop(qR);
 		log_app_removed_from_ready(algoritmo, current->pid);
-		pthread_mutex_unlock(&mutexQR);
-		pthread_mutex_lock(&mutexQE);
 		current->estado = current->alcanzoRestaurante ? EN_CAMINO_A_CLIENTE : EN_CAMINO_A_RESTAURANTE;
 		queue_push(qE, current);
 		log_app_added_to_exec(algoritmo, current->pid);
-		pthread_mutex_unlock(&mutexQE);
 	}
+	pthread_mutex_unlock(&mutexQE);
+	pthread_mutex_unlock(&mutexQR);
 }
 
 /* HRRN */
@@ -366,7 +374,6 @@ void update_tiempos_espera() {
 
 t_pcb *prox_to_exec_HRRN() {
 	log_app_next_pcb_HRRN();
-	pthread_mutex_lock(&mutexQR);
 	int tasa_rta_max = 0;
 	int qSize = queue_size(qR);
 	t_queue *new_QR = queue_create(); 
@@ -383,22 +390,23 @@ t_pcb *prox_to_exec_HRRN() {
 		}
 	}
 	qR = new_QR;
-	pthread_mutex_unlock(&mutexQR);
 	log_app_removed_from_ready(algoritmo, next_PCB_to_exec->pid);
 	return next_PCB_to_exec;
 }
 
 void update_QE_con_QR_HRRN() {
 	// Reviso si puedo agregar más PCBs de QR a EXEC
+	pthread_mutex_lock(&mutexQR);
+	pthread_mutex_lock(&mutexQE);
 	while (!queue_is_empty(qR) && puede_ejecutar_alguno()) {
 		log_app_ready_to_exec(algoritmo, grado_multiprocesamiento, queue_size(qE));
 		t_pcb *current = prox_to_exec_HRRN();
-		pthread_mutex_lock(&mutexQE);
 		current->estado = current->alcanzoRestaurante ? EN_CAMINO_A_CLIENTE : EN_CAMINO_A_RESTAURANTE;
 		queue_push(qE, current);
 		log_app_added_to_exec(algoritmo, current->pid);
-		pthread_mutex_unlock(&mutexQE);
 	}
+	pthread_mutex_unlock(&mutexQE);
+	pthread_mutex_unlock(&mutexQR);	
 }
 
 /* SJF */
@@ -410,7 +418,6 @@ void update_estimacion(t_pcb *pcb) {
 
 t_pcb *prox_a_ejecutar_SJF() {
 	log_app_next_pcb_SJF();
-	pthread_mutex_lock(&mutexQR);
 	
 	t_pcb *primer_pcb = queue_peek(qR);
 	double est_minima = primer_pcb->ultimaEstimacion;
@@ -430,22 +437,23 @@ t_pcb *prox_a_ejecutar_SJF() {
 	}
 	qR = new_QR;
 	
-	pthread_mutex_unlock(&mutexQR);
 	log_app_removed_from_ready(algoritmo, next_pcb_to_exec->pid);
 	return next_pcb_to_exec;
 }
 
 void update_QE_con_QR_SJF() {
 	// Reviso si puedo agregar más PCBs de QR a EXEC
+	pthread_mutex_lock(&mutexQR);
+	pthread_mutex_lock(&mutexQE);
 	while (!queue_is_empty(qR) && puede_ejecutar_alguno()) {
 		log_app_ready_to_exec(algoritmo, grado_multiprocesamiento, queue_size(qE));
 		t_pcb *current = prox_a_ejecutar_SJF();
-		pthread_mutex_lock(&mutexQE);
 		current->estado = current->alcanzoRestaurante ? EN_CAMINO_A_CLIENTE : EN_CAMINO_A_RESTAURANTE;
 		queue_push(qE, current);
 		log_app_added_to_exec(algoritmo, current->pid);
-		pthread_mutex_unlock(&mutexQE);
 	}
+	pthread_mutex_unlock(&mutexQE);
+	pthread_mutex_unlock(&mutexQR);
 }
 
 /* Ejecución */

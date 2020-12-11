@@ -120,10 +120,10 @@ void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket) {
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
 		getStringKeyValue(procesoOrigen, PROCNKEYS),
 		socket);
-	log_info(logger, "[HEADER] Received %s from %s - Socket: %d",
-		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
-		getStringKeyValue(procesoOrigen, PROCNKEYS),
-		socket);
+	// log_info(logger, "[HEADER] Received %s from %s - Socket: %d",
+	// 	getStringKeyValue(codigoOperacion, COMMANDNKEYS),
+	// 	getStringKeyValue(procesoOrigen, PROCNKEYS),
+	// 	socket);
 }
 
 void log_message_sent(m_code codigoOperacion, int socket) {
@@ -143,7 +143,7 @@ void logListaRecetas(t_list *listaRecetas) {
 	int cantidadRecetas = list_size(listaRecetas);
 	for (int i = 0; i < cantidadRecetas; i++) {
 		t_md_receta *recetaActual = list_get(listaRecetas, i);
-		printf(TAB BOLD"[Receta #%d]"RESET BREAK);
+		printf(TAB BOLD"[Receta #%d]"RESET BREAK, i);
 		printf(TAB"Plato: "BOLD"[%s]"RESET BREAK, recetaActual->plato);
 		printf(TAB"Precio: "BOLD"$%d"RESET BREAK, recetaActual->precio);
 		log_info(logger, "Receta [%d] - Plato: [%s], Precio: $%d", i, recetaActual->plato, recetaActual->precio);
@@ -458,9 +458,14 @@ void log_DataCliente(t_cliente *cliente) {
 
 void log_rta_EnviarDataCliente(t_cliente *cliente) {
 	printf(TAB"Cliente: "BOLD"[%s]"RESET", Socket: "BOLD"[%d]"RESET", ¿Es un restaurante?: %s" BREAK, cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	printf(TAB"Posición: [%d,%d], Puerto_escucha: "BOLD"[%d]"RESET BREAK, cliente->posCliente->posX, cliente->posCliente->posY, cliente->puerto_cliente);
 	log_info(logger, TAB"Cliente: %s, Socket: %d, ¿Es un restaurante?: %s", cliente->idCliente, cliente->socketCliente, cliente->esRestaurante ? "Sí" : "No");
-	log_info(logger, TAB"Posición: [%d,%d], Puerto_escucha: [%d]", cliente->posCliente->posX, cliente->posCliente->posY, cliente->puerto_cliente);
+	if(cliente->esRestaurante){
+		printf(TAB"Posición: [%d,%d], Puerto_escucha: "BOLD"[%d]"RESET BREAK, cliente->posRest->posX, cliente->posRest->posY, cliente->puerto_cliente);
+		log_info(logger, TAB"Posición: [%d,%d], Puerto_escucha: [%d]", cliente->posRest->posX, cliente->posRest->posY, cliente->puerto_cliente);
+	} else{
+		printf(TAB"Posición: [%d,%d], Puerto_escucha: "BOLD"[%d]"RESET BREAK, cliente->posCliente->posX, cliente->posCliente->posY, cliente->puerto_cliente);
+		log_info(logger, TAB"Posición: [%d,%d], Puerto_escucha: [%d]", cliente->posCliente->posX, cliente->posCliente->posY, cliente->puerto_cliente);
+	}
 }
 
 // TERMINAR_PEDIDO
@@ -855,7 +860,8 @@ void show_NaN_error_msg() {
 }
 
 void log_planif_step(char *step, char *desc){
-	printf(TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s] [%s]"RESET BREAK, step,desc);
+	printf(TAB TAB TAB TAB TAB MAGENTA"[Planif] - "BOLD"[%s] [%s]"RESET BREAK, step, desc);
+    log_info(logger, "                        [PLANIF] - [%s] [%s]", step, desc);
 }
 
 void log_ConsultarPedido(int idPedido) {

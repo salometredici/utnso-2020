@@ -52,7 +52,7 @@ t_list *afinidadesUnicas;
 
 t_list *queuesCocineros;
 t_queue *qF;
-
+pthread_mutex_t mutexQF;
 
 typedef struct {
     char *afinidad;
@@ -94,7 +94,7 @@ typedef struct {
     int pid;
     t_list *pasosReceta; //instrucciones
     char *idCliente;
-    int socketCliente; //todo
+    int socketCliente;
     char *plato;
     t_estado_proceso *estado;
     char *instruccionActual;

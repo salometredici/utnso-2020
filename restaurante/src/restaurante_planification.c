@@ -112,9 +112,16 @@ void actualizarQRaQE(t_queue_obj *currentCPU) {
 }
 
 void ejecutarCicloIO(t_queue_obj *currentCPU) {
-	if (!queue_is_empty(ejecutandoIO)) {
+	pthread_mutex_lock(&mutexEjecutaIO);
+	bool isEmpty = queue_is_empty(ejecutandoIO);
+	pthread_mutex_unlock(&mutexEjecutaIO);
+
+	if (!isEmpty) {
+		pthread_mutex_lock(&mutexEjecutaIO);
+		int queueSize = queue_size(ejecutandoIO);
+		pthread_mutex_unlock(&mutexEjecutaIO);
 		//nos fijamos si alguno termino su rafaga
-		for(int i = 0; i < queue_size(ejecutandoIO);i++){
+		for(int i = 0; i < queueSize; i++){
 			pthread_mutex_lock(&mutexEjecutaIO);
 			t_proceso *sigARevisar = queue_pop(ejecutandoIO); // Lo sacamos de la cola de Bloqueado
 			pthread_mutex_unlock(&mutexEjecutaIO);
@@ -145,8 +152,15 @@ void ejecutarCicloIO(t_queue_obj *currentCPU) {
 			}
 		}
 	}
-	if(queue_size(ejecutandoIO) < instanciasTotalesIO){
-		if(!queue_is_empty(esperandoIO)){
+	pthread_mutex_lock(&mutexEjecutaIO);
+	int queueSize = queue_size(ejecutandoIO);
+	pthread_mutex_unlock(&mutexEjecutaIO);
+	if(queueSize < instanciasTotalesIO){
+		pthread_mutex_lock(&mutexEsperaIO);		
+		bool isEmpty = queue_is_empty(esperandoIO);
+		pthread_mutex_unlock(&mutexEsperaIO);
+		
+		if(!isEmpty){
 			// Lo pasamos de espera a ejecutando
 			pthread_mutex_lock(&mutexEsperaIO);
 				t_proceso *proceso = queue_pop(esperandoIO); 
@@ -186,21 +200,16 @@ void ejecutarFinalizar(t_proceso *currentProc){
 	queue_push(qF,currentProc);
 	pthread_mutex_unlock(&mutexQF);
 
-	int conexionSindicato = conectarseA(SINDICATO);
 	t_plato_listo *platoListo = malloc(sizeof(platoListo));
 	platoListo->restaurante = nombreRestaurante;
 	platoListo->idPedido = currentProc->pid;
 	platoListo->plato = currentProc->plato;
 
+	conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, PLATO_LISTO, platoListo);
 	t_header *hrRtaPlatoListo = recibirHeaderPaquete(conexionSindicato);
 	t_result *reqRtaPlatoListo = recibirPayloadPaquete(hrRtaPlatoListo, conexionSindicato);
-
-	//avisar al modulo q solicito
-	// si es un cliente no funciona ndea ver dsps
-	// enviarPaquete(currentProc->socketCliente, RESTAURANTE, PLATO_LISTO, platoListo);
-	// t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(currentProc->socketCliente);
-	// t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListo, currentProc->socketCliente);
+	liberarConexion(conexionSindicato);
 	
 	int conexionApp = crearConexionOpcional();
 	if(conexionApp != ERROR){
@@ -221,14 +230,14 @@ void ejecutarFinalizar(t_proceso *currentProc){
 	}
 
 	//revisar que el pedido haya terminado
-	//consultar si puedo volver a usar mismo socket 
-	//conexionSindicato = conectarseA(SINDICATO);
+	conexionSindicato = conectarseA(SINDICATO);
 	t_request *consultaPedido = malloc(sizeof(t_request));
 	consultaPedido->idPedido = currentProc->pid;
 	consultaPedido->nombre = nombreRestaurante;
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, consultaPedido);
 	t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
 	t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+	liberarConexion(conexionSindicato);
 
 	bool pedidoFinalizado(void *actual) {
 		t_plato *platoActual = actual;
@@ -238,12 +247,12 @@ void ejecutarFinalizar(t_proceso *currentProc){
 	t_list *filtradas = list_filter(pedidoConf2->platos, &pedidoFinalizado); 
 	
 	if (list_is_empty(filtradas)) {
+		conexionSindicato = conectarseA(SINDICATO);
 		enviarPaquete(conexionSindicato, RESTAURANTE, TERMINAR_PEDIDO, consultaPedido);
 		t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
 		t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+		liberarConexion(conexionSindicato);
 	}
-
-	liberarConexion(SINDICATO);
 }
 
 void ejecutarCiclosFIFO(t_queue_obj *currentCPU){

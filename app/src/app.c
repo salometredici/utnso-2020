@@ -213,7 +213,7 @@ void *atenderConexiones(void *conexionNueva)
 					t_pedido *pedido_a_verificar = get_pedido_from_comanda(req_obtener_pedido);
 					bool todos_completos = platos_completos(pedido_a_verificar->platos);
 					if (todos_completos) {
-						desbloquear_PCB(req_obtener_pedido->idPedido); // Si o si va a estar bloqueado?
+						desbloquear_PCB(req_obtener_pedido->idPedido, req_obtener_pedido->nombre); // Si o si va a estar bloqueado?
 					}
 				}
 				

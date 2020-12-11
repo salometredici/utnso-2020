@@ -16,12 +16,12 @@ void revisar_conectados(t_list *lista) {
 
 // Revisamos si el cliente ya existe en la lista de conectados y limpiar los desconectados
 void actualizar_clientes_conectados(t_cliente *cliente) {
-	pthread_mutex_lock(&mutex_clientes);	
-	revisar_conectados(clientes_conectados);
-	pthread_mutex_unlock(&mutex_clientes);	
-	pthread_mutex_lock(&mutex_rests);		
-	revisar_conectados(rests_conectados);
-	pthread_mutex_unlock(&mutex_rests);
+	// pthread_mutex_lock(&mutex_clientes);	
+	// revisar_conectados(clientes_conectados);
+	// pthread_mutex_unlock(&mutex_clientes);	
+	// pthread_mutex_lock(&mutex_rests);		
+	// revisar_conectados(rests_conectados);
+	// pthread_mutex_unlock(&mutex_rests);
 
 	bool estaDuplicado(void *actual) {
 		t_cliente *cliente_actual = actual;

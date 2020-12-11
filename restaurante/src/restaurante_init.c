@@ -52,7 +52,7 @@ void obtenerMetadata() {
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
-	//liberarConexion(conexionSindicato);
+	liberarConexion(conexionSindicato);
 	inicializarVariablesMd(md);
 	logMetadata(md); // Probar con log_rta_ObtenerRestaurante
 	free(header);
@@ -104,6 +104,7 @@ void conectarseConApp(){
 		log_init_data_cliente(dataCliente);
 		enviarPaquete(conexionApp, RESTAURANTE, ENVIAR_DATACLIENTE, dataCliente);
 		free(dataCliente);
+		liberarConexion(conexionApp);
 	}
 }
 

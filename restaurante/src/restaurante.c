@@ -56,7 +56,6 @@ void *atenderConexiones(void *conexionNueva)
     pthread_data *t_data = (pthread_data*) conexionNueva;
     int socketCliente = t_data->socketThread;
     free(t_data);
-	int socketSindicato = ERROR;
 	t_cliente *cliente = malloc(sizeof(t_cliente));
 
 	while (1) {
@@ -64,12 +63,10 @@ void *atenderConexiones(void *conexionNueva)
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
 			log_common_client_disconnection(socketCliente);
-			liberarConexion(socket);
+			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
 		}
-		//ver si puedo borrar esta variable
-		socketSindicato = conectarseA(SINDICATO);
 
 		switch (header->codigoOperacion) {
 			case ENVIAR_DATACLIENTE:;
@@ -148,14 +145,14 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(conexionSindicato, RESTAURANTE, CONFIRMAR_PEDIDO, reqConf2);
 				t_header *hconfirmarpedido = recibirHeaderPaquete(conexionSindicato);
 				resultadoGral = recibirPayloadPaquete(hconfirmarpedido, conexionSindicato);
-				liberarConexion(SINDICATO);
+				liberarConexion(conexionSindicato);
 
 				if(!resultadoGral->hasError) {
 					conexionSindicato = conectarseA(SINDICATO);
 					enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, reqConf2);
 					t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
 					t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
-					liberarConexion(SINDICATO);
+					liberarConexion(conexionSindicato);
 					
 					int cantDePlatos = list_size(pedidoConf2->platos);
 					for (int i = 0; i < cantDePlatos; i++){
@@ -186,7 +183,7 @@ void *atenderConexiones(void *conexionNueva)
 				enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO , reqConsultarPedido);
 				t_header *hRConsultarP = recibirHeaderPaquete(conexionSindicato);
 				t_pedido *pedidoConsultar = recibirPayloadPaquete(hRConsultarP, conexionSindicato);
-				liberarConexion(SINDICATO);
+				liberarConexion(conexionSindicato);
 				pedidoConsultar->restaurante = nombreRestaurante;
 				enviarPaquete(socketCliente, RESTAURANTE, RTA_CONSULTAR_PEDIDO, pedidoConsultar);
 				break;
@@ -196,8 +193,6 @@ void *atenderConexiones(void *conexionNueva)
 		}
 		free(header);
 	}
-
-	liberarConexion(socketSindicato); // si no es error, lo liberamo'
     pthread_exit(EXIT_SUCCESS);
     return 0;
 }

@@ -175,4 +175,14 @@ void log_IniciarPedido_Data(t_req_plato *request);
 void log_planif_step(char *step, char *desc);
 void log_ConsultarPedido(int idPedido);
 void log_rta_Consultar_Pedido(t_pedido *pedido, int idPedido);
+
+/* COMANDANTE */
+
+void log_victim_founded(int frame);
+void log_is_in_mp(int frame);
+void log_is_not_in_mp();
+void log_find_victim();
+void log_mp_full();
+void log_swap_full();
+
 #endif

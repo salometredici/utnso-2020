@@ -904,3 +904,33 @@ void log_rta_ConsultarPedido(t_pedido *pedido, int idPedido) {
             break;
     }
 }
+
+void log_victim_founded(int frame){
+	printf(TAB YELLOW"******* Vissstima encontrada frame: %d....\n", frame);
+	log_info(logger, "******* Vissstima encontrada frame: %d....\n", frame);
+}
+
+void log_is_in_mp(int frame){
+	printf(TAB BOLDCYAN"El pedido se encuentra en MP frame %d", frame);
+	log_info(logger,"El pedido se encuentra en MP frame %d", frame);	
+}
+
+void log_is_not_in_mp(){
+	printf(TAB BOLDRED"El pedido no se encuentra en MP. Se tiene que buscar en swap...");
+	log_info(logger, "El pedido no se encuentra en MP. Se tiene que buscar en swap...");
+}
+
+void log_find_victim(){
+	printf(TAB YELLOW" Se busca la vissstima....");
+	log_info(logger, "Se busca la vissstima....");
+}
+
+void log_mp_full(){
+	log_info(logger, "No hay espacio en la memoria.... hacer swap");
+	printf(TAB "No hay espacio en la memoria.... hacer swap");	
+}
+
+void log_swap_full(){
+	log_info(logger, "No hay espacio en swap ...");
+	printf(TAB "No hay espacio en swap ...");	
+}

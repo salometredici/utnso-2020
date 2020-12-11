@@ -109,7 +109,7 @@ void informar_entrega_cliente(t_pcb *pcb) {
 
 	t_cliente *cliente_a_notif = get_t_cliente(clientes_conectados, pcb->idCliente);
 
-	int conexionCliente = conectarse_a_cliente(cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
+	int conexionCliente = conectarseAProceso(CLIENTE, cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
 	enviarPaquete(conexionCliente, APP, FINALIZAR_PEDIDO, request);
 	t_header *header = recibirHeaderPaquete(conexionCliente);
 	t_result *result = recibirPayloadPaquete(header, conexionCliente);
@@ -239,7 +239,7 @@ void update_QR_con_QN() {
 		t_pcb *next_in_line = queue_pop(qN);
 		log_app_removed_from_new(algoritmo, next_in_line->pid);
 		pthread_mutex_unlock(&mutexQN);
-		
+
 		next_in_line->repartidor = getRepartidorMasCercano(next_in_line->posRest);
 		log_app_repartidor_asignado(next_in_line->repartidor->idRepartidor, next_in_line->pid);
 		next_in_line->estado = ESPERANDO_EJECUCION;

@@ -21,5 +21,6 @@ int conectarseA(p_code proceso);
 int aceptarCliente(int socketServidor);
 void liberarConexion(int conexion);
 int conectarse_a_cliente(char *ip, int puerto);
+int conectarseAProceso(p_code proceso, char *ip, int puerto);
 
 #endif

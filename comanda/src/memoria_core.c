@@ -269,7 +269,7 @@ t_page* find_victim_0_0() {
 		t_page* page = find_page_by_frame(pointer, paginas);
 
 		if(page->in_use == false && page->modified == false){
-			puntero_clock += 1;
+			puntero_clock = pointer + 1;
 			list_destroy(paginas);
 			return page;
 		}
@@ -277,8 +277,8 @@ t_page* find_victim_0_0() {
 		counter++;
 		pointer++;
 	}
-	printf("\n eeeeeeeeee 0__0.... ");
-	print_pages_in_memory();
+	//printf("\n eeeeeeeeee 0__0.... ");
+	//print_pages_in_memory();
 	return NULL;
 }
 
@@ -296,7 +296,7 @@ t_page* find_victim_0_1() {
 		t_page* page = find_page_by_frame(pointer, paginas);
 
 		if(page->in_use == false && page->modified == true){
-			puntero_clock += 1;
+			puntero_clock = pointer + 1;
 			list_destroy(paginas);
 			return page;
 		}
@@ -307,8 +307,8 @@ t_page* find_victim_0_1() {
 		pointer++;
 	}
 	
-	printf("\n eeeeeeeeee 0___1.... ");
-	print_pages_in_memory();
+	//printf("\n eeeeeeeeee 0___1.... ");
+	//print_pages_in_memory();
 	return NULL;
 }
 
@@ -330,9 +330,8 @@ t_page* find_victim_clock(){
 	
 		if (victim_page == NULL) {	
 			printf(" No se encontro la victima 0_1 ...\n");
-			printf("\n Desp del 0_1....\n");	
-			print_pages_in_memory();
-			
+			//printf("\n Desp del 0_1....\n");	
+			//print_pages_in_memory();			
 			victim_page = find_victim_0_0();
 	
 			if (victim_page == NULL) {
@@ -342,7 +341,7 @@ t_page* find_victim_clock(){
 		}
 	}
 
-	printf(" Vissstima encontrada %d....\n", puntero_clock - 1);	
+	printf(" Vissstima encontrada frame: %d....\n", victim_page->frame);	
 	print_pages_in_memory();
 	log_info(logger, "*** [CLOCK] Frame vistima encontrada %d", victim_page->frame);
 	return victim_page;
@@ -602,7 +601,7 @@ void print_pages_in_memory(){
 			printf("| Indice: %d | frame: %d | frame_in_mv: %d | timestamp: %f\n", i, page->frame, page->frame_mv, page->timestamp);		
 	}
 
-	printf("---------------------------------------------------------------------------\n\n");
+	printf("---------------------------------------------------------------------------\n");
 	list_destroy(memory_pages);
 }
 

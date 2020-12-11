@@ -85,8 +85,8 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
-			//printf("\n---------------Estado de Paginas Memoria---------------\n");
-			//print_pages_in_memory();
+			printf(" Vissstima encontrada frame: %d....\n", plato_creado->frame);	
+			print_pages_in_memory();
 			print_swap();
 			print_memory();
 		
@@ -102,6 +102,8 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
+	printf(" Vissstima encontrada frame: %d....\n", page->frame);	
+	print_pages_in_memory();
 	print_swap();
 	print_memory();
 	t_result *result = getTResult("[GUARDAR_PLATO] Ok", false);
@@ -267,15 +269,19 @@ t_result* _plato_listo(t_plato_listo* request) {
 		list_destroy_and_destroy_elements(marcos, &free);
 
 		if(value){
+			printf(" Vissstima encontrada frame: %d....\n", pl_page->frame);	
+			print_pages_in_memory();			
 			print_swap();
 			print_memory();
 			pedido->estado = TERMINADO;
-			t_result *result = getTResult("[PLATO_LISTO] Ok.Todos los platos estan terminados. Se termino el pedido", false);	
+			t_result *result = getTResult("[PLATO_LISTO] Ok. Todos los platos estan terminados. Se termino el pedido", false);	
 			return result;
 		}
 
 	}
 
+	printf(" Vissstima encontrada frame: %d....\n", pl_page->frame);	
+	print_pages_in_memory();
 	print_swap();
 	print_memory();
 	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	

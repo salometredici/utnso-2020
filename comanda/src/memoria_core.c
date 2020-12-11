@@ -258,12 +258,12 @@ t_page* find_page_by_frame(int nro_frame, t_list* pages){
 t_page* find_victim_0_0() {
 	t_list* paginas = paginas_en_memoria();
 
-	int counter = 0;
+	int counter = 1;
 	int pointer = puntero_clock; 
 	int total_frames_mp = frames;
 
 	while(counter <= total_frames_mp){	
-		if(pointer == frames - 1)
+		if(pointer == frames)
 			pointer = 0;
 
 		t_page* page = find_page_by_frame(pointer, paginas);
@@ -277,19 +277,20 @@ t_page* find_victim_0_0() {
 		counter++;
 		pointer++;
 	}
-
+	printf("\n eeeeeeeeee 0__0.... ");
+	print_pages_in_memory();
 	return NULL;
 }
 
 t_page* find_victim_0_1() {
 	t_list* paginas = paginas_en_memoria();
 
-	int counter = 0;
+	int counter = 1;
 	int pointer = puntero_clock; 
 	int total_frames_mp = frames;
 
 	while(counter <= total_frames_mp){	
-		if(pointer == frames - 1)
+		if(pointer == frames)
 			pointer = 0;
 
 		t_page* page = find_page_by_frame(pointer, paginas);
@@ -305,13 +306,15 @@ t_page* find_victim_0_1() {
 		counter++;
 		pointer++;
 	}
-
+	
+	printf("\n eeeeeeeeee 0___1.... ");
+	print_pages_in_memory();
 	return NULL;
 }
 
 t_page* find_victim_clock(){
 	log_info(logger, "[CLOCK] Se busca una vistima .....");
-	printf("\n Se busca la vissstima....");	
+	printf("\n Se busca la vissstima....\n");	
 	print_pages_in_memory();
 
 	t_page* victim_page;
@@ -322,21 +325,24 @@ t_page* find_victim_clock(){
 	victim_page = find_victim_0_0();
 
 	if (victim_page == NULL) {
-		printf("\nNo se encontro la vistima 0_0\n");	
+		printf(" No se encontro la vistima 0_0....\n");	
 		victim_page = find_victim_0_1();
 	
 		if (victim_page == NULL) {	
-			printf("No se encontro la victima 0_1\n");
+			printf(" No se encontro la victima 0_1 ...\n");
+			printf("\n Desp del 0_1....\n");	
+			print_pages_in_memory();
+			
 			victim_page = find_victim_0_0();
 	
 			if (victim_page == NULL) {
-				printf("Retry busqueda vistima 0_0 pero no :sad_pepe");
+				printf(" Retry busqueda vistima 0_0 pero no :sad_pepe ...");
 				victim_page = find_victim_0_1();
 			}
 		}
 	}
 
-	printf("\n Vissstima encontrada %d....\n", puntero_clock - 1);	
+	printf(" Vissstima encontrada %d....\n", puntero_clock - 1);	
 	print_pages_in_memory();
 	log_info(logger, "*** [CLOCK] Frame vistima encontrada %d", victim_page->frame);
 	return victim_page;
@@ -583,9 +589,9 @@ void print_pages_in_memory(){
 	t_list* memory_pages = paginas_en_memoria();
 	bool is_clock = string_equals_ignore_case(ALGORITMO_REEMPLAZO, CLOCK);
 
-	printf("\n-------------------------------PAGINAS EN MEMORIA--------------------------\n");
+	printf("-------------------------------PAGINAS EN MEMORIA--------------------------\n");
 	if(is_clock)
-		printf("→ Puntero clock %d", puntero_clock);
+		printf("→ Puntero clock %d\n", puntero_clock);
 
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
@@ -596,7 +602,7 @@ void print_pages_in_memory(){
 			printf("| Indice: %d | frame: %d | frame_in_mv: %d | timestamp: %f\n", i, page->frame, page->frame_mv, page->timestamp);		
 	}
 
-	printf("-----------------------------------------------------------------------------\n\n");
+	printf("---------------------------------------------------------------------------\n\n");
 	list_destroy(memory_pages);
 }
 

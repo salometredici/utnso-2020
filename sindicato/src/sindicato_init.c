@@ -110,12 +110,12 @@ void set_initial_bitarray(char *bitmap, int size) {
 	for (int i = 0; i < bitarray_get_max_bit(bitarray); i++) {
 		bitarray_clean_bit(bitarray, i);
 	}
-	log_bitarray_info(bitarray, get_available_blocks_number());
+	log_bitarray_info(bitarray, blocksQuantity, get_available_blocks_number());
 }
 
 void set_existent_bitarray(char *bitmap, int size) {
 	bitarray = bitarray_create_with_mode((char*)bitmap, size, LSB_FIRST);
-	log_bitarray_info(bitarray, get_available_blocks_number());
+	log_bitarray_info(bitarray, blocksQuantity, get_available_blocks_number());
 }
 
 char *getBitmap(int size, int fd) {

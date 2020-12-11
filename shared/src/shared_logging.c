@@ -745,13 +745,13 @@ void log_bitmap_error() {
 	log_error(logger, "Error al realizar mmap");
 }
 
-void log_bitarray_info(t_bitarray *bitarray, int available_blocks) {
+void log_bitarray_info(t_bitarray *bitarray, int blocks_quantity, int available_blocks) {
 	int lastBit = bitarray_get_max_bit(bitarray);
-	printf("→ Tamaño del bitmap: %d"BREAK, lastBit);
+	printf("→ Cant. total de bloques: %d"BREAK, blocks_quantity);
 	printf("→ Cant. de bloques disponibles: "BOLD"%d"RESET BREAK, available_blocks);
 	printf(TAB BOLD"→"RESET" Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
 	printf(TAB BOLD"→"RESET" Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
-	log_debug(logger, "→ Tamaño del bitmap: %d", lastBit);
+	log_debug(logger, "→ Cant. total de bloques: %d", blocks_quantity);
 	log_debug(logger, "→ Cant. de bloques disponibles: %d", available_blocks);
 	log_debug(logger, TAB"→ Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
 	log_debug(logger, TAB"→ Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));

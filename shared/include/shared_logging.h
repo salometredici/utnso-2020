@@ -146,7 +146,7 @@ void log_assigned_blocks(int *assigned_blocks, int cant_bloques);
 // Bitmap
 void log_bitmap_file_error();
 void log_bitmap_error();
-void log_bitarray_info(t_bitarray *bitarray, int available_blocks);
+void log_bitarray_info(t_bitarray *bitarray, int blocks_quantity, int available_blocks);
 void log_bitmap_init();
 void log_bitmap_success();
 void log_bitmap_reload();

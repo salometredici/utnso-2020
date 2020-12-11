@@ -85,6 +85,7 @@ t_frame* find_frame_in_memory(t_page* page){
 	}
 
 	if(page->flag == IN_MEMORY){
+		printf(" Se encuentra en MP....\n");		
 		t_frame *frame = get_frame_from_memory(page->frame);	
 		page->timestamp = get_current_time();
 		page->in_use = true;
@@ -92,6 +93,7 @@ t_frame* find_frame_in_memory(t_page* page){
 	}
 	else{
 		int frame_victim = find_final_victim(page);
+		printf(" Vissstima encontrada frame: %d....\n", frame_victim);
 
 		page->flag = 1;
 		page->timestamp = get_current_time();
@@ -330,8 +332,6 @@ t_page* find_victim_clock(){
 	
 		if (victim_page == NULL) {	
 			printf(" No se encontro la victima 0_1 ...\n");
-			//printf("\n Desp del 0_1....\n");	
-			//print_pages_in_memory();			
 			victim_page = find_victim_0_0();
 	
 			if (victim_page == NULL) {
@@ -511,6 +511,7 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	
 	if(frame_number == -1){
 		log_info(logger, "[ASIGNAR_FRAME]No hay espacio en la memoria.... hacer swap");
+		printf("No hay espacio en la memoria.... hacer swap");
 
 		if(swap_frame == -1){
 			log_info(logger, "[ASIGNAR_FRAME] No hay espacio en swap....");
@@ -518,6 +519,8 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 		}
 
 		int frame_in_mp = find_final_victim(NULL);
+
+		printf(" Vissstima encontrada frame: %d....\n", frame_in_mp);
 
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
 		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_in_mp);

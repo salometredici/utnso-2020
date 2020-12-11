@@ -268,8 +268,7 @@ t_result* _plato_listo(t_plato_listo* request) {
 
 		list_destroy_and_destroy_elements(marcos, &free);
 
-		if(value){
-			printf(" Vissstima encontrada frame: %d....\n", pl_page->frame);	
+		if(value){	
 			print_pages_in_memory();			
 			print_swap();
 			print_memory();
@@ -280,7 +279,6 @@ t_result* _plato_listo(t_plato_listo* request) {
 
 	}
 
-	printf(" Vissstima encontrada frame: %d....\n", pl_page->frame);	
 	print_pages_in_memory();
 	print_swap();
 	print_memory();

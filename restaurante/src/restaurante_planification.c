@@ -319,7 +319,7 @@ void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
 }
 
 void ejecutarCiclosRR(t_queue_obj *currentCPU) {
-	pthread_mutex_lock(&currentCPU->mutexQE);
+	//pthread_mutex_lock(&currentCPU->mutexQE);
 	t_proceso *currentProc = queue_pop(currentCPU->qE);
 	
 	while (currentProc != NULL) {
@@ -368,11 +368,14 @@ void ejecutarCiclosRR(t_queue_obj *currentCPU) {
 			pthread_mutex_unlock(&currentCPU->mutexQR);
 			log_planif_step("Salio de ejecucion", "por QUANTUM");
 		} else {
+			pthread_mutex_lock(&currentCPU->mutexQE);
 			queue_push(currentCPU->qE,currentProc);
+			pthread_mutex_unlock(&currentCPU->mutexQE);
 		}
 		
 		ejecutarCicloIO(currentCPU);
 		actualizarEsperaQB(currentCPU);
+		pthread_mutex_lock(&currentCPU->mutexQE);
 		currentProc = queue_pop(currentCPU->qE); // Continúa el ciclo con el siguiente PCB
 		pthread_mutex_unlock(&currentCPU->mutexQE);
 		sleep(tiempoRetardoCpu);

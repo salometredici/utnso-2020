@@ -262,19 +262,19 @@ void logRequestPlato(t_req_plato *plato) {
 
 /* APP NEW QUEUE */
 
-void log_app_adding_to_new(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Agregando el PCB ["BOLDCYAN"#%d"RESET"] a "BOLD"NEW"RESET" por haber sido confirmado..."BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] Agregando el PCB [#%d] a NEW por haber sido confirmado...", pid);
+void log_app_adding_to_new(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Agregando el PCB ["BOLDCYAN"#%d"RESET"] de "BOLDMAGENTA"%s"RESET" a "BOLD"NEW"RESET" por haber sido confirmado..."BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] Agregando el PCB [#%d] de %s a NEW por haber sido confirmado...", pid, rest);
 }
 
-void log_app_added_to_new(int pid) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to NEW queue"RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
+void log_app_added_to_new(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added from "BOLDMAGENTA"%s"RESET" to NEW queue"RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added from %s to NEW queue", pid, rest);
 }
 
-void log_app_removed_from_new(char *algoritmo, int pid) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] removed from NEW queue"RESET BREAK, algoritmo, pid);
-	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] removed from NEW queue", algoritmo, pid);
+void log_app_removed_from_new(char *algoritmo, int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" removed from NEW queue"RESET BREAK, algoritmo, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s removed from NEW queue", algoritmo, pid, rest);
 }
 
 void log_app_asignando_repartidores(int repartidores_disp, int exec_disp) {
@@ -284,21 +284,21 @@ void log_app_asignando_repartidores(int repartidores_disp, int exec_disp) {
 	log_debug(logger, TAB"[PLANIFICATION] Repartidores disponibles: %d, Espacio en EXEC: %d", repartidores_disp, exec_disp);
 }
 
-void log_app_repartidor_asignado(int idRepartidor, int pid) {
+void log_app_repartidor_asignado(int idRepartidor, int pid, char *rest) {
 	//printf(TAB CYAN"[PLANIFICATION]"RESET" Repartidor #%d assigned to PCB ["BOLDCYAN"#%d"RESET"]"BREAK, idRepartidor, pid); // Debug
-	log_debug(logger, TAB"[PLANIFICATION] Repartidor #%d assigned to PCB [#%d]",idRepartidor, pid);
+	log_debug(logger, TAB"[PLANIFICATION] Repartidor #%d assigned to PCB [#%d] from %s", idRepartidor, pid, rest);
 }
 
 /* APP READY QUEUE */
 
-void log_app_added_to_ready(int pid) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to READY queue"RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to NEW queue", pid);
+void log_app_added_to_ready(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to READY queue"RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] from %s added to NEW queue", pid, rest);
 }
 
-void log_app_removed_from_ready(char *algoritmo, int pid) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] removed from READY queue"RESET BREAK, algoritmo, pid);
-	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] removed from READY queue", algoritmo, pid);
+void log_app_removed_from_ready(char *algoritmo, int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" removed from READY queue"RESET BREAK, algoritmo, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s removed from READY queue", algoritmo, pid, rest);
 }
 
 void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE) {
@@ -313,15 +313,15 @@ void log_app_running_exec_cycle(char *algoritmo) {
 	log_debug(logger, "[PLANIFICATION - %s] Running execution...", algoritmo);
 }
 
-void log_app_added_to_exec(char *algoritmo, int pid) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to EXEC queue"RESET BREAK, algoritmo, pid);
-	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] added to EXEC queue", algoritmo, pid);
+void log_app_added_to_exec(char *algoritmo, int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to EXEC queue"RESET BREAK, algoritmo, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s added to EXEC queue", algoritmo, pid, rest);
 }
 
 /* APP BLOCKED QUEUE */
 
 void log_app_updating_QB_times() {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Incrementando tiempos de descanso en "BOLD"BLOCKED"RESET"..."BREAK);
+	//printf(TAB CYAN"[PLANIFICATION]"RESET" Incrementando tiempos de descanso en "BOLD"BLOCKED"RESET"..."BREAK);
 	log_debug(logger, TAB"[PLANIFICATION] Incrementando tiempos de descanso en BLOCKED...");
 }
 
@@ -330,73 +330,73 @@ void log_app_QB_times_increased(char *algoritmo) {
 	log_debug(logger, TAB"[PLANIFICATION] Tiempos de descanso incrementados en BLOCKED");
 }
 
-void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] added to BLOCKED queue in %s state"RESET BREAK, algoritmo, pid, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
-	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] added to BLOCKED queue in %s state", algoritmo, pid, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
+void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION - %s]"RESET BOLD" PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] from "BOLDMAGENTA"%s"RESET" added to BLOCKED queue in %s state"RESET BREAK, algoritmo, pid, rest, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
+	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s added to BLOCKED queue in %s state", algoritmo, pid, rest, llego_al_rest ? "ESPERANDO_PLATO" : "REPARTIDOR_DESCANSANDO");
 }
 
-void log_app_unblocking_pcb(char *algoritmo, int idPedido) {
-	printf(TAB CYAN"[PLANIFICATION - %s]"RESET BOLD" Desbloqueando al PCB ["RESET BOLDCYAN"#%d"RESET BOLD"]..."RESET BREAK, algoritmo, idPedido);
-	log_debug(logger, TAB"[PLANIFICATION - %s] Desbloqueando al PCB [#%d]...", algoritmo, idPedido);
+void log_app_unblocking_pcb(char *algoritmo, int idPedido, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION - %s]"RESET BOLD" Desbloqueando al PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] de "RESET BOLDMAGENTA"%s"RESET BOLD"..."RESET BREAK, algoritmo, idPedido, rest);
+	log_debug(logger, TAB"[PLANIFICATION - %s] Desbloqueando al PCB [#%d] de %s...", algoritmo, idPedido, rest);
 }
 
-void log_app_blocked_to_ready(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] has returned from "BOLD"BLOCKED"RESET" state to "BOLD"READY"RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] has returned from BLOCKED state to READY", pid);
+void log_app_blocked_to_ready(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] from "BOLDMAGENTA"%s"RESET" has returned from "BOLD"BLOCKED"RESET" state to "BOLD"READY"RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] from %s has returned from BLOCKED state to READY", pid, rest);
 }
 
-void log_app_pcb_rest_end(int pid, int qDescansado) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] finished its timeout. Cycles resting: %d"BREAK, pid, qDescansado);
-	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] finished its timeout. Cycles resting: %d", pid, qDescansado);
+void log_app_pcb_rest_end(int pid, int qDescansado, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" PCB ["BOLDCYAN"#%d"RESET"] from "BOLDMAGENTA"%s"RESET" finished its timeout. Cycles resting: %d"BREAK, pid, rest, qDescansado);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] from %s finished its timeout. Cycles resting: %d", pid, rest, qDescansado);
 }
 
-void log_app_repartidor_cansado(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" El repartidor del PCB ["BOLDCYAN"#%d"RESET"] debía descansar, el PCB pasó al estado "BOLD"BLOCKED"RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] debía descansar, el PCB pasó al estado BLOCKED", pid);
+void log_app_repartidor_cansado(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El repartidor del PCB ["BOLDCYAN"#%d"RESET"] de "BOLDMAGENTA"%s"RESET" debía descansar, el PCB pasó al estado "BOLD"BLOCKED"RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] de %s debía descansar, el PCB pasó al estado BLOCKED", pid, rest);
 }
 
-void log_app_platos_pendientes(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] tiene platos pendientes, pasa a BLOCKED"BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] tiene platos pendientes, pasa a BLOCKED", pid);			
+void log_app_platos_pendientes(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] de "BOLDMAGENTA"%s"RESET" tiene platos pendientes, pasa a BLOCKED"BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] de %s tiene platos pendientes, pasa a BLOCKED", pid, rest);			
 }
 
 /* APP FINISHED QUEUE */
 
-void log_app_added_to_finished(int pid) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added to FINISHED queue"RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added to FINISHED queue", pid);
+void log_app_added_to_finished(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to FINISHED queue"RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] from %s added to FINISHED queue", pid, rest);
 }
 
 /* Updates */
 
-void log_app_pcb_llego_al_cliente(int pid, char *idCliente) {
-	printf(TAB BOLDCYAN"[PLANIFICATION]"RESET BOLDMAGENTA" El PCB ["RESET BOLDCYAN"#%d"RESET BOLDMAGENTA"] llegó al cliente, finalizando pedido..."RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] llegó al cliente, finalizando pedido...", pid);			
+void log_app_pcb_llego_al_cliente(int pid, char *idCliente, char *rest) {
+	printf(TAB BOLDCYAN"[PLANIFICATION]"RESET BOLDMAGENTA" El PCB ["RESET BOLDCYAN"#%d"RESET BOLDMAGENTA"] de %s llegó al cliente, finalizando pedido..."RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] de %s llegó al cliente, finalizando pedido...", pid, rest);			
 }
 
-void log_app_pcb_entregado_al_cliente(int pid, char *idCliente, int idRepartidor) {
+void log_app_pcb_entregado_al_cliente(int pid, char *idCliente, char *rest, int idRepartidor) {
 	//printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] fue entregado a "BOLD"%s"RESET" por el repartidor "BOLD"#%d"RESET", pasa a "BOLD"FINISHED"RESET BREAK, pid, idCliente, idRepartidor); // Debug
-	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] fue entregado a %s por el repartidor #%d, pasa a FINISHED", pid, idCliente, idRepartidor);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] de %s fue entregado a %s por el repartidor #%d, pasa a FINISHED", pid, rest, idCliente, idRepartidor);
 }
 
-void log_app_continua_hacia_cliente(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] continúa su viaje hacia el cliente..."BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] continúa su viaje hacia el cliente...", pid);			
+void log_app_continua_hacia_cliente(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] de "BOLDMAGENTA"%s"RESET" continúa su viaje hacia el cliente..."BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] de %s continúa su viaje hacia el cliente...", pid, rest);			
 }
 
-void log_app_pcb_llego_al_rest(int pid) {
-	printf(TAB BOLDCYAN"[PLANIFICATION]"RESET BOLDMAGENTA" El PCB ["RESET BOLDCYAN"#%d"RESET BOLDMAGENTA"] llegó al restaurante"RESET BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] llegó al restaurante");
+void log_app_pcb_llego_al_rest(int pid, char *rest) {
+	printf(TAB BOLDCYAN"[PLANIFICATION]"RESET BOLDMAGENTA" El PCB ["RESET BOLDCYAN"#%d"RESET BOLDMAGENTA"] de %s llegó al restaurante"RESET BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] llegó al restaurante %s", pid, rest);
 }
 
-void log_app_repartidor_en_camino(int pid, t_posicion *pos_destino, tour_code code) {
+void log_app_repartidor_en_camino(int pid, char *rest, t_posicion *pos_destino, tour_code code) {
 	//printf(TAB CYAN"[PLANIFICATION]"RESET" El PCB ["BOLDCYAN"#%d"RESET"] va en camino al %s. Destino: "BOLD"[%d,%d]"RESET BREAK, pid, code == HACIA_CLIENTE ? "cliente" : "restaurante", pos_destino->posX, pos_destino->posY); // Debug
-	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] va en camino al %s. Destino: [%d,%d]", pid, code == HACIA_CLIENTE ? "cliente" : "restaurante", pos_destino->posX, pos_destino->posY);
+	log_debug(logger, TAB"[PLANIFICATION] El PCB [#%d] de %s va en camino al %s. Destino: [%d,%d]", pid, rest, code == HACIA_CLIENTE ? "cliente" : "restaurante", pos_destino->posX, pos_destino->posY);
 }
 
-void log_app_traslado_repartidor(int pid, int old_posX, int old_posY, int new_posX, int new_posY) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET BOLD" El repartidor del PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] se trasladó de [%d,%d] a [%d,%d]"RESET BREAK, pid, old_posX, old_posY, new_posX, new_posY);
-	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] se trasladó de [%d,%d] a [%d,%d]", pid, old_posX, old_posY, new_posX, new_posY);
+void log_app_traslado_repartidor(int pid, char *rest, int old_posX, int old_posY, int new_posX, int new_posY) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET BOLD" El repartidor del PCB ["RESET BOLDCYAN"#%d"RESET BOLD"] de %s se trasladó de [%d,%d] a [%d,%d]"RESET BREAK, pid, rest, old_posX, old_posY, new_posX, new_posY);
+	log_debug(logger, TAB"[PLANIFICATION] El repartidor del PCB [#%d] de %s se trasladó de [%d,%d] a [%d,%d]", pid, rest, old_posX, old_posY, new_posX, new_posY);
 }
 
 void log_app_repartidor_libre(int idRepartidor, int cant_disp) {
@@ -404,19 +404,19 @@ void log_app_repartidor_libre(int idRepartidor, int cant_disp) {
 	log_debug(logger, TAB"[PLANIFICATION] Repartidor #%d is now available. Total available now: %d", idRepartidor, cant_disp);
 }
 
-void log_checking_all_platos_listos(int pid) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Revisando si todos los platos del PCB ["BOLDCYAN"#%d"RESET"] están listos..."BREAK, pid);
-	log_debug(logger, TAB"[PLANIFICATION] Revisando si todos los platos del PCB [#%d] están listos...", pid);
+void log_checking_all_platos_listos(int pid, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Revisando si todos los platos del PCB ["BOLDCYAN"#%d"RESET"] de %s están listos..."BREAK, pid, rest);
+	log_debug(logger, TAB"[PLANIFICATION] Revisando si todos los platos del PCB [#%d] de %s están listos...", pid, rest);
 }
 
-void log_app_FinalizarPedido(int pid) {
+void log_app_FinalizarPedido(int pid, char *rest) {
 	//printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] a "BOLDBLUE"COMANDA"RESET"..."BREAK, pid); // Debug
-	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] a COMANDA...", pid);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] de %s a COMANDA...", pid, rest);
 }
 
-void log_app_entrega_a_cliente(int pid, char *cliente) {
-	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] al cliente "BOLD"%s"RESET"..."BREAK, pid, cliente);
-	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] al cliente %s...", pid, cliente);
+void log_app_entrega_a_cliente(int pid, char *cliente, char *rest) {
+	printf(TAB CYAN"[PLANIFICATION]"RESET" Informando la finalización del PCB ["BOLDCYAN"#%d"RESET"] de %s al cliente "BOLD"%s"RESET"..."BREAK, pid, rest, cliente);
+	log_debug(logger, TAB"[PLANIFICATION] Informando la finalización del PCB [#%d] de %s al cliente %s...", pid, rest, cliente);
 }
 
 /* HRRN */

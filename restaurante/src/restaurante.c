@@ -35,7 +35,7 @@ void actualizarClientesConectados(t_cliente *cliente) {
 	if (cliDuplicado == NULL) { list_add(clientesConectados, cliente); }
 }
 
-void crearProceso(t_cliente *cli, int idPedido, char *plato){
+void crearProceso(t_cliente *cli, int idPedido, char *plato, int cantPedida){
 	int conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RECETA, plato);
 	t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
@@ -45,10 +45,10 @@ void crearProceso(t_cliente *cli, int idPedido, char *plato){
 	// t_receta *receta = malloc(sizeof(t_receta));
 	// receta->plato = plato;
 	// receta->instrucciones = instrucciones;
-
-	t_proceso *proceso = crearPcb(cli, idPedido, receta);
-
-	aReadyPorAfinidad(proceso); // agregar a queue de ready 
+	for(int i = 0; i < cantPedida; i++) {
+		t_proceso *proceso = crearPcb(cli, idPedido, receta);
+		aReadyPorAfinidad(proceso); // agregar a queue de ready 
+	}
 }
 
 void *atenderConexiones(void *conexionNueva)
@@ -160,7 +160,7 @@ void *atenderConexiones(void *conexionNueva)
 						t_plato *platoActual = malloc(sizeof(t_plato));
 						// t_plato *current = list_get(pedidoConf2->platos,i);
 						platoActual = list_get(pedidoConf2->platos,i); //current->plato;
-						crearProceso(cliente, reqConf2->idPedido, platoActual->plato);
+						crearProceso(cliente, reqConf2->idPedido, platoActual->plato, platoActual->cantidadPedida);
 					}
 					log_rta_ObtenerPedido(pedidoConf2,reqConf2);
 

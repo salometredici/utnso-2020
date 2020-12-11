@@ -54,40 +54,40 @@ void log_init_data_cliente(t_cliente *cliente);
 
 /* Planificación APP */
 
-void log_app_adding_to_new(int pid);
-void log_app_added_to_new(int pid);
-void log_app_removed_from_new(char *algoritmo, int pid);
+void log_app_adding_to_new(int pid, char *rest);
+void log_app_added_to_new(int pid, char *rest);
+void log_app_removed_from_new(char *algoritmo, int pid, char *rest);
 void log_app_asignando_repartidores(int repartidores_disp, int exec_disp);
-void log_app_repartidor_asignado(int idRepartidor, int pid);
+void log_app_repartidor_asignado(int idRepartidor, int pid, char *rest);
 
-void log_app_added_to_ready(int pid);
-void log_app_removed_from_ready(char *algoritmo, int pid);
+void log_app_added_to_ready(int pid, char *rest);
+void log_app_removed_from_ready(char *algoritmo, int pid, char *rest);
 void log_app_ready_to_exec(char *algoritmo, int grado_multiprocesamiento, int size_qE);
 
 void log_app_running_exec_cycle(char *algoritmo);
-void log_app_added_to_exec(char *algoritmo, int pid);
+void log_app_added_to_exec(char *algoritmo, int pid, char *rest);
 
 void log_app_updating_QB_times();
 void log_app_QB_times_increased();
-void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest);
-void log_app_unblocking_pcb(char *algoritmo, int idPedido);
-void log_app_blocked_to_ready(int pid);
-void log_app_pcb_rest_end(int pid, int qDescansado);
-void log_app_repartidor_cansado(int pid);
-void log_app_platos_pendientes(int pid);
+void log_app_pasar_a_QB(char *algoritmo, int pid, bool llego_al_rest, char *rest);
+void log_app_unblocking_pcb(char *algoritmo, int idPedido, char *rest);
+void log_app_blocked_to_ready(int pid, char *rest);
+void log_app_pcb_rest_end(int pid, int qDescansado, char *rest);
+void log_app_repartidor_cansado(int pid, char *rest);
+void log_app_platos_pendientes(int pid, char *rest);
 
-void log_app_added_to_finished(int pid);
+void log_app_added_to_finished(int pid, char *rest);
 
-void log_app_pcb_llego_al_cliente(int pid, char *idCliente);
-void log_app_pcb_entregado_al_cliente(int pid, char *idCliente, int idRepartidor);
-void log_app_continua_hacia_cliente(int pid);
-void log_app_pcb_llego_al_rest(int pid);
-void log_app_repartidor_en_camino(int pid, t_posicion *pos_destino, tour_code code);
-void log_app_traslado_repartidor(int pid, int old_posX, int old_posY, int new_posX, int new_posY);
+void log_app_pcb_llego_al_cliente(int pid, char *idCliente, char *rest);
+void log_app_pcb_entregado_al_cliente(int pid, char *idCliente, char *rest,int idRepartidor);
+void log_app_continua_hacia_cliente(int pid, char *rest);
+void log_app_pcb_llego_al_rest(int pid, char *rest);
+void log_app_repartidor_en_camino(int pid, char *rest, t_posicion *pos_destino, tour_code code);
+void log_app_traslado_repartidor(int pid, char *rest, int old_posX, int old_posY, int new_posX, int new_posY);
 void log_app_repartidor_libre(int idRepartidor, int cant_disp);
-void log_checking_all_platos_listos(int pid);
-void log_app_FinalizarPedido(int pid);
-void log_app_entrega_a_cliente(int pid, char *cliente);
+void log_checking_all_platos_listos(int pid, char *rest);
+void log_app_FinalizarPedido(int pid, char *rest);
+void log_app_entrega_a_cliente(int pid, char *cliente, char *rest);
 
 /* HRRN */
 

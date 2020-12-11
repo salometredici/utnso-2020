@@ -48,13 +48,64 @@ int getTiempoRetardoCpu() {
 }
 
 void obtenerMetadata() {
+	conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);
+	liberarConexion(conexionSindicato);
 	inicializarVariablesMd(md);
 	logMetadata(md); // Probar con log_rta_ObtenerRestaurante
 	free(header);
 	free(md);
+}
+
+int crearConexionOpcional() {
+	char *ip = config_get_string_value(config, "IP_APP");
+	int puerto = config_get_int_value(config, "PUERTO_APP");
+	int socketCliente;
+	struct sockaddr_in dir;
+
+	socketCliente = crearSocket(puerto);
+
+	dir.sin_family = AF_INET;
+	dir.sin_port = htons(puerto);
+	dir.sin_addr.s_addr = inet_addr(ip);
+	memset(&(dir.sin_zero), '\0', 8);
+	
+	if (connect(socketCliente, (struct sockaddr*)&dir, sizeof(struct sockaddr)) == ERROR) {
+		log_connection_failure(ip, puerto);
+		close(socketCliente);
+		socketCliente = ERROR;
+	}
+	else {
+		log_connection_success(APP, puerto);
+	}
+
+	return socketCliente;
+}
+
+void conectarseConApp(){
+	int conexionApp = crearConexionOpcional();
+	if (conexionApp != ERROR) {
+		t_cliente *dataCliente = malloc(sizeof(t_cliente));
+		dataCliente->esRestaurante = true;
+		dataCliente->restSelecc = nombreRestaurante;
+		dataCliente->posRest = malloc(sizeof(t_posicion));
+		dataCliente->posRest->posX = posicion->posX;
+		dataCliente->posRest->posY = posicion->posY;
+		dataCliente->idCliente = nombreRestaurante;
+		dataCliente->posCliente = malloc(sizeof(t_posicion));
+		dataCliente->posCliente->posX = ERROR;
+		dataCliente->posCliente->posY = ERROR;
+		dataCliente->ip_cliente = "127.0.0.1";//config_get_string_value(config, "IP_RESTAURANTE");
+		dataCliente->puerto_cliente = config_get_int_value(config, "PUERTO_ESCUCHA");
+		dataCliente->socket_notifs = ERROR;
+		dataCliente->socketCliente = ERROR;
+		log_init_data_cliente(dataCliente);
+		enviarPaquete(conexionApp, RESTAURANTE, ENVIAR_DATACLIENTE, dataCliente);
+		free(dataCliente);
+		liberarConexion(conexionApp);
+	}
 }
 
 void inicializarVariablesMd(t_md *md) {
@@ -76,13 +127,13 @@ void inicializarAfinidadesUnicas()
 	for (int i = 0; i < QAfinidadesMd; i++) {
 		char *afinidadActual = list_get(afinidadesMd, i);
 
-		bool stringFound(void *actual) {
+		bool stringFoundv2(void *actual) {
 			char *stringActual = actual;
 			return string_equals_ignore_case(afinidadActual, stringActual);
 		};
 
 		// Buscamos si esa afinidad ya fue agregada a la lista de afinidades únicas
-		t_list *filtradas = list_filter(afinidadesUnicas, &stringFound); 
+		t_list *filtradas = list_filter(afinidadesUnicas, &stringFoundv2); 
 		
 		if (list_is_empty(filtradas)) {
 			list_add(afinidadesUnicas, afinidadActual);
@@ -99,6 +150,7 @@ void inicializarAfinidadesUnicas()
 
 void inicializarQueuesGlobales(){
     qF = queue_create();
+	pthread_mutex_init(&mutexQF, NULL);
 }
 
 void inicializarListaCocineros()
@@ -115,22 +167,22 @@ void inicializarListaCocineros()
 		char *afinidadActual = list_get(afinidadesUnicas, i);
 		cpuActual->afinidad = afinidadActual;
 
-		bool stringFound(void *actual) {
+		bool stringFoundv2(void *actual) {
 			char *stringActual = actual;
 			return string_equals_ignore_case(afinidadActual, stringActual);
 		};
 
 		cpuActual->instanciasTotales = !string_equals_ignore_case(cpuActual->afinidad, "General") ?
-											list_count_satisfying(afinidadesMd, &stringFound) :
+											list_count_satisfying(afinidadesMd, &stringFoundv2) :
 											cantidadCocineros - list_size(afinidadesMd);
 		
-		t_queue *qR = queue_create(); cpuActual->qR = qR;
-		t_queue *qE = queue_create(); cpuActual->qE = qE;
-		t_queue *qB = queue_create(); cpuActual->qB = qB;
+		cpuActual->qR = queue_create();
+		cpuActual->qE = queue_create();
+		cpuActual->qB = queue_create();
 
-		pthread_mutex_t mutexQR; cpuActual->mutexQR = mutexQR;
-		pthread_mutex_t mutexQE; cpuActual->mutexQE = mutexQE;
-		pthread_mutex_t mutexQB; cpuActual->mutexQB = mutexQB;
+		pthread_mutex_init(&cpuActual->mutexQR, NULL);
+		pthread_mutex_init(&cpuActual->mutexQE, NULL);
+		pthread_mutex_init(&cpuActual->mutexQB, NULL);
 
 		list_add(queuesCocineros, cpuActual);
 	}
@@ -151,12 +203,13 @@ void inicializarVariablesGlobales() {
 	algoritmo = getAlgoritmoPlanificacion();
 	algoritmoSeleccionado = getKeyAlgoritmo(algoritmo);
 	tiempoRetardoCpu = getTiempoRetardoCpu();
+	clientesConectados = list_create();
 }
 
 void initRestaurante() {
-	conexionSindicato = conectarseA(SINDICATO);
 	inicializarVariablesGlobales();
 	obtenerMetadata();
+	conectarseConApp();
 	inicializarQueuesGlobales();
 	inicializarListaCocineros();
 	inicializarQueuesIO();

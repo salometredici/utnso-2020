@@ -8,7 +8,9 @@
 #include <math.h>
 
 int conexionComanda;
+pthread_mutex_t mutex_rests;
 t_list *rests_conectados;
+pthread_mutex_t mutex_clientes;
 t_list *clientes_conectados;
 t_list *idsGenerados;
 
@@ -64,6 +66,12 @@ typedef struct {
 	int tiempoDescanso; // Cantidad de ciclos de CPU que debe descansar luego de ejecutar su frecuencia
 	t_posicion *posRepartidor;
 } t_repartidor;
+
+pthread_mutex_t mutexQN;
+pthread_mutex_t mutexQR;
+pthread_mutex_t mutexQE;
+pthread_mutex_t mutexQB;
+pthread_mutex_t mutexQF;
 
 typedef enum {
 	SIN_ASIGNAR = 1,

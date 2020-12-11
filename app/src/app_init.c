@@ -124,6 +124,15 @@ void inicializarVariablesGlobales() {
 	repartidores_disp = list_create();
 	repartidoresOcupados = list_create();
 	idsGenerados = list_create();
+	pthread_mutex_init(&mutex_rests, NULL);
+	pthread_mutex_init(&mutex_clientes, NULL);
+	pthread_mutex_init(&mutexListaDisponibles, NULL);
+	pthread_mutex_init(&mutexListaOcupados, NULL);
+	pthread_mutex_init(&mutexQN, NULL);
+	pthread_mutex_init(&mutexQR, NULL);
+	pthread_mutex_init(&mutexQE, NULL);
+	pthread_mutex_init(&mutexQB, NULL);
+	pthread_mutex_init(&mutexQF, NULL);
 }
 
 void inicializarQueues() {

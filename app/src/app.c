@@ -41,7 +41,7 @@ void *atenderConexiones(void *conexionNueva)
     	t_header *header = recibirHeaderPaquete(socketCliente);
 
 		if (header->procesoOrigen == ERROR || header->codigoOperacion == ERROR) {
-			log_TCliente_disconnection(cliente->idCliente, socketCliente);
+			log_common_client_disconnection(socketCliente);//cliente->idCliente, socketCliente);
 			liberarConexion(socketCliente);
     		pthread_exit(EXIT_SUCCESS);
 			return EXIT_FAILURE;
@@ -116,14 +116,16 @@ void *atenderConexiones(void *conexionNueva)
 				} else {
 					t_cliente *rest_a_crear_pedido = get_rest_conectado(cliente->restSelecc);
 					log_CrearPedido_app(cliente->idCliente, rest_a_crear_pedido->idCliente);
-					enviarPaquete(rest_a_crear_pedido->socketCliente, APP, CREAR_PEDIDO, NULL);
 					
-					t_header *h_crear_pedido = recibirHeaderPaquete(rest_a_crear_pedido->socketCliente);
-					new_id_pedido = recibirPayloadPaquete(h_crear_pedido, rest_a_crear_pedido->socketCliente);
+					int conexionRestaurante = conectarseAProceso(RESTAURANTE, rest_a_crear_pedido->ip_cliente,rest_a_crear_pedido->puerto_cliente);
+					enviarPaquete(conexionRestaurante, APP, CREAR_PEDIDO, NULL);
+					
+					t_header *h_crear_pedido = recibirHeaderPaquete(conexionRestaurante);
+					new_id_pedido = recibirPayloadPaquete(h_crear_pedido, conexionRestaurante);
 					log_rta_CrearPedido(new_id_pedido);
 					
 					req_guardar_pedido = getTRequest(new_id_pedido, rest_a_crear_pedido->idCliente);
-					
+					liberarConexion(conexionRestaurante);
 					free(h_crear_pedido);
 				}
 				
@@ -169,11 +171,14 @@ void *atenderConexiones(void *conexionNueva)
 
 					// Sino, enviamos t_request al RESTAURANTE dueño del pedido
 					t_cliente *rest_a_aniadir_plato = get_rest_conectado(cliente->restSelecc);
-					enviarPaquete(rest_a_aniadir_plato->socketCliente, APP, ANIADIR_PLATO, req_aniadir_plato);
+					
+					int conexionRestaurante = conectarseAProceso(RESTAURANTE, rest_a_aniadir_plato->ip_cliente,rest_a_aniadir_plato->puerto_cliente);
+					enviarPaquete(conexionRestaurante, APP, ANIADIR_PLATO, req_aniadir_plato);
 
-					h_aniadir_plato = recibirHeaderPaquete(rest_a_aniadir_plato->socketCliente);
-					result_aniadir_plato = recibirPayloadPaquete(h_aniadir_plato, rest_a_aniadir_plato->socketCliente);
+					h_aniadir_plato = recibirHeaderPaquete(conexionRestaurante);
+					result_aniadir_plato = recibirPayloadPaquete(h_aniadir_plato, conexionRestaurante);
 					logTResult(result_aniadir_plato);
+					liberarConexion(conexionRestaurante);
 					
 					if (result_aniadir_plato->hasError) {
 						// Si el RESTAURANTE dice que falló, informamos directamente al CLIENTE
@@ -196,7 +201,7 @@ void *atenderConexiones(void *conexionNueva)
 				break;	
 			case PLATO_LISTO:;
 				t_plato_listo *plato_listo = recibirPayloadPaquete(header, socketCliente);
-				
+				conexionComanda = conectarseA(COMANDA);
 				enviarPaquete(conexionComanda, APP, PLATO_LISTO, plato_listo);
 				t_header *h_plato_listo = recibirHeaderPaquete(conexionComanda);
 				t_result *result_plato_listo = recibirPayloadPaquete(h_plato_listo, conexionComanda);
@@ -204,9 +209,10 @@ void *atenderConexiones(void *conexionNueva)
 
 				if (!result_plato_listo->hasError) {
 					// Obtener pedido de COMANDA para verificar cantidad de platos listos
-					t_request *req_obtener_pedido = getTRequest(plato_listo->restaurante, plato_listo->idPedido);
+					t_request *req_obtener_pedido = getTRequest(plato_listo->idPedido, plato_listo->restaurante);
 					t_pedido *pedido_a_verificar = get_pedido_from_comanda(req_obtener_pedido);
-					if (todos_platos_listos(pedido_a_verificar->platos)) {
+					bool todos_completos = platos_completos(pedido_a_verificar->platos);
+					if (todos_completos) {
 						desbloquear_PCB(req_obtener_pedido->idPedido); // Si o si va a estar bloqueado?
 					}
 				}
@@ -236,10 +242,14 @@ void *atenderConexiones(void *conexionNueva)
 					result_confirmar_pedido = getTResult(PEDIDO_ACTUALIZADO, false);
 				} else {
 					t_cliente *rest_a_conf_pedido = get_rest_conectado(req_confirmar_pedido->nombre);
-					enviarPaquete(rest_a_conf_pedido->socketCliente, APP, CONFIRMAR_PEDIDO, req_confirmar_pedido);
-					h_confirmar_pedido = recibirHeaderPaquete(rest_a_conf_pedido->socketCliente);
-					result_confirmar_pedido = recibirPayloadPaquete(h_confirmar_pedido, rest_a_conf_pedido->socketCliente);
+					cliente->posRest->posX = rest_a_conf_pedido->posRest->posX;
+					cliente->posRest->posY = rest_a_conf_pedido->posRest->posY;
+					int conexionRestaurante = conectarseAProceso(RESTAURANTE, rest_a_conf_pedido->ip_cliente,rest_a_conf_pedido->puerto_cliente);
+					enviarPaquete(conexionRestaurante, APP, CONFIRMAR_PEDIDO, req_confirmar_pedido);
+					h_confirmar_pedido = recibirHeaderPaquete(conexionRestaurante);
+					result_confirmar_pedido = recibirPayloadPaquete(h_confirmar_pedido, conexionRestaurante);
 					logTResult(result_confirmar_pedido);
+					liberarConexion(conexionRestaurante);
 				}
 
 				if (result_confirmar_pedido->hasError) {

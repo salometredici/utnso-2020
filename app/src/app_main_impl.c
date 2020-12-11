@@ -8,6 +8,7 @@ void revisar_conectados(t_list *lista) {
 		t_cliente *cliente_actual = list_get(lista, i);
 		if (recv(cliente_actual->socketCliente, NULL, 1, MSG_PEEK | MSG_DONTWAIT) == 0) {
 			list_remove(lista, i);
+			liberarConexion(cliente_actual->socketCliente);
 			free(cliente_actual);
 		}
 	}
@@ -15,14 +16,20 @@ void revisar_conectados(t_list *lista) {
 
 // Revisamos si el cliente ya existe en la lista de conectados y limpiar los desconectados
 void actualizar_clientes_conectados(t_cliente *cliente) {
+	pthread_mutex_lock(&mutex_clientes);	
 	revisar_conectados(clientes_conectados);
+	pthread_mutex_unlock(&mutex_clientes);	
+	pthread_mutex_lock(&mutex_rests);		
 	revisar_conectados(rests_conectados);
+	pthread_mutex_unlock(&mutex_rests);
 
 	bool estaDuplicado(void *actual) {
 		t_cliente *cliente_actual = actual;
 		return string_equals_ignore_case(cliente->idCliente, cliente_actual->idCliente);
 	};
 
+	pthread_mutex_lock(&mutex_rests);
+	pthread_mutex_lock(&mutex_clientes);
 	if (cliente->esRestaurante &&
 			(list_is_empty(rests_conectados) ||
 			!list_any_satisfy(rests_conectados, &estaDuplicado)))
@@ -32,6 +39,8 @@ void actualizar_clientes_conectados(t_cliente *cliente) {
 	{
 		list_add(clientes_conectados, cliente);
 	}
+	pthread_mutex_unlock(&mutex_rests);
+	pthread_mutex_unlock(&mutex_clientes);	
 }
 
 int generar_id(int min, int max) {

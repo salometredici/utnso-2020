@@ -1,10 +1,11 @@
 #include "../include/restaurante_planification.h"
 
 // PCB
-t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta) {
+t_proceso *crearPcb(t_cliente *cli, int idPedido, t_receta *receta) {
     t_proceso *pcb = malloc(sizeof(t_proceso));
     pcb->pid = idPedido;
-    //pcb->idCliente = cliente->idCliente;
+    pcb->idCliente = cli->idCliente; //creo que no me llega
+	pcb->socketCliente = cli->socketCliente;
     pcb->estado = ESPERANDO_EJECUCION;
 	pcb->plato= receta->plato;
 	pcb->pasosReceta=receta->instrucciones;
@@ -18,16 +19,16 @@ t_proceso *crearPcb(t_cliente *cliente, int idPedido, t_receta *receta) {
     return pcb;
 }
 
-void agregarQueue(int opcion, t_proceso *pcb) {
+void aReadyPorAfinidad(t_proceso *pcb) {
 	bool correspondeAfinidad(void *element){
 		t_queue_obj *actual = element;
 		return string_equals_ignore_case(actual->afinidad, pcb->plato);
 	};
 	t_queue_obj *encontrado = list_find(queuesCocineros, &correspondeAfinidad);
 	if(encontrado != NULL){
-		pthread_mutex_lock(opcion ? &encontrado->mutexQR : &encontrado->mutexQE);
-			queue_push(opcion ? encontrado->qR : encontrado->qE, pcb); 
-		pthread_mutex_unlock(opcion ? &encontrado->mutexQR : &encontrado->mutexQE);
+		pthread_mutex_lock(&encontrado->mutexQR);
+			queue_push(encontrado->qR, pcb); 
+		pthread_mutex_unlock(&encontrado->mutexQR);
 		log_planif_step("agregado a Queue", encontrado->afinidad);
 	} else {
 		bool esGeneral(void *element){
@@ -35,12 +36,13 @@ void agregarQueue(int opcion, t_proceso *pcb) {
 			return string_equals_ignore_case(actual->afinidad, "General");
 		};
 		t_queue_obj *general = list_find(queuesCocineros, &esGeneral);
-		pthread_mutex_lock(opcion ? &general->mutexQR : &general->mutexQE);
-			queue_push(opcion ? general->qR : general->qE, pcb);
-		pthread_mutex_unlock(opcion ? &general->mutexQR : &general->mutexQE);
+		pthread_mutex_lock(&general->mutexQR);
+			queue_push(general->qR, pcb);
+		pthread_mutex_unlock(&general->mutexQR);
 		log_planif_step("agregado a Queue", "GENERAL");
 	} 
 }
+
 
 
 /* Planificación */
@@ -90,13 +92,15 @@ void actualizarQB(t_queue_obj *currentCPU) {
 }
 
 void actualizarQRaQE(t_queue_obj *currentCPU) {
+		pthread_mutex_lock(&currentCPU->mutexQR);
+	
 	if (!queue_is_empty(currentCPU->qR))  {
 		if(queue_size(currentCPU->qE) < currentCPU->instanciasTotales) {
 			int disponibles = currentCPU->instanciasTotales - queue_size(currentCPU->qE);
 			for(int i = 0; i < disponibles; i++) {
-				pthread_mutex_lock(&currentCPU->mutexQR);
+				//pthread_mutex_lock(&currentCPU->mutexQR);
 				t_proceso *sigARevisar = queue_pop(currentCPU->qR); // Lo sacamos de la cola de ready
-				pthread_mutex_unlock(&currentCPU->mutexQR);
+				//pthread_mutex_unlock(&currentCPU->mutexQR);
 				
 				pthread_mutex_lock(&currentCPU->mutexQE);
 				queue_push(currentCPU->qE,sigARevisar);
@@ -104,12 +108,20 @@ void actualizarQRaQE(t_queue_obj *currentCPU) {
 			}
 		}
 	}
+		pthread_mutex_unlock(&currentCPU->mutexQR);
 }
 
 void ejecutarCicloIO(t_queue_obj *currentCPU) {
-	if (!queue_is_empty(ejecutandoIO)) {
+	pthread_mutex_lock(&mutexEjecutaIO);
+	bool isEmpty = queue_is_empty(ejecutandoIO);
+	pthread_mutex_unlock(&mutexEjecutaIO);
+
+	if (!isEmpty) {
+		pthread_mutex_lock(&mutexEjecutaIO);
+		int queueSize = queue_size(ejecutandoIO);
+		pthread_mutex_unlock(&mutexEjecutaIO);
 		//nos fijamos si alguno termino su rafaga
-		for(int i = 0; i < queue_size(ejecutandoIO);i++){
+		for(int i = 0; i < queueSize; i++){
 			pthread_mutex_lock(&mutexEjecutaIO);
 			t_proceso *sigARevisar = queue_pop(ejecutandoIO); // Lo sacamos de la cola de Bloqueado
 			pthread_mutex_unlock(&mutexEjecutaIO);
@@ -127,7 +139,7 @@ void ejecutarCicloIO(t_queue_obj *currentCPU) {
 					pthread_mutex_unlock(&currentCPU->mutexQB);
 				} else{
 					log_planif_step("de IO", "A READY");
-					agregarQueue(1, sigARevisar); //agrego a ready slds
+					aReadyPorAfinidad(sigARevisar); //agrego a ready slds
 				}
 			} else {
 				sigARevisar->qEjecutada++;
@@ -140,8 +152,15 @@ void ejecutarCicloIO(t_queue_obj *currentCPU) {
 			}
 		}
 	}
-	if(queue_size(ejecutandoIO) < instanciasTotalesIO){
-		if(!queue_is_empty(esperandoIO)){
+	pthread_mutex_lock(&mutexEjecutaIO);
+	int queueSize = queue_size(ejecutandoIO);
+	pthread_mutex_unlock(&mutexEjecutaIO);
+	if(queueSize < instanciasTotalesIO){
+		pthread_mutex_lock(&mutexEsperaIO);		
+		bool isEmpty = queue_is_empty(esperandoIO);
+		pthread_mutex_unlock(&mutexEsperaIO);
+		
+		if(!isEmpty){
 			// Lo pasamos de espera a ejecutando
 			pthread_mutex_lock(&mutexEsperaIO);
 				t_proceso *proceso = queue_pop(esperandoIO); 
@@ -166,6 +185,14 @@ void actualizarEsperaQB(t_queue_obj *currentCPU){
 	pthread_mutex_unlock(&currentCPU->mutexQB);
 }
 
+t_cliente *get_t_cliente(t_list *lista_conectados, char *buscado) {
+	bool client_found(void *actual) {
+		t_cliente *cliente_actual = actual;
+		return string_equals_ignore_case(buscado, cliente_actual->idCliente);
+	};
+	return list_find(lista_conectados, &client_found);
+}
+
 void ejecutarFinalizar(t_proceso *currentProc){
 	currentProc->estado = DONE;
 	log_planif_step("agregado a Queue", "FINALIZADO");
@@ -173,21 +200,63 @@ void ejecutarFinalizar(t_proceso *currentProc){
 	queue_push(qF,currentProc);
 	pthread_mutex_unlock(&mutexQF);
 
-	int conexionSindicato = conectarseA(SINDICATO);
 	t_plato_listo *platoListo = malloc(sizeof(platoListo));
 	platoListo->restaurante = nombreRestaurante;
 	platoListo->idPedido = currentProc->pid;
 	platoListo->plato = currentProc->plato;
 
+	conexionSindicato = conectarseA(SINDICATO);
 	enviarPaquete(conexionSindicato, RESTAURANTE, PLATO_LISTO, platoListo);
 	t_header *hrRtaPlatoListo = recibirHeaderPaquete(conexionSindicato);
 	t_result *reqRtaPlatoListo = recibirPayloadPaquete(hrRtaPlatoListo, conexionSindicato);
+	liberarConexion(conexionSindicato);
+	
+	int conexionApp = crearConexionOpcional();
+	if(conexionApp != ERROR){
+		enviarPaquete(conexionApp, RESTAURANTE, PLATO_LISTO, platoListo);
+		t_header *hrRtaPlatoListoApp = recibirHeaderPaquete(conexionApp);
+		t_result *reqRtaPlatoListoApp = recibirPayloadPaquete(hrRtaPlatoListoApp, conexionApp);
+		logTResult(reqRtaPlatoListoApp);
+		liberarConexion(conexionApp);
+	} else {
+	t_cliente *cliente_a_notif = get_t_cliente(clientesConectados, currentProc->idCliente);
 
-	//todo avisar al modulo q solicito
+		int conexionCliente = conectarseAProceso(CLIENTE, cliente_a_notif->ip_cliente, cliente_a_notif->puerto_cliente);
+		enviarPaquete(conexionCliente, RESTAURANTE, PLATO_LISTO, platoListo);
+		t_header *hrRtaPlatoListoCli = recibirHeaderPaquete(conexionCliente);
+		t_result *reqRtaPlatoListoCli = recibirPayloadPaquete(hrRtaPlatoListoCli, conexionCliente);
+		logTResult(reqRtaPlatoListoCli);
+		liberarConexion(conexionCliente);
+	}
+
+	//revisar que el pedido haya terminado
+	conexionSindicato = conectarseA(SINDICATO);
+	t_request *consultaPedido = malloc(sizeof(t_request));
+	consultaPedido->idPedido = currentProc->pid;
+	consultaPedido->nombre = nombreRestaurante;
+	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_PEDIDO, consultaPedido);
+	t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
+	t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+	liberarConexion(conexionSindicato);
+
+	bool pedidoFinalizado(void *actual) {
+		t_plato *platoActual = actual;
+		return platoActual->cantidadPedida != platoActual->cantidadLista;
+	};
+
+	t_list *filtradas = list_filter(pedidoConf2->platos, &pedidoFinalizado); 
+	
+	if (list_is_empty(filtradas)) {
+		conexionSindicato = conectarseA(SINDICATO);
+		enviarPaquete(conexionSindicato, RESTAURANTE, TERMINAR_PEDIDO, consultaPedido);
+		t_header *hRConf2 = recibirHeaderPaquete(conexionSindicato);
+		t_pedido *pedidoConf2 = recibirPayloadPaquete(hRConf2, conexionSindicato);
+		liberarConexion(conexionSindicato);
+	}
 }
 
 void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
-	pthread_mutex_lock(&currentCPU->mutexQE);
+	// pthread_mutex_lock(&currentCPU->mutexQE);
 	t_proceso *currentProc = queue_pop(currentCPU->qE);
 	
 	while (currentProc != NULL) {
@@ -222,14 +291,18 @@ void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
 					currentProc->instruccionActual = pasoSig->paso;
 					currentProc->qInstruccionActual = pasoSig->qPaso;
 					currentProc->qEjecutada = 0;
-
+					
+					pthread_mutex_lock(&currentCPU->mutexQE);
 					queue_push(currentCPU->qE, currentProc);
+					pthread_mutex_unlock(&currentCPU->mutexQE);
 				}
 			} else {
 				ejecutarFinalizar(currentProc);
 			}
 		} else {
+			pthread_mutex_lock(&currentCPU->mutexQE);
 			queue_push(currentCPU->qE,currentProc);
+			pthread_mutex_unlock(&currentCPU->mutexQE);
 		}
 		
 		ejecutarCicloIO(currentCPU);
@@ -237,7 +310,8 @@ void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
 		if(queue_size(currentCPU->qB)) {
 			actualizarEsperaQB(currentCPU);
 		}
-		
+
+		pthread_mutex_lock(&currentCPU->mutexQE);
 		currentProc = queue_pop(currentCPU->qE); // Continúa el ciclo con el siguiente PCB
 		pthread_mutex_unlock(&currentCPU->mutexQE);
 		sleep(tiempoRetardoCpu);
@@ -245,7 +319,7 @@ void ejecutarCiclosFIFO(t_queue_obj *currentCPU){
 }
 
 void ejecutarCiclosRR(t_queue_obj *currentCPU) {
-	pthread_mutex_lock(&currentCPU->mutexQE);
+	//pthread_mutex_lock(&currentCPU->mutexQE);
 	t_proceso *currentProc = queue_pop(currentCPU->qE);
 	
 	while (currentProc != NULL) {
@@ -294,11 +368,14 @@ void ejecutarCiclosRR(t_queue_obj *currentCPU) {
 			pthread_mutex_unlock(&currentCPU->mutexQR);
 			log_planif_step("Salio de ejecucion", "por QUANTUM");
 		} else {
+			pthread_mutex_lock(&currentCPU->mutexQE);
 			queue_push(currentCPU->qE,currentProc);
+			pthread_mutex_unlock(&currentCPU->mutexQE);
 		}
 		
 		ejecutarCicloIO(currentCPU);
 		actualizarEsperaQB(currentCPU);
+		pthread_mutex_lock(&currentCPU->mutexQE);
 		currentProc = queue_pop(currentCPU->qE); // Continúa el ciclo con el siguiente PCB
 		pthread_mutex_unlock(&currentCPU->mutexQE);
 		sleep(tiempoRetardoCpu);

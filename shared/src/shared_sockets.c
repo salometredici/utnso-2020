@@ -113,6 +113,11 @@ int conectarse_a_cliente(char *ip, int puerto) {
 	return crearConexion(CLIENTE, ip, puerto);
 }
 
+int conectarseAProceso(p_code proceso, char *ip, int puerto) {
+	log_connection_attempt(proceso, ip, puerto);
+	return crearConexion(proceso, ip, puerto);
+}
+
 int conectarseA(p_code proceso) {
 	char *ip;
 	int puerto;

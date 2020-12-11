@@ -4,6 +4,7 @@
 #include "../../shared/include/shared_serialization.h"
 #include "../../shared/include/shared_commons.h"
 #include "../../shared/include/shared_core.h"
+#include "../../shared/include/shared_logging.h"
 #include <commons/bitarray.h>
 #include <stdlib.h>
 #include <stdbool.h>

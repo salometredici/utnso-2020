@@ -11,8 +11,6 @@ t_restaurante *crear_restaurante(char *nombre_rest){
     restaurante->pedidos = create_list();
     list_add(restaurantes, restaurante);
 
-    log_info(logger, "Se creo el restaurante %s ....", nombre_rest);
-
 	return restaurante;
 }
 
@@ -21,8 +19,6 @@ t_pedidoc *crear_pedido(int id_pedido){
 	pedido->id_pedido = id_pedido;
 	pedido->pages = create_list();
     pedido->estado = PENDIENTE;
-	
-	log_info(logger, "La tabla de Paginas para id_pedido-(%d) creado.", id_pedido);
 	
 	return pedido;
 }
@@ -85,16 +81,16 @@ t_frame* find_frame_in_memory(t_page* page){
 	}
 
 	if(page->flag == IN_MEMORY){
-		printf(" Se encuentra en MP....\n");		
 		t_frame *frame = get_frame_from_memory(page->frame);	
 		page->timestamp = get_current_time();
 		page->in_use = true;
 		return frame; 
 	}
 	else{
-		int frame_victim = find_final_victim(page);
-		printf(" Vissstima encontrada frame: %d....\n", frame_victim);
+		log_is_not_in_mp();
 
+		int frame_victim = find_final_victim(page);
+	
 		page->flag = 1;
 		page->timestamp = get_current_time();
 		page->in_use = true;
@@ -279,8 +275,7 @@ t_page* find_victim_0_0() {
 		counter++;
 		pointer++;
 	}
-	//printf("\n eeeeeeeeee 0__0.... ");
-	//print_pages_in_memory();
+
 	return NULL;
 }
 
@@ -308,15 +303,12 @@ t_page* find_victim_0_1() {
 		counter++;
 		pointer++;
 	}
-	
-	//printf("\n eeeeeeeeee 0___1.... ");
-	//print_pages_in_memory();
+
 	return NULL;
 }
 
 t_page* find_victim_clock(){
-	log_info(logger, "[CLOCK] Se busca una vistima .....");
-	printf("\n Se busca la vissstima....\n");	
+	log_find_victim();	
 	print_pages_in_memory();
 
 	t_page* victim_page;
@@ -341,9 +333,8 @@ t_page* find_victim_clock(){
 		}
 	}
 
-	printf(" Vissstima encontrada frame: %d....\n", victim_page->frame);	
+	log_victim_founded(victim_page->frame);
 	print_pages_in_memory();
-	log_info(logger, "*** [CLOCK] Frame vistima encontrada %d", victim_page->frame);
 	return victim_page;
 }
 
@@ -358,8 +349,9 @@ t_page* find_victim_lru(){
 	
 	victim_page->timestamp = 0;
 	
-	log_info(logger, "[LRU] Se busca una vistima .....");
-	print_pages_in_memory();
+	//log_info(logger, "[LRU] Se busca una vistima .....");
+	log_find_victim();
+	//print_pages_in_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
 	for(int i = 0; i < list_size(memory_pages); i++){
@@ -383,8 +375,8 @@ t_page* find_victim_lru(){
 		}			
 	}
 
+	log_victim_founded(victim_page->frame);
 	list_destroy(memory_pages);
-	log_info(logger, "****[LRU] Frame vistima encontrada %d ", victim_page->frame);
 	return victim_page;
 }
 
@@ -510,17 +502,14 @@ t_page* asignar_frame (char *nombre_plato, int cantidad_pedida){
 	int swap_frame = find_free_swap_frame();
 	
 	if(frame_number == -1){
-		log_info(logger, "[ASIGNAR_FRAME]No hay espacio en la memoria.... hacer swap");
-		printf("No hay espacio en la memoria.... hacer swap");
+		log_mp_full();
 
 		if(swap_frame == -1){
-			log_info(logger, "[ASIGNAR_FRAME] No hay espacio en swap....");
+			log_swap_full();
 			return NULL;
 		}
 
 		int frame_in_mp = find_final_victim(NULL);
-
-		printf(" Vissstima encontrada frame: %d....\n", frame_in_mp);
 
 		escribir_swap(nombre_plato, cantidad_pedida, 0, swap_frame);
 		write_frame_memory(nombre_plato, cantidad_pedida, 0, frame_in_mp);
@@ -635,53 +624,3 @@ void print_status_bitmap(t_bitarray* bitmap){
 	printf("Valor del primer bit: %d\n"BREAK, bitarray_test_bit(bitmap, 0));
 	printf("Valor del último bit: %d\n"BREAK, bitarray_test_bit(bitmap, lastBit));
 }
-
-/*unused stuff pero bueno  por ahora se guardar jej who knows*/
-/*
-int find_victim_and_bring_it_to_mp(t_page* page){
-	t_page* victim_page = find_frame_victim();
-	t_frame* frame_victim = find_frame_in_memory(victim_page);
-	t_frame* frame_to_move = get_frame_from_swap(page->frame_mv);
-
-	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	write_frame_memory(frame_to_move->comida, frame_to_move->cantidad_pedida, frame_to_move->cantidad_lista, victim_page->frame);
-
-	victim_page->flag = false;
-
-	int frame_victim_nro = victim_page->frame;
-
-	free(frame_victim->comida);
-	free(frame_victim);
-	free(frame_to_move->comida);
-	free(frame_to_move);
-	return frame_victim_nro;
-}
-
-int find_victim_and_update_swap(){
-	t_page* victim_page = find_frame_victim();
-	t_frame* frame_victim = find_frame_in_memory(victim_page);
-
-	escribir_swap(frame_victim->comida, frame_victim->cantidad_pedida, frame_victim->cantidad_lista, victim_page->frame_mv);
-	victim_page->flag = false;
-
-	t_list* memory_pages = paginas_en_memoria();
-
-	for(int i = 0; i < list_size(memory_pages); i++){
-		t_page* page = list_get(memory_pages, i);
-
-		if(victim_page->frame_mv == page->frame_mv){
-			page->flag = false;
-		}			
-	}
-
-	printf("\nDespues de encontrar la pagina !!\n");
-	print_pages_in_memory();
-
-	int frame_victim_nro = victim_page->frame;
-	free(frame_victim->comida);
-	free(frame_victim);
-	//list_destroy(memory_pages);
-	//free(victim_page);
-	return frame_victim_nro;	
-}
-*/

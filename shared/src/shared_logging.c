@@ -120,10 +120,10 @@ void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket) {
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
 		getStringKeyValue(procesoOrigen, PROCNKEYS),
 		socket);
-	log_info(logger, "[HEADER] Received %s from %s - Socket: %d",
-		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
-		getStringKeyValue(procesoOrigen, PROCNKEYS),
-		socket);
+	// log_info(logger, "[HEADER] Received %s from %s - Socket: %d",
+	// 	getStringKeyValue(codigoOperacion, COMMANDNKEYS),
+	// 	getStringKeyValue(procesoOrigen, PROCNKEYS),
+	// 	socket);
 }
 
 void log_message_sent(m_code codigoOperacion, int socket) {

@@ -104,6 +104,7 @@ void conectarseConApp(){
 		log_init_data_cliente(dataCliente);
 		enviarPaquete(conexionApp, RESTAURANTE, ENVIAR_DATACLIENTE, dataCliente);
 		free(dataCliente);
+		liberarConexion(conexionApp);
 	}
 }
 

@@ -361,29 +361,34 @@ double obtener_tasa_rta(t_pcb *pcb) {
 }
 
 void update_tiempos_espera() {
-	log_app_increasing_tiempos_espera();
 	pthread_mutex_lock(&mutexQR);
-	int sizeQR = queue_size(qR);
-	for (int i = 0; i < sizeQR; i++) {
-		t_pcb *current_pcb = queue_pop(qR);
-		current_pcb->qEsperando++;
-		queue_push(qR, current_pcb);
+	if (!queue_is_empty(qR)) {
+		log_app_increasing_tiempos_espera();
+		int sizeQR = queue_size(qR);
+		for (int i = 0; i < sizeQR; i++) {
+			t_pcb *current_pcb = queue_pop(qR);
+			current_pcb->qEsperando++;
+			queue_push(qR, current_pcb);
+		}
+		log_app_tiempos_espera_increased();
 	}
 	pthread_mutex_unlock(&mutexQR);
-	log_app_tiempos_espera_increased();
 }
 
 t_pcb *prox_to_exec_HRRN() {
 	log_app_next_pcb_HRRN();
-	int tasa_rta_max = 0;
+	
 	int qSize = queue_size(qR);
+	t_pcb *next_PCB_to_exec = queue_pop(qR);
+	int tasa_rta_max = obtener_tasa_rta(next_PCB_to_exec);
+	
 	t_queue *new_QR = queue_create(); 
-	t_pcb *next_PCB_to_exec = malloc(sizeof(t_pcb));
+	
 	for (int i = 0; i < qSize; i++) {
 		t_pcb *current_PCB = queue_pop(qR);
 		int tasa_rta_actual = obtener_tasa_rta(current_PCB);
 		if (tasa_rta_actual > tasa_rta_max) {
-			if (next_PCB_to_exec != NULL) { queue_push(new_QR, next_PCB_to_exec); }
+			queue_push(new_QR, next_PCB_to_exec);
 			next_PCB_to_exec = current_PCB;
 			tasa_rta_max = tasa_rta_actual;
 		} else {
@@ -391,6 +396,7 @@ t_pcb *prox_to_exec_HRRN() {
 		}
 	}
 	qR = new_QR;
+
 	log_app_removed_from_ready(algoritmo, next_PCB_to_exec->pid, next_PCB_to_exec->restaurante);
 	return next_PCB_to_exec;
 }

@@ -954,6 +954,7 @@ void log_is_not_in_mp(){
 }
 
 void log_find_victim(){
+	log_info(logger,"---------------------------------------------------");	
 	printf(TAB BOLDBLUE"Se busca la vissstima.... \n" BREAK RESET);
 	log_info(logger, "Se busca la vissstima....");
 }

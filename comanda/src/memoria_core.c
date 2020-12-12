@@ -366,32 +366,19 @@ t_page* find_victim_lru(){
 	t_page* victim_page = malloc(sizeof(t_page));
 	
 	victim_page->timestamp = 0;
-	
-	//log_info(logger, "[LRU] Se busca una vistima .....");
+
 	log_find_victim();
-	//print_pages_in_memory();
 
 	t_list* memory_pages = paginas_en_memoria();
-	for(int i = 0; i < list_size(memory_pages); i++){
-		t_page* page = list_get(memory_pages, i);
 
-		if(victim_page->timestamp == 0 && page->flag == 1){
-			victim_page->frame = page->frame;
-			victim_page->frame_mv = page->frame_mv;
-			victim_page->flag = page->flag;
-			victim_page->in_use = page->in_use;
-			victim_page->modified = page->modified;
-			victim_page->timestamp = page->timestamp;
-		}
-		else if(page->flag == 1 &&  page->timestamp < victim_page->timestamp){
-			victim_page->frame = page->frame;
-			victim_page->frame_mv = page->frame_mv;
-			victim_page->flag = page->flag;
-			victim_page->in_use = page->in_use;
-			victim_page->modified = page->modified;
-			victim_page->timestamp = page->timestamp;
-		}			
+	bool _order_pages_by_timestamp(void* first_page, void* second_page){
+		t_page* pageaux = (t_page*) first_page;
+		t_page* pageauxx = (t_page*) second_page;
+		return pageaux->timestamp <= pageauxx->timestamp;
 	}
+
+	list_sort(memory_pages, _order_pages_by_timestamp);	
+	victim_page = list_get(memory_pages, 0);
 
 	log_victim_founded(victim_page->frame);
 	list_destroy(memory_pages);

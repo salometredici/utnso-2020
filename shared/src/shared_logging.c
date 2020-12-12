@@ -116,7 +116,7 @@ void log_new_client_connection(int socket) {
 }
 
 void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket) {
-	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d" BREAK,
+	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d"BREAK,
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
 		getStringKeyValue(procesoOrigen, PROCNKEYS),
 		socket);
@@ -906,31 +906,53 @@ void log_rta_ConsultarPedido(t_pedido *pedido, int idPedido) {
 }
 
 void log_victim_founded(int frame){
-	printf(TAB YELLOW"******* Vissstima encontrada frame: %d....\n", frame);
-	log_info(logger, "******* Vissstima encontrada frame: %d....\n", frame);
+	printf(TAB BOLDBLUE"Vissstima encontrada [frame]: %d....\n"RESET, frame);
+	log_info(logger, "*****Vissstima encontrada [frame]: %d....*****", frame);
+	log_info(logger,"---------------------------------------------------");	
 }
 
 void log_is_in_mp(int frame){
-	printf(TAB BOLDCYAN"El pedido se encuentra en MP frame %d", frame);
+	printf(TAB BOLDGREEN"\nEl pedido se encuentra en MP [frame] %d \n" RESET, frame);
 	log_info(logger,"El pedido se encuentra en MP frame %d", frame);	
 }
 
 void log_is_not_in_mp(){
-	printf(TAB BOLDRED"El pedido no se encuentra en MP. Se tiene que buscar en swap...");
+	printf(TAB BOLDRED"El pedido no se encuentra en MP. Se tiene que buscar en swap...\n"BREAK RESET);
 	log_info(logger, "El pedido no se encuentra en MP. Se tiene que buscar en swap...");
 }
 
 void log_find_victim(){
-	printf(TAB YELLOW" Se busca la vissstima....");
+	printf(TAB BOLDBLUE"Se busca la vissstima.... \n" BREAK RESET);
 	log_info(logger, "Se busca la vissstima....");
 }
 
 void log_mp_full(){
 	log_info(logger, "No hay espacio en la memoria.... hacer swap");
-	printf(TAB "No hay espacio en la memoria.... hacer swap");	
+	printf(TAB BOLDRED "No hay espacio en la memoria.... hacer swap\n" BREAK RESET);	
 }
 
 void log_swap_full(){
 	log_info(logger, "No hay espacio en swap ...");
-	printf(TAB "No hay espacio en swap ...");	
+	printf(TAB BOLDRED"No hay espacio en swap ..." BREAK RESET);	
 }
+
+void log_find_victim_0_0(){
+	printf(TAB BOLDBLUE"Se busca la vissstima 0_0.... \n" BREAK RESET);
+	log_info(logger, "Se busca la vissstima 0_0 ....");	
+}
+
+void log_find_victim_0_1(){
+	printf(TAB BOLDBLUE"Se busca la vissstima 0_1 .... \n" BREAK RESET);
+	log_info(logger, "Se busca la vissstima 0_1 ....");		
+}
+
+void log_victim_0_0_not_founded(){
+	printf(TAB BLUE"No se encontro la vistima 0_0....\n" BREAK RESET);	
+	log_info(logger, "No se encontro la vistima 0_0....");		
+}
+
+void log_victim_0_1_not_founded(){
+	printf(TAB BLUE"No se encontro la vistima 0_1....\n" BREAK RESET);	
+	log_info(logger, "No se encontro la vistima 0_1....");		
+}
+

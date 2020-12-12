@@ -184,5 +184,9 @@ void log_is_not_in_mp();
 void log_find_victim();
 void log_mp_full();
 void log_swap_full();
+void log_find_victim_0_0();
+void log_find_victim_0_1();
+void log_victim_0_0_not_founded();
+void log_victim_0_1_not_founded();
 
 #endif

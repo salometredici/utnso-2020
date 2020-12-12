@@ -32,13 +32,15 @@ void *atenderConexiones(void *conexionNueva)
 				log_DataCliente(cliente_conectado);
 				break;
 			case GUARDAR_PEDIDO:;
-				t_request *request_gp = recibirPayloadPaquete(header, socketCliente);				
+				printf("\n");				
+				t_request *request_gp = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_gp = _guardar_pedido(request_gp);
 				enviarPaquete(socketCliente, COMANDA, RTA_GUARDAR_PEDIDO, result_gp);
 				free_t_request(request_gp);
 				free_t_result(result_gp);
 				break;
 			case GUARDAR_PLATO:;
+				printf("\n");				
 				t_req_plato *request_gpl = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_gpl = _guardar_plato(request_gpl);
 				free_t_req_plato(request_gpl);
@@ -46,6 +48,7 @@ void *atenderConexiones(void *conexionNueva)
 				free_t_result(result_gpl);
 				break;
 			case OBTENER_PEDIDO:;
+				printf("\n");				
 				t_request *request_obp = recibirPayloadPaquete(header, socketCliente);
 				t_pedido *pedido = _obtener_pedido(request_obp);
 				enviarPaquete(socketCliente, COMANDA, RTA_OBTENER_PEDIDO, pedido);
@@ -54,6 +57,7 @@ void *atenderConexiones(void *conexionNueva)
 				free(pedido);
 				break;
 			case CONFIRMAR_PEDIDO:;
+				printf("\n");				
 				t_request *request_conf = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_conf = _confirmar_pedido(request_conf);
 				free_t_request(request_conf);
@@ -61,6 +65,7 @@ void *atenderConexiones(void *conexionNueva)
 				free_t_result(result_conf);
 				break;
 			case PLATO_LISTO:;
+				printf("\n");				
 				t_plato_listo *request_pl = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_pl = _plato_listo(request_pl);
 				free_t_req_plato(request_pl);
@@ -68,6 +73,7 @@ void *atenderConexiones(void *conexionNueva)
 				free_t_result(result_pl);
 				break;
 			case FINALIZAR_PEDIDO:;
+				printf("\n");				
 				t_request *request_fin = recibirPayloadPaquete(header, socketCliente);
 				t_result *result_fin = _finalizar_pedido(request_fin);
 				free_t_request(request_fin);				

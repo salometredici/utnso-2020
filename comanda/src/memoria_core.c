@@ -308,33 +308,51 @@ t_page* find_victim_0_1() {
 }
 
 t_page* find_victim_clock(){
-	log_find_victim();	
-	print_pages_in_memory();
-
 	t_page* victim_page;
 
 	if (puntero_clock ==  frames - 1)
 		puntero_clock = 0;
+	log_info(logger, "---------------------------------------------------");
 	
+	log_find_victim_0_0();
 	victim_page = find_victim_0_0();
 
 	if (victim_page == NULL) {
-		printf(" No se encontro la vistima 0_0....\n");	
+		log_victim_0_0_not_founded();
+		
+		log_find_victim_0_1();
 		victim_page = find_victim_0_1();
-	
+		
 		if (victim_page == NULL) {	
-			printf(" No se encontro la victima 0_1 ...\n");
+			log_victim_0_1_not_founded();
+
+			log_find_victim_0_0();
 			victim_page = find_victim_0_0();
-	
+
 			if (victim_page == NULL) {
-				printf(" Retry busqueda vistima 0_0 pero no :sad_pepe ...");
+				log_victim_0_0_not_founded();		
+				
+				log_find_victim_0_1();		
 				victim_page = find_victim_0_1();
+		
+				//print_pages_in_memory();
+				log_victim_founded(victim_page->frame);
+			}
+			else{
+				//print_pages_in_memory();
+				log_victim_founded(victim_page->frame);
 			}
 		}
+		else{
+			//print_pages_in_memory();
+			log_victim_founded(victim_page->frame);		
+		}
+	}
+	else{
+		//print_pages_in_memory();
+		log_victim_founded(victim_page->frame);
 	}
 
-	log_victim_founded(victim_page->frame);
-	print_pages_in_memory();
 	return victim_page;
 }
 
@@ -553,47 +571,51 @@ void free_pages(t_list* pages){
 /******************************PRINT's ESTRUCTURAS**********************************/
 
 void print_swap(){
-	printf("\n-------------------------------MEMORIA VIRTUAL-------------------------------\n");	
+	printf(BOLDMAGENTA"\n-------------------------------MEMORIA VIRTUAL-------------------------------\n"RESET);	
 	for(int i = 0; i < swap_frames; i++){
 		t_frame* swap_frame = get_frame_from_swap(i);
 		if(!string_is_empty(swap_frame->comida))
-			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
+			printf(BOLDMAGENTA"  Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n"RESET, i, swap_frame->comida, swap_frame->cantidad_pedida, swap_frame->cantidad_lista);
 		free(swap_frame->comida);
 		free(swap_frame);
 	}
-	printf("-----------------------------------------------------------------------------\n");
+	printf(BOLDMAGENTA"-----------------------------------------------------------------------------\n"RESET);
 }
 
 void print_memory(){
-	printf("\n-------------------------------MEMORIA PRINCIPAL-----------------------------\n");
+	printf(BOLDMAGENTA"\n-------------------------------MEMORIA PRINCIPAL-----------------------------\n"RESET);
 	for(int i = 0; i < frames; i++){
 		t_frame* mp_frame = get_frame_from_memory(i);
 		if(!string_is_empty(mp_frame->comida))
-			printf("Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n", i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
+			printf(BOLDMAGENTA"  Indice: %d | Nombre del plato: %s | Cantidad pedido: %d | Cantidad lista: %d \n"RESET, i, mp_frame->comida, mp_frame->cantidad_pedida, mp_frame->cantidad_lista);
 		free(mp_frame->comida);
 		free(mp_frame);
 	}
-	printf("-----------------------------------------------------------------------------\n\n");
+	printf(BOLDMAGENTA"-----------------------------------------------------------------------------\n\n"RESET);
 }
 
 void print_pages_in_memory(){
 	t_list* memory_pages = paginas_en_memoria();
 	bool is_clock = string_equals_ignore_case(ALGORITMO_REEMPLAZO, CLOCK);
 
-	printf("-------------------------------PAGINAS EN MEMORIA--------------------------\n");
-	if(is_clock)
-		printf("→ Puntero clock %d\n", puntero_clock);
+	printf(BOLDMAGENTA"\n-------------------------------PAGINAS EN MEMORIA--------------------------\n"RESET);
+	if(is_clock){
+		if(puntero_clock == frames)
+			printf(TAB BOLDMAGENTA"→ Puntero clock: 0\n"RESET);
+		else
+			printf(TAB BOLDMAGENTA"→ Puntero clock: %d\n"RESET, puntero_clock);
+	}
 
 	for(int i = 0; i < list_size(memory_pages); i++){
 		t_page* page = list_get(memory_pages, i);
 
 		if(is_clock)
-			printf("| Indice: %d | frame: %d | frame_in_mv: %d | bit_usado: %d | bit_modif: %d\n", i, page->frame, page->frame_mv, page->in_use, page->modified);
+			printf(BOLDMAGENTA" | Indice: %d | frame: %d | frame_in_mv: %d | bit_usado: %d | bit_modif: %d\n"RESET, i, page->frame, page->frame_mv, page->in_use, page->modified);
 		else
-			printf("| Indice: %d | frame: %d | frame_in_mv: %d | timestamp: %f\n", i, page->frame, page->frame_mv, page->timestamp);		
+			printf(BOLDMAGENTA" | Indice: %d | frame: %d | frame_in_mv: %d | timestamp: %f\n" RESET, i, page->frame, page->frame_mv, page->timestamp);		
 	}
 
-	printf("---------------------------------------------------------------------------\n");
+	printf(BOLDMAGENTA"---------------------------------------------------------------------------\n"RESET);
 	list_destroy(memory_pages);
 }
 

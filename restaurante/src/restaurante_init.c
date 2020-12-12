@@ -49,6 +49,9 @@ int getTiempoRetardoCpu() {
 
 void obtenerMetadata() {
 	conexionSindicato = conectarseA(SINDICATO);
+	
+	enviarPaquete(conexionSindicato, RESTAURANTE, ENVIAR_NOMBRE, nombreRestaurante);
+
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RESTAURANTE, nombreRestaurante);
 	t_header *header = recibirHeaderPaquete(conexionSindicato);
 	t_md *md = recibirPayloadPaquete(header, conexionSindicato);

@@ -37,6 +37,9 @@ void actualizarClientesConectados(t_cliente *cliente) {
 
 void crearProceso(t_cliente *cli, int idPedido, char *plato, int cantPedida){
 	int conexionSindicato = conectarseA(SINDICATO);
+	
+	enviarPaquete(conexionSindicato, RESTAURANTE, ENVIAR_NOMBRE, nombreRestaurante);
+
 	enviarPaquete(conexionSindicato, RESTAURANTE, OBTENER_RECETA, plato);
 	t_header *hRConf = recibirHeaderPaquete(conexionSindicato);
 	t_receta *receta = recibirPayloadPaquete(hRConf, conexionSindicato);

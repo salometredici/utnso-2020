@@ -440,7 +440,11 @@ void initCliente() {
     conexion = conectarseA(CLIENTE);
 	obtenerNombreServidor();
 	initVariablesGlobales();
-	enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente);
+	if (procesoServidor != SINDICATO) {
+		enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente);
+	} else {
+		enviarPaquete(conexion, CLIENTE, ENVIAR_NOMBRE, dataCliente->idCliente);		
+	}
 }
 
 int main(int argc, char* argv[]) {

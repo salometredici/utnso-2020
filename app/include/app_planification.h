@@ -16,7 +16,7 @@ double getDistancia(t_posicion *posRepartidor, t_posicion *posRestaurante);
 
 t_pcb *crear_pcb(t_cliente *cliente, int idPedido);
 void agregar_a_QN();
-void pasar_a_QB(t_pcb *pcb, t_estado estado);
+void pasar_a_QB(t_pcb *pcb, t_estado_pcb estado);
 void desbloquear_PCB(int idPedido, char *rest);
 void update_QR_con_QN();
 void update_QR_con_QB();

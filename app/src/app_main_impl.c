@@ -83,6 +83,14 @@ bool esta_conectado_rest(char *rest_buscado) {
 	return get_t_cliente(rests_conectados, rest_buscado) == NULL ? false : true;
 }
 
+bool tiene_plato_rest_default(char *plato_buscado) {
+	bool es_plato_buscado(void *actual) {
+		char *plato_actual = actual;
+		return string_equals_ignore_case(plato_actual, plato_buscado);
+	};
+	return list_any_satisfy(platos_rest_default, &es_plato_buscado);
+}
+
 // CONSULTAR_RESTAURANTES
 
 t_list *obtener_rests_conectados() {

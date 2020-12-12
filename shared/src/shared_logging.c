@@ -268,12 +268,12 @@ void log_app_adding_to_new(int pid, char *rest) {
 }
 
 void log_app_added_to_new(int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added from "BOLDMAGENTA"%s"RESET" to NEW queue"RESET BREAK, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added from "RESET BOLDMAGENTA"%s"RESET CYAN" to NEW queue"RESET BREAK, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added from %s to NEW queue", pid, rest);
 }
 
 void log_app_removed_from_new(char *algoritmo, int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" removed from NEW queue"RESET BREAK, algoritmo, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" removed from NEW queue"RESET BREAK, algoritmo, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s removed from NEW queue", algoritmo, pid, rest);
 }
 
@@ -292,12 +292,12 @@ void log_app_repartidor_asignado(int idRepartidor, int pid, char *rest) {
 /* APP READY QUEUE */
 
 void log_app_added_to_ready(int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to READY queue"RESET BREAK, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" added to READY queue"RESET BREAK, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] from %s added to NEW queue", pid, rest);
 }
 
 void log_app_removed_from_ready(char *algoritmo, int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" removed from READY queue"RESET BREAK, algoritmo, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" removed from READY queue"RESET BREAK, algoritmo, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s removed from READY queue", algoritmo, pid, rest);
 }
 
@@ -314,7 +314,7 @@ void log_app_running_exec_cycle(char *algoritmo) {
 }
 
 void log_app_added_to_exec(char *algoritmo, int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to EXEC queue"RESET BREAK, algoritmo, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" added to EXEC queue"RESET BREAK, algoritmo, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s added to EXEC queue", algoritmo, pid, rest);
 }
 
@@ -444,6 +444,13 @@ void log_app_next_pcb_SJF() {
 }
 
 /* Mensajes */
+
+// ENVIAR_NOMBRE
+
+void log_EnviarNombre(char *nombre) {
+	printf(TAB"Se ha conectado el cliente "BOLDMAGENTA"%s"RESET BREAK, nombre);
+	log_info(logger, TAB"Se ha conectado el cliente %s", nombre);
+}
 
 // ENVIAR_DATACLIENTE
 

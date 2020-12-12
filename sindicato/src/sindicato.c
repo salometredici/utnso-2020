@@ -77,6 +77,11 @@ void *atender_conexiones(void *conexionNueva)
 			case OBTENER_PROCESO:;
 				enviarPaquete(socketCliente, SINDICATO, RTA_OBTENER_PROCESO, SINDICATO);
 				break;
+			case ENVIAR_NOMBRE:;
+				char *cliente = recibirPayloadPaquete(header, socketCliente);
+				log_EnviarNombre(cliente);
+				free(cliente);
+				break;
 			case OBTENER_RESTAURANTE:;
 				char *nombre_restaurante = recibirPayloadPaquete(header, socketCliente);
 				log_ObtenerRestaurante(nombre_restaurante);

@@ -101,6 +101,7 @@ void log_app_next_pcb_SJF();
 
 /* Mensajes */
 
+void log_EnviarNombre(char *nombre);
 void log_FinalizarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_FinalizarPedido(t_result *result);
 void log_DataCliente(t_cliente *cliente);

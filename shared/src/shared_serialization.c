@@ -170,6 +170,7 @@ int getPayloadSize(m_code codigoOperacion, void *stream) {
 			payloadSize += sizeof(int);
 			break;
 		// Envío de un sólo string
+		case ENVIAR_NOMBRE:
 		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
 		case OBTENER_RESTAURANTE:
@@ -256,6 +257,7 @@ void *serializar(m_code codigoOperacion, void *stream) {
 		case CONSULTAR_PEDIDO: // recibe id pedido
 			buffer = srlzInt(stream);
 			break;
+		case ENVIAR_NOMBRE:
 		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
 		case OBTENER_RESTAURANTE:
@@ -1133,6 +1135,7 @@ void *recibirPayloadPaquete(t_header *header, int socket) {
 		case CONSULTAR_PEDIDO: // recibe id pedido
 			buffer = dsrlzInt(buffer);
 			break;
+		case ENVIAR_NOMBRE:
 		case OBTENER_RECETA:
         case CONSULTAR_PLATOS:
 		case OBTENER_RESTAURANTE:

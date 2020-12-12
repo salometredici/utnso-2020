@@ -420,16 +420,16 @@ void update_estimacion(t_pcb *pcb) {
 t_pcb *prox_a_ejecutar_SJF() {
 	log_app_next_pcb_SJF();
 	
-	t_pcb *primer_pcb = queue_peek(qR);
-	double est_minima = primer_pcb->ultimaEstimacion;
 	int qSize = queue_size(qR);
+	t_pcb *next_pcb_to_exec = queue_pop(qR); // Si entramos acá, al menos un elem en qR va a haber
+	double est_minima = next_pcb_to_exec->ultimaEstimacion;
+	
 	t_queue *new_QR = queue_create();
-	t_pcb *next_pcb_to_exec = malloc(sizeof(t_pcb));
 
-	for (int i = 0; i < qSize; i++) {
+	for (int i = 0; i < qSize - 1; i++) {
 		t_pcb *current_pcb = queue_pop(qR);
 		if (current_pcb->ultimaEstimacion < est_minima) {
-			if (next_pcb_to_exec != NULL) { queue_push(new_QR, next_pcb_to_exec); }
+			queue_push(new_QR, next_pcb_to_exec);
 			next_pcb_to_exec = current_pcb;
 			est_minima = current_pcb->ultimaEstimacion;
 		} else {

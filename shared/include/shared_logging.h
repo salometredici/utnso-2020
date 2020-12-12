@@ -101,6 +101,7 @@ void log_app_next_pcb_SJF();
 
 /* Mensajes */
 
+void log_EnviarNombre(char *nombre);
 void log_FinalizarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_FinalizarPedido(t_result *result);
 void log_DataCliente(t_cliente *cliente);
@@ -114,6 +115,7 @@ void log_ConfirmarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ConfirmarPedido(t_result *result);
 void log_ObtenerPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ObtenerPedido(t_pedido *pedido_obtenido, t_request *request);
+void log_obtener_pedido_comanda(t_pedido *pedido, t_request *request);
 void log_rta_GuardarPedido(t_result *result);
 void log_ConsultarPlatos_a_rest(char *rest);
 void log_ConsultarPlatos_default(t_list *platos_rest_default);
@@ -146,7 +148,7 @@ void log_assigned_blocks(int *assigned_blocks, int cant_bloques);
 // Bitmap
 void log_bitmap_file_error();
 void log_bitmap_error();
-void log_bitarray_info(t_bitarray *bitarray, int available_blocks);
+void log_bitarray_info(t_bitarray *bitarray, int blocks_quantity, int available_blocks);
 void log_bitmap_init();
 void log_bitmap_success();
 void log_bitmap_reload();
@@ -175,4 +177,18 @@ void log_IniciarPedido_Data(t_req_plato *request);
 void log_planif_step(char *step, char *desc);
 void log_ConsultarPedido(int idPedido);
 void log_rta_Consultar_Pedido(t_pedido *pedido, int idPedido);
+
+/* COMANDANTE */
+
+void log_victim_founded(int frame);
+void log_is_in_mp(int frame);
+void log_is_not_in_mp();
+void log_find_victim();
+void log_mp_full();
+void log_swap_full();
+void log_find_victim_0_0();
+void log_find_victim_0_1();
+void log_victim_0_0_not_founded();
+void log_victim_0_1_not_founded();
+
 #endif

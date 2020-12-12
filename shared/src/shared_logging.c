@@ -116,7 +116,7 @@ void log_new_client_connection(int socket) {
 }
 
 void log_header(m_code codigoOperacion, p_code procesoOrigen, int socket) {
-	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d" BREAK,
+	printf(BOLDYELLOW"[HEADER]"RESET" Received "YELLOW"%s"RESET" from "BOLDBLUE"%s"RESET" - Socket: %d"BREAK,
 		getStringKeyValue(codigoOperacion, COMMANDNKEYS),
 		getStringKeyValue(procesoOrigen, PROCNKEYS),
 		socket);
@@ -268,12 +268,12 @@ void log_app_adding_to_new(int pid, char *rest) {
 }
 
 void log_app_added_to_new(int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added from "BOLDMAGENTA"%s"RESET" to NEW queue"RESET BREAK, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] added from "RESET BOLDMAGENTA"%s"RESET CYAN" to NEW queue"RESET BREAK, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] added from %s to NEW queue", pid, rest);
 }
 
 void log_app_removed_from_new(char *algoritmo, int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" removed from NEW queue"RESET BREAK, algoritmo, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" removed from NEW queue"RESET BREAK, algoritmo, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s removed from NEW queue", algoritmo, pid, rest);
 }
 
@@ -292,12 +292,12 @@ void log_app_repartidor_asignado(int idRepartidor, int pid, char *rest) {
 /* APP READY QUEUE */
 
 void log_app_added_to_ready(int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to READY queue"RESET BREAK, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" added to READY queue"RESET BREAK, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION] PCB [#%d] from %s added to NEW queue", pid, rest);
 }
 
 void log_app_removed_from_ready(char *algoritmo, int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" removed from READY queue"RESET BREAK, algoritmo, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" removed from READY queue"RESET BREAK, algoritmo, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s removed from READY queue", algoritmo, pid, rest);
 }
 
@@ -314,7 +314,7 @@ void log_app_running_exec_cycle(char *algoritmo) {
 }
 
 void log_app_added_to_exec(char *algoritmo, int pid, char *rest) {
-	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "BOLDMAGENTA"%s"RESET" added to EXEC queue"RESET BREAK, algoritmo, pid, rest);
+	printf(TAB CYAN"[PLANIFICATION - %s] PCB ["RESET BOLDCYAN"#%d"RESET CYAN"] from "RESET BOLDMAGENTA"%s"RESET CYAN" added to EXEC queue"RESET BREAK, algoritmo, pid, rest);
 	log_debug(logger, TAB"[PLANIFICATION - %s] PCB [#%d] from %s added to EXEC queue", algoritmo, pid, rest);
 }
 
@@ -445,6 +445,13 @@ void log_app_next_pcb_SJF() {
 
 /* Mensajes */
 
+// ENVIAR_NOMBRE
+
+void log_EnviarNombre(char *nombre) {
+	printf(TAB"Se ha conectado el cliente "BOLDMAGENTA"%s"RESET BREAK, nombre);
+	log_info(logger, TAB"Se ha conectado el cliente %s", nombre);
+}
+
 // ENVIAR_DATACLIENTE
 
 void log_DataCliente(t_cliente *cliente) {
@@ -545,6 +552,31 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 		default:
 			break;
 	}
+}
+
+void log_obtener_pedido_comanda(t_pedido *pedido, t_request *request){
+	switch (pedido->estado) {
+		case CONFIRMADO:
+		case TERMINADO:
+		case FINALIZADO:
+			printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+			log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+			log_t_plato_list(pedido->platos);
+		break;
+		case PENDIENTE:
+			if (list_is_empty(pedido->platos)) {
+				printf(TAB YELLOW"[WARNING]"RESET BOLD" PENDIENTE"RESET" - %s - [%s, Pedido #%d]"BREAK, NO_HAY_PLATOS, request->nombre, request->idPedido);
+				log_error(logger, "Pedido %d, Restaurante %s - PENDIENTE - %s", request->idPedido, request->nombre, NO_HAY_PLATOS);
+			} else {
+				printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado));
+				log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado));
+				log_t_plato_list(pedido->platos);
+			}
+			break;
+		default:
+			break;
+	}
+	
 }
 
 // PLATO_LISTO
@@ -745,13 +777,13 @@ void log_bitmap_error() {
 	log_error(logger, "Error al realizar mmap");
 }
 
-void log_bitarray_info(t_bitarray *bitarray, int available_blocks) {
+void log_bitarray_info(t_bitarray *bitarray, int blocks_quantity, int available_blocks) {
 	int lastBit = bitarray_get_max_bit(bitarray);
-	printf("→ Tamaño del bitmap: %d"BREAK, lastBit);
+	printf("→ Cant. total de bloques: %d"BREAK, blocks_quantity);
 	printf("→ Cant. de bloques disponibles: "BOLD"%d"RESET BREAK, available_blocks);
 	printf(TAB BOLD"→"RESET" Valor del primer bit: %d"BREAK, bitarray_test_bit(bitarray, 0));
 	printf(TAB BOLD"→"RESET" Valor del último bit: %d"BREAK, bitarray_test_bit(bitarray, lastBit));
-	log_debug(logger, "→ Tamaño del bitmap: %d", lastBit);
+	log_debug(logger, "→ Cant. total de bloques: %d", blocks_quantity);
 	log_debug(logger, "→ Cant. de bloques disponibles: %d", available_blocks);
 	log_debug(logger, TAB"→ Valor del primer bit: %d", bitarray_test_bit(bitarray, 0));
 	log_debug(logger, TAB"→ Valor del último bit: %d", bitarray_test_bit(bitarray, lastBit));
@@ -904,3 +936,55 @@ void log_rta_ConsultarPedido(t_pedido *pedido, int idPedido) {
             break;
     }
 }
+
+void log_victim_founded(int frame){
+	printf(TAB BOLDBLUE"Vissstima encontrada [frame]: %d....\n"RESET, frame);
+	log_info(logger, "*****Vissstima encontrada [frame]: %d....*****", frame);
+	log_info(logger,"---------------------------------------------------");	
+}
+
+void log_is_in_mp(int frame){
+	printf(TAB BOLDGREEN"\nEl pedido se encuentra en MP [frame] %d \n" RESET, frame);
+	log_info(logger,"El pedido se encuentra en MP frame %d", frame);	
+}
+
+void log_is_not_in_mp(){
+	printf(TAB BOLDRED"El pedido no se encuentra en MP. Se tiene que buscar en swap...\n"BREAK RESET);
+	log_info(logger, "El pedido no se encuentra en MP. Se tiene que buscar en swap...");
+}
+
+void log_find_victim(){
+	printf(TAB BOLDBLUE"Se busca la vissstima.... \n" BREAK RESET);
+	log_info(logger, "Se busca la vissstima....");
+}
+
+void log_mp_full(){
+	log_info(logger, "No hay espacio en la memoria.... hacer swap");
+	printf(TAB BOLDRED "No hay espacio en la memoria.... hacer swap\n" BREAK RESET);	
+}
+
+void log_swap_full(){
+	log_info(logger, "No hay espacio en swap ...");
+	printf(TAB BOLDRED"No hay espacio en swap ..." BREAK RESET);	
+}
+
+void log_find_victim_0_0(){
+	printf(TAB BOLDBLUE"Se busca la vissstima 0_0.... \n" BREAK RESET);
+	log_info(logger, "Se busca la vissstima 0_0 ....");	
+}
+
+void log_find_victim_0_1(){
+	printf(TAB BOLDBLUE"Se busca la vissstima 0_1 .... \n" BREAK RESET);
+	log_info(logger, "Se busca la vissstima 0_1 ....");		
+}
+
+void log_victim_0_0_not_founded(){
+	printf(TAB BLUE"No se encontro la vistima 0_0....\n" BREAK RESET);	
+	log_info(logger, "No se encontro la vistima 0_0....");		
+}
+
+void log_victim_0_1_not_founded(){
+	printf(TAB BLUE"No se encontro la vistima 0_1....\n" BREAK RESET);	
+	log_info(logger, "No se encontro la vistima 0_1....");		
+}
+

@@ -126,7 +126,7 @@ void *threadLecturaConsola(void *args) {
 							platoListo(parametro1, atoi(parametro2), parametro3);
 							break;
 						case OBTENER_PEDIDO:
-							obtenerPedido(parametro1, atoi(parametro2));
+							obtener_pedido_comanda(parametro1, atoi(parametro2));
 							break;
 						case FINALIZAR_PEDIDO:
 							finalizarPedido(parametro1, atoi(parametro2));
@@ -384,6 +384,19 @@ void obtenerPedido(char *nombreRestaurante, int idPedido) {
 	free(header);
 }
 
+void obtener_pedido_comanda(char *nombreRestaurante, int idPedido) {
+	t_request *req_obtener_pedido = getTRequest(idPedido, nombreRestaurante);
+
+	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, req_obtener_pedido);
+	t_header *header = recibirHeaderPaquete(conexion);
+
+	t_pedido *pedido_obtenido = recibirPayloadPaquete(header, conexion);
+	log_obtener_pedido_comanda(pedido_obtenido, req_obtener_pedido);
+	free(req_obtener_pedido);
+	free(pedido_obtenido);
+	free(header);
+}
+
 void finalizarPedido(char *nombreRestaurante, int idPedido) {
 	t_request *req_fin_pedido = getTRequest(idPedido, nombreRestaurante);
 
@@ -416,7 +429,7 @@ void initVariablesGlobales() {
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
-	dataCliente->ip_cliente = config_get_string_value(config, "IP");
+	dataCliente->ip_cliente = config_get_string_value(config, "IP_CLIENTE");
 	dataCliente->puerto_cliente = config_get_int_value(config, "PUERTO_ESCUCHA");
 	dataCliente->socket_notifs = ERROR;
 	dataCliente->socketCliente = ERROR;
@@ -427,7 +440,11 @@ void initCliente() {
     conexion = conectarseA(CLIENTE);
 	obtenerNombreServidor();
 	initVariablesGlobales();
-	enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente);
+	if (procesoServidor != SINDICATO) {
+		enviarPaquete(conexion, CLIENTE, ENVIAR_DATACLIENTE, dataCliente);
+	} else {
+		enviarPaquete(conexion, CLIENTE, ENVIAR_NOMBRE, dataCliente->idCliente);		
+	}
 }
 
 int main(int argc, char* argv[]) {

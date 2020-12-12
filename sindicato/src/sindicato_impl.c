@@ -91,13 +91,13 @@ bool existe_plato_en_pedido(char *plato, t_pedido *pedido) {
 
 int buscar_bloque_libre_y_ocupar() {
     for (int i = 0; i < blocksQuantity; i++) {
-		int currentBit = bitarray_test_bit(bitarray, i); log_bit_state(i, currentBit);
+		int currentBit = bitarray_test_bit(bitarray, i); //log_bit_state(i, currentBit);
         if (!currentBit) { // Si no está ocupado, lo reservamos
             bitarray_set_bit(bitarray, i);
 			log_bit_update(i, bitarray);
             return i;
         } else {
-			log_unavailable_bit(i);
+			//log_unavailable_bit(i);
 		}
     }
 }

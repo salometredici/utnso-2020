@@ -202,26 +202,22 @@ void *atenderConexiones(void *conexionNueva)
 
 void *planificar(void *arg) {
 	int queuePosition = (int)arg;
-	// TODO: Semáforo
 	t_queue_obj *currentCPU = list_get(queuesCocineros, queuePosition);
 	log_planif_step("Hilo afinidad", currentCPU->afinidad);
+
 	while (1) {
+		sleep(5);
+		// Largo plazo
+		actualizarQB(currentCPU);
+		actualizarQRaQE(currentCPU);		
+		ejecutarCicloIO(currentCPU);
+
 		switch (algoritmoSeleccionado) {
 			case FIFO:
-				// Largo plazo
-				actualizarQB(currentCPU);
-				actualizarQRaQE(currentCPU);
-				ejecutarCicloIO(currentCPU);
-				
 				// Corto plazo
 				ejecutarCiclosFIFO(currentCPU);
 				break;
 			case RR:
-				// Largo plazo //se pueden reutilizar??
-				actualizarQB(currentCPU);
-				actualizarQRaQE(currentCPU);		
-				ejecutarCicloIO(currentCPU);
-
 				// Corto plazo
 				ejecutarCiclosRR(currentCPU);
 				break;
@@ -236,6 +232,7 @@ startPlanificacion(){
 	for(int i = 0; i < size; i++) {
 		pthread_t threadPlanificacionAfinidad;
 		pthread_create(&threadPlanificacionAfinidad, NULL, (void*)planificar, i);
+		pthread_detach(threadPlanificacionAfinidad);
 	}
 }
 

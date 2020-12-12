@@ -13,7 +13,7 @@ t_result* _guardar_pedido(t_request *request){
 		int id_pedido = request->idPedido;
 
 		if(restaurante_creado == NULL){
-			t_result * result = getTResult("[GUARDAR_PEDIDO] Fail.", true);
+			t_result * result = getTResult("[GUARDAR_PEDIDO] Fail. No se pudo creer el restaurante", true);
 			return result;
 		}
 
@@ -21,21 +21,21 @@ t_result* _guardar_pedido(t_request *request){
 
 		add_pedido_to_restaurante(restaurante_creado, pedido);
 
-		t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);		
+		t_result * result = getTResult("[GUARDAR_PEDIDO] Ok. Se creo el Restaurante y se agrego el pedido", false);		
 		return result;
 	}
 
 	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
 	if (pedido) {
-		t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Se ha creado un pedido con ese numero.", true);	
+		t_result *result = getTResult("[FINALIZAR_PEDIDO] Fail. Ya se ha creado un pedido con ese numero.", true);	
 		return result;
 	}
 
 	t_pedidoc *pedido_creado = crear_pedido(request->idPedido); 
 	add_pedido_to_restaurante(rest, pedido_creado);
 	
-	t_result * result = getTResult("[GUARDAR_PEDIDO] Ok.", false);	
+	t_result * result = getTResult("[GUARDAR_PEDIDO] Ok. Se agrego el pedido al restaurante", false);	
 	return result;
 }
 
@@ -60,7 +60,7 @@ t_result* _guardar_plato(t_req_plato *request){
 	t_restaurante *rest = find_restaurante(request->restaurante);	
 
 	if(rest == NULL){
-		t_result * result = getTResult("[GUARDAR_PLATO] Fail. SEGFAULT. No existe el segmento", true);	
+		t_result * result = getTResult("[GUARDAR_PLATO] Fail. SEGFAULT. No existe el restaurante", true);	
 		return result;
 	}
 	
@@ -85,21 +85,10 @@ t_result* _guardar_plato(t_req_plato *request){
 		if(plato_creado != NULL){
 			list_add(pedido->pages, plato_creado);
 
+			print_pages_in_memory();
 			print_swap();
 			print_memory();
-			
-			/*Validarrrrr si se guardo
-			t_page *plato_enc = find_plato(pedido, request->plato);
-			
-			if(1){
-				t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
-				return result;
-			}
-			else{
-				t_result * result = getTResult("[GUARDAR_PLATO] Fail. Somenthing went wrong.", true);				
-				return result;
-			}*/
-
+		
 			t_result * result = getTResult("[GUARDAR_PLATO] Ok.", false);					
 			return result;
 		}
@@ -112,6 +101,7 @@ t_result* _guardar_plato(t_req_plato *request){
 		return result;
 	}
 
+	print_pages_in_memory();
 	print_swap();
 	print_memory();
 	t_result *result = getTResult("[GUARDAR_PLATO] Ok", false);
@@ -160,6 +150,7 @@ t_pedido* _obtener_pedido(t_request* request){
 	pedido_info->precioTotal = 0; //ver que onda por que comanda no tiene esa info	
 
 	list_destroy_and_destroy_elements(marcos, &free);
+	print_pages_in_memory();
 	print_swap();
 	print_memory();
 	return pedido_info;
@@ -176,7 +167,7 @@ t_result* _confirmar_pedido(t_request *request){
 	t_restaurante *rest = find_restaurante(request->nombre);	
 
 	if(rest == NULL){
-		t_result *result = getTResult("[CONFIRMAR_PEDIDO] Fail. SEGFAULT. No existe el segmento", true);	
+		t_result *result = getTResult("[CONFIRMAR_PEDIDO] Fail. SEGFAULT. No existe el restaurante", true);	
 		return result;
 	}
 	
@@ -231,27 +222,33 @@ t_result* _plato_listo(t_plato_listo* request) {
 	t_restaurante *rest = find_restaurante(request->restaurante);
 
 	if (rest == NULL) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe tabla de segmentos.", true);	
+		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe el restaurante.", true);	
 		return result;
 	}
 
 	t_pedidoc *pedido = find_pedido(rest, request->idPedido);
 
 	if (pedido == NULL) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe segmento.", true);	
+		t_result *result = getTResult("[PLATO_LISTO] Fail. No existe el pedido.", true);	
 		return result;
 	}
 
 	if (pedido->estado != CONFIRMADO) {
-		t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar.", true);	
-		return result;
+		if(pedido->estado == PENDIENTE){
+			t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar. Se encuentra en estado PENDIENTE", true);	
+			return result;
+		}
+		else if(pedido->estado == TERMINADO){
+			t_result *result = getTResult("[PLATO_LISTO] Fail. Pedido sin confirmar. Se encuentra en estado TERMINADO", true);	
+			return result;
+		}
 	}
 
 	// Buscar nombre_plato_listo en pages del pedido
 	t_page *pl_page = find_plato(pedido, request->plato);
 
 	if(pl_page == NULL){
-		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", false);
+		t_result* result = getTResult("[PLATO_LISTO] Fail. No existe el plato", true);
 		return result;
 	}
 
@@ -270,16 +267,18 @@ t_result* _plato_listo(t_plato_listo* request) {
 
 		list_destroy_and_destroy_elements(marcos, &free);
 
-		if(value){
+		if(value){	
+			print_pages_in_memory();			
 			print_swap();
 			print_memory();
 			pedido->estado = TERMINADO;
-			t_result *result = getTResult("[PLATO_LISTO] Ok.Todos los platos estan terminados. Se termino el pedido", false);	
+			t_result *result = getTResult("[PLATO_LISTO] Ok. Todos los platos estan terminados. Se termino el pedido", false);	
 			return result;
 		}
 
 	}
 
+	print_pages_in_memory();
 	print_swap();
 	print_memory();
 	t_result *result = getTResult("[PLATO_LISTO] Ok.", false);	
@@ -311,12 +310,11 @@ t_result* _finalizar_pedido(t_request* request){
 	free_pages(pedido->pages);
 
 	if(pedido->pages){
-		//free(pedido);
 		delete_pedido_from_restaurant(rest->pedidos, request->idPedido);
 		t_result *result = getTResult("[FINALZAR_PEDIDO] Ok.", false);	
 		return result;
 	}
 
-	t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Somethin wen wrong", false);	
+	t_result *result = getTResult("[FINALZAR_PEDIDO] Fail. Somethin wen wrong", true);	
 	return result;
 }

@@ -29,7 +29,7 @@ void aReadyPorAfinidad(t_proceso *pcb) {
 		pthread_mutex_lock(&encontrado->mutexQR);
 			queue_push(encontrado->qR, pcb); 
 		pthread_mutex_unlock(&encontrado->mutexQR);
-		log_planif_step("agregado a Queue", encontrado->afinidad);
+		log_planif_step("a queue de Afinidad", pcb->plato);
 	} else {
 		bool esGeneral(void *element){
 			t_queue_obj *actual = element;
@@ -39,7 +39,7 @@ void aReadyPorAfinidad(t_proceso *pcb) {
 		pthread_mutex_lock(&general->mutexQR);
 			queue_push(general->qR, pcb);
 		pthread_mutex_unlock(&general->mutexQR);
-		log_planif_step("agregado a Queue", "GENERAL");
+		log_planif_step("a Queue GENERAL", pcb->plato);
 	} 
 }
 
@@ -79,7 +79,7 @@ void actualizarQB(t_queue_obj *currentCPU) {
 					pthread_mutex_lock(&currentCPU->mutexQR);
 					queue_push(currentCPU->qR,sigARevisar);
 					pthread_mutex_unlock(&currentCPU->mutexQR);
-					log_planif_step("de bloqueado", "A EJECUCION");
+					log_planif_step("de bloqueado A EJECUCION", sigARevisar->plato);
 				// }
 				
 			} else {
@@ -132,13 +132,13 @@ void ejecutarCicloIO(t_queue_obj *currentCPU) {
 				sigARevisar->qInstruccionActual = pasoSig->qPaso;
 				sigARevisar->qEjecutada = 0;
 				if (string_equals_ignore_case(pasoSig->paso, "REPOSAR")) {
-					log_planif_step("de IO", "A BLOQUEADO");
+					log_planif_step("de IO A BLOQUEADO", sigARevisar->plato);
 					sigARevisar->estado = REPOSANDO;
 					pthread_mutex_lock(&currentCPU->mutexQB);
 					queue_push(currentCPU->qB, sigARevisar);
 					pthread_mutex_unlock(&currentCPU->mutexQB);
 				} else{
-					log_planif_step("de IO", "A READY");
+					log_planif_step("de IO A READY", sigARevisar->plato);
 					aReadyPorAfinidad(sigARevisar); //agrego a ready slds
 				}
 			} else {
@@ -169,7 +169,7 @@ void ejecutarCicloIO(t_queue_obj *currentCPU) {
 			pthread_mutex_lock(&mutexEjecutaIO);
 				queue_push(ejecutandoIO,proceso);
 			pthread_mutex_unlock(&mutexEjecutaIO);
-			log_planif_step("de esperando IO", "A EJECUCION");
+			log_planif_step("de esperando IO A EJECUCION", proceso->plato);
 		}
 	}
 }
@@ -195,7 +195,7 @@ t_cliente *get_t_cliente(t_list *lista_conectados, char *buscado) {
 
 void ejecutarFinalizar(t_proceso *currentProc){
 	currentProc->estado = DONE;
-	log_planif_step("agregado a Queue", "FINALIZADO");
+	log_planif_step("a Queue FINALIZADO", currentProc->plato);
 	pthread_mutex_lock(&mutexQF);
 	queue_push(qF,currentProc);
 	pthread_mutex_unlock(&mutexQF);
@@ -366,7 +366,7 @@ void ejecutarCiclosRR(t_queue_obj *currentCPU) {
 			pthread_mutex_lock(&currentCPU->mutexQR);
 			queue_push(currentCPU->qR, currentProc);
 			pthread_mutex_unlock(&currentCPU->mutexQR);
-			log_planif_step("Salio de ejecucion", "por QUANTUM");
+			log_planif_step("salio de ejecucion por QUANTUM", currentProc->plato);
 		} else {
 			pthread_mutex_lock(&currentCPU->mutexQE);
 			queue_push(currentCPU->qE,currentProc);

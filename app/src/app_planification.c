@@ -384,7 +384,7 @@ t_pcb *prox_to_exec_HRRN() {
 	
 	t_queue *new_QR = queue_create(); 
 	
-	for (int i = 0; i < qSize; i++) {
+	for (int i = 0; i < qSize -1; i++) {
 		t_pcb *current_PCB = queue_pop(qR);
 		int tasa_rta_actual = obtener_tasa_rta(current_PCB);
 		if (tasa_rta_actual > tasa_rta_max) {

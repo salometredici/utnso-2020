@@ -126,7 +126,7 @@ void *threadLecturaConsola(void *args) {
 							platoListo(parametro1, atoi(parametro2), parametro3);
 							break;
 						case OBTENER_PEDIDO:
-							obtenerPedido(parametro1, atoi(parametro2));
+							obtener_pedido_comanda(parametro1, atoi(parametro2));
 							break;
 						case FINALIZAR_PEDIDO:
 							finalizarPedido(parametro1, atoi(parametro2));
@@ -379,6 +379,19 @@ void obtenerPedido(char *nombreRestaurante, int idPedido) {
 
 	t_pedido *pedido_obtenido = recibirPayloadPaquete(header, conexion);
 	log_rta_ObtenerPedido(pedido_obtenido, req_obtener_pedido);
+	free(req_obtener_pedido);
+	free(pedido_obtenido);
+	free(header);
+}
+
+void obtener_pedido_comanda(char *nombreRestaurante, int idPedido) {
+	t_request *req_obtener_pedido = getTRequest(idPedido, nombreRestaurante);
+
+	enviarPaquete(conexion, CLIENTE, OBTENER_PEDIDO, req_obtener_pedido);
+	t_header *header = recibirHeaderPaquete(conexion);
+
+	t_pedido *pedido_obtenido = recibirPayloadPaquete(header, conexion);
+	log_obtener_pedido_comanda(pedido_obtenido, req_obtener_pedido);
 	free(req_obtener_pedido);
 	free(pedido_obtenido);
 	free(header);

@@ -547,6 +547,31 @@ void log_rta_ObtenerPedido(t_pedido *pedido, t_request *request) {
 	}
 }
 
+void log_obtener_pedido_comanda(t_pedido *pedido, t_request *request){
+	switch (pedido->estado) {
+		case CONFIRMADO:
+		case TERMINADO:
+		case FINALIZADO:
+			printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET", Precio Total: "BOLD"$%d"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+			log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado), pedido->precioTotal);
+			log_t_plato_list(pedido->platos);
+		break;
+		case PENDIENTE:
+			if (list_is_empty(pedido->platos)) {
+				printf(TAB YELLOW"[WARNING]"RESET BOLD" PENDIENTE"RESET" - %s - [%s, Pedido #%d]"BREAK, NO_HAY_PLATOS, request->nombre, request->idPedido);
+				log_error(logger, "Pedido %d, Restaurante %s - PENDIENTE - %s", request->idPedido, request->nombre, NO_HAY_PLATOS);
+			} else {
+				printf("["BOLDCYAN"Pedido #%d"RESET"] - Estado: "BOLD"%s"RESET BREAK, request->idPedido, getStringEstadoPedido(pedido->estado));
+				log_info(logger, "[Pedido #%d] - Estado: %s, Precio Total: $%d", request->idPedido, getStringEstadoPedido(pedido->estado));
+				log_t_plato_list(pedido->platos);
+			}
+			break;
+		default:
+			break;
+	}
+	
+}
+
 // PLATO_LISTO
 
 void log_PlatoListo(t_plato_listo *req_plato) {

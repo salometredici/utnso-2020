@@ -114,6 +114,7 @@ void log_ConfirmarPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ConfirmarPedido(t_result *result);
 void log_ObtenerPedido(t_request *request, m_code codigo_operacion);
 void log_rta_ObtenerPedido(t_pedido *pedido_obtenido, t_request *request);
+void log_obtener_pedido_comanda(t_pedido *pedido, t_request *request);
 void log_rta_GuardarPedido(t_result *result);
 void log_ConsultarPlatos_a_rest(char *rest);
 void log_ConsultarPlatos_default(t_list *platos_rest_default);

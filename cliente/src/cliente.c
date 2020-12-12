@@ -429,7 +429,7 @@ void initVariablesGlobales() {
 	dataCliente->posCliente = malloc(sizeof(t_posicion));
 	dataCliente->posCliente->posX = config_get_int_value(config, "POSICION_X");
 	dataCliente->posCliente->posY = config_get_int_value(config, "POSICION_Y");
-	dataCliente->ip_cliente = config_get_string_value(config, "IP");
+	dataCliente->ip_cliente = config_get_string_value(config, "IP_CLIENTE");
 	dataCliente->puerto_cliente = config_get_int_value(config, "PUERTO_ESCUCHA");
 	dataCliente->socket_notifs = ERROR;
 	dataCliente->socketCliente = ERROR;

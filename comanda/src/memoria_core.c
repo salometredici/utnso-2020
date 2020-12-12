@@ -392,9 +392,11 @@ void write_frame_memory(char* comida, uint32_t cantidad_pedida, uint32_t cantida
 	memcpy(frame, &cantidad_pedida, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t), &cantidad_lista, sizeof(uint32_t));
 	memcpy(frame + sizeof(uint32_t) + sizeof(uint32_t), comida, size_char);
-	
+
+	log_info(logger,"---------------------------------------------------");	
 	log_info(logger, "En el frame %d de mp se inserta el plato %s - cantidad_pedida: %d - cantidad_lista: %d", frame_number, comida, cantidad_pedida, cantidad_lista);
-	
+	log_info(logger,"---------------------------------------------------");
+		
 	pthread_mutex_unlock(&write_memory);
 }
 

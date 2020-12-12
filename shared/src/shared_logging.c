@@ -960,11 +960,13 @@ void log_find_victim(){
 }
 
 void log_mp_full(){
+	log_info(logger,"---------------------------------------------------");	
 	log_info(logger, "No hay espacio en la memoria.... hacer swap");
 	printf(TAB BOLDRED "No hay espacio en la memoria.... hacer swap\n" BREAK RESET);	
 }
 
 void log_swap_full(){
+	log_info(logger,"---------------------------------------------------");	
 	log_info(logger, "No hay espacio en swap ...");
 	printf(TAB BOLDRED"No hay espacio en swap ..." BREAK RESET);	
 }

@@ -13,5 +13,6 @@
 #include "tests.h"
 
 void init_comanda();
+void print_init_structure();
 
 #endif

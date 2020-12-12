@@ -104,8 +104,9 @@ int main(int argc, char **argv) {
     socketServidor = iniciarServidor();
 	
 	init_comanda();
-
-    int fd;
+	print_init_structure();
+    
+	int fd;
     while (1) {
         fd = aceptarCliente(socketServidor);
         if (fd != -1) {

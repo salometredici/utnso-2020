@@ -1,5 +1,21 @@
 #include "../include/comanda_init.h"
 
+void print_init_structure(){
+	printf(CYAN"→ Tamanio de MP: "BOLDCYAN"%d"RESET BREAK, MEMORY_SIZE);
+	printf(CYAN"→ Cant. de frames de MP: " BOLDCYAN"%d"RESET BREAK, frames);
+	printf(CYAN"→ Tamanio de SWAP: "BOLDCYAN"%d"RESET BREAK, SWAP_SIZE);
+	printf(CYAN"→ Cant. de frames de SWAP: "BOLDCYAN"%d"RESET BREAK, swap_frames);
+	printf(CYAN"→ Algoritmo de reemplazo: "BOLDCYAN"%s"RESET BREAK, ALGORITMO_REEMPLAZO);
+
+	log_info(logger,"---------------------------------------------------");	
+	log_info(logger, "→ Tamanio de MP: %d", MEMORY_SIZE);
+	log_info(logger, "→ Cant. de frames de MP: %d", frames);
+	log_info(logger, "→ Tamanio de SWAP: %d", SWAP_SIZE);
+	log_info(logger, "→ Cant. de frames de SWAP: %d", swap_frames);
+	log_info(logger, "→ Algoritmo de reemplazo: %s", ALGORITMO_REEMPLAZO);
+	log_info(logger,"---------------------------------------------------");		
+}
+
 void init_variables() {
     SWAP_SIZE = config_get_int_value(config, "TAMANIO_SWAP");
     MEMORY_SIZE = config_get_int_value(config, "TAMANIO_MEMORIA");
